@@ -2,16 +2,16 @@ import Image from "next/image";
 import React from "react";
 
 const NavItems = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Programs", href: "/programs" },
-  { label: "Admissions", href: "/admissions" },
-  { label: "Contact", href: "/contact" },
+  { label: "Beranda", href: "/" },
+  { label: "Tentang Sekolah", href: "/about" },
+  { label: "Program & Kegiatan", href: "/programs" },
+  { label: "PPDB", href: "/admissions" },
+  { label: "Informasi", href: "/contact" },
 ];
 
 export const PPDBHeader: React.FC = () => {
   return (
-    <header className="fixed bg-white text-[#2D2D2D] shadow-lg w-full px-10 py-4">
+    <header className="fixed bg-white text-[#2D2D2D] shadow-lg w-full px-10 py-4 z-100">
       <div className="w-full flex flex-row border justify-between">
         <div className="w-1/4 flex flex-row items-center justify-start border">
           <Image
@@ -38,7 +38,7 @@ export const PPDBHeader: React.FC = () => {
             ))}
           </div>
           <button className="w-fit px-3 py-1 bg-[#014921] text-white rounded">
-            Contact Us
+            Daftar Sekarang
           </button>
         </div>
       </div>
