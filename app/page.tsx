@@ -6,6 +6,7 @@ import { WhyChooseUs } from "@/components/LandingPage/WhyChooseUs";
 import { SchoolLocation } from "./components/LandingPage/SchoolLocation";
 import { RegistrationPathSection } from "@/components/LandingPage/RegistrationPathSection";
 import { RegistrationRequirementsSection } from "@/components/LandingPage/RegistrationRequirementsSection";
+import { BrochureSection } from "./components/LandingPage/BrochureSection";
 
 export default function LandingPage() {
   // Data untuk Registration Path Section
@@ -137,6 +138,9 @@ export default function LandingPage() {
 
       {/* Lokasi Sekolah */}
       <SchoolLocation />
+
+      {/* Info Brosur */}
+      <BrochureSection />
     </main>
   );
 }

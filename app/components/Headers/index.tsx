@@ -16,7 +16,7 @@ export const Header: React.FC = () => {
   return (
     <header className="fixed bg-white text-[#2D2D2D] shadow-lg w-full px-10 py-4 z-100">
       <div className="w-full flex flex-row justify-between">
-        <div className="w-[40%] flex flex-row items-center justify-start">
+        <div className="w-[36%] flex flex-row items-center justify-start">
           <Image
             src="/header/logo.png"
             alt="PPDB Logo"
@@ -32,19 +32,22 @@ export const Header: React.FC = () => {
             </div>
           )}
         </div>
-        <div className="w-[60%] flex flex-row items-center justify-end">
+        <div className="w-[64%] flex flex-row items-center justify-end">
           <div className="w-full flex flex-row space-x-8">
             {NavItems.map((item) => (
               <div key={item.label} className="relative group/nav">
                 <a
                   href={item.href}
-                  className="flex flex-row justify-center items-center text-sm font-medium text-[#2D2D2D] hover:text-[#014921] transition-all duration-200 ease-in-out"
+                  className="relative flex flex-row justify-center items-center text-sm font-medium text-[#2D2D2D] hover:text-[#014921] transition-colors duration-200 ease-in-out
+                  after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-[#014921] 
+                  after:transition-all after:duration-300 after:ease-in-out
+                  hover:after:w-full"
                 >
                   {item.label}
                   {item.children ? (
                     <MdOutlineArrowDropDown
                       size={20}
-                      className="group-hover:-rotate-90"
+                      className="group-hover:-rotate-90 transition-transform duration-200 ease-in-out ml-1"
                     />
                   ) : (
                     ""
@@ -52,7 +55,7 @@ export const Header: React.FC = () => {
                 </a>
                 {item?.children && (
                   <div
-                    className="absolute left-0 top-full mt-0 w-fit min-w-40 bg-white shadow-lg rounded-md p-4 border
+                    className="absolute left-0 top-full mt-0 w-fit min-w-54 bg-white shadow-lg drop-shadow-gray-300 border border-gray-200 rounded-md p-4
                     opacity-0 translate-y-2 pointer-events-none invisible
                     transition-all duration-200 ease-out
                     group-hover/nav:opacity-100 group-hover/nav:translate-y-0 group-hover/nav:pointer-events-auto group-hover/nav:visible
@@ -62,9 +65,11 @@ export const Header: React.FC = () => {
                       <a
                         key={child.label}
                         href={child.href}
-                        className="block px-4 py-2 text-sm text-[#2D2D2D]
-                        hover:bg-[#014921] hover:text-white rounded
-                        transition-colors duration-200 ease-in-out"
+                        className="
+                        w-fit relative flex flex-row mb-4 last:mb-0 justify-left items-center text-sm font-medium text-[#2D2D2D] hover:text-[#014921] transition-colors duration-200 ease-in-out
+                        after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-[#014921] 
+                        after:transition-all after:duration-300 after:ease-in-out
+                        hover:after:w-full"
                       >
                         {child.label}
                       </a>

@@ -46,16 +46,16 @@ export const VacationTotal: React.FC = () => {
       <SectionTitle
         title="Jumlah Pendaftar per Jurusan"
         subtitle="Daftar pendaftar diperbarui secara berkala selama masa PPDB  berlangsung"
-        align="left"
+        align="center"
       />
-      <div className="w-full h-full flex justify-center items-center py-6 border border-[#014921] rounded-lg">
+      {/* <div className="w-full h-full flex justify-center items-center py-6 border border-[#014921] rounded-lg">
         <h1 className="text-2xl font-semibold text-[#014921]">
           Pendaftar Tervalidasi:
         </h1>
         <span className="bg-[#56B680] px-2 py-0.5 rounded ml-2">
           <h1 className="text-2xl text-white">150</h1>
         </span>
-      </div>
+      </div> */}
       <div className="w-full border border-gray-100 grid grid-cols-2 gap-10 px-32">
         {vacationList.map((item, index) => (
           <VacationCard key={index} item={item} index={index} />

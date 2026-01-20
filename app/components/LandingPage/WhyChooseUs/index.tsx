@@ -14,7 +14,7 @@ export const WhyChooseUs: React.FC = () => {
         <div className="w-4/10 h-full ">
           <div className="w-full h-full bg-gray-300 rounded-2xl"></div>
         </div>
-        <div className="w-6/10 h-full py-20 px-12">
+        <div className="w-6/10 h-full py-20 px-10">
           <div className="w-full h-full flex justify-center items-center">
             <ol className="w-full space-y-12">
               {[
@@ -23,14 +23,11 @@ export const WhyChooseUs: React.FC = () => {
                 "Fasilitas modern: Lab, perpustakaan, ruang multimedia, Wi-Fi",
                 "Pembinaan prestasi akademik & non-akademik",
               ].map((item, index) => (
-                <li
-                  key={index}
-                  className="w-full flex flex-row items-center space-x-6"
-                >
-                  <div className="w-10 h-10 rounded-full bg-[#AADAC045] flex justify-center items-center">
+                <li key={index} className="w-full flex flex-row items-center">
+                  <div className="w-10 h-10 min-w-10 rounded-full bg-[#AADAC045] flex justify-center items-center shrink-0">
                     <FaCheck size={24} />
                   </div>
-                  <p className="text-lg">{item}</p>
+                  <p className="text-lg ml-6 text-justify">{item}</p>
                 </li>
               ))}
             </ol>

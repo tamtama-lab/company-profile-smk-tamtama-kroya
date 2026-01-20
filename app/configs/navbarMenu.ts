@@ -1,3 +1,4 @@
+
 export const NavItems = [
   { label: "Beranda", href: "/" },
   {
@@ -22,5 +23,8 @@ export const NavItems = [
       { label: "Syarat Pendaftaran", href: "/ppdb/prestasi" },
       { label: "Statistik Pendaftar", href: "/ppdb/alumni" },
     ] },
-  { label: "Informasi", href: "/informasi" },
+  { label: "Informasi", href: "/informasi", children: [
+      { label: "Lokasi Sekolah", href: "/informasi/lokasi-sekolah" },
+      { label: "Kontak", href: "/informasi/kontak" },
+  ] },
 ];

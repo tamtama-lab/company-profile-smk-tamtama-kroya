@@ -36,11 +36,11 @@ export const RegistrationPathSection: React.FC<
       <div className="w-full h-[80vh] rounded-2xl border border-gray-200 p-6 flex flex-col space-y-6 bg-white">
         {/* Tabs Navigation */}
         <div className="flex flex-col bg-gray-200 w-full rounded-full sm:flex-row justify-center">
-          {tabs.map((tab) => (
+          {tabs.map((tab, index) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full px-8 py-3 rounded-full font-semibold transition-all duration-300 ${
+              className={`w-full px-8 py-3 rounded-full ${index === 0 ? "rounded-l-full rounded-r-none" : "rounded-l-none rounded-r-full"} font-semibold transition-all duration-300 ${
                 activeTab === tab.id
                   ? "bg-[#1B5E20] text-white shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"

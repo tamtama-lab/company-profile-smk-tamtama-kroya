@@ -1,16 +1,19 @@
 import { GiGraduateCap } from "react-icons/gi";
+const currentYear = new Date().getFullYear();
 
 export const HeroSection: React.FC = () => {
   return (
-    <section className="w-full h-[80vh] bg-[#F5F5F5] text-primary flex flex-row items-center justify-center px-56 pt-20">
+    <section className="w-full h-fit min-h-[80vh] bg-[#F5F5F5] text-primary flex flex-row items-center justify-center px-48 pt-20">
       <div className="w-full h-[90%] flex flex-row justify-between">
         {/* Text Section */}
-        <div className="relative w-[60%] flex flex-col items-center justify-center py-10">
+        <div className="relative h-full w-[60%] flex flex-col items-center justify-center py-10">
           <div className="w-full h-full flex-col space-y-4">
             <h2 className="text-xl">Selamat Datang di</h2>
             <h1 className="text-3xl text-[#2D2D2D] font-semibold">
-              Portal Penerimaan Peserta Didik Baru (PPDB) SMK Tamtama Kroya 2026
-              / 2027
+              Portal Penerimaan Peserta Didik Baru
+            </h1>
+            <h1 className="text-3xl text-[#2D2D2D] font-semibold">
+              (PPDB) SMK Tamtama Kroya {currentYear} / {currentYear + 1}
             </h1>
             <h2 className="text-xl text-[#014921]">
               🏅SMK Pusat Keunggulan (PK)
@@ -20,7 +23,7 @@ export const HeroSection: React.FC = () => {
               membekali keterampilan, karakter, dan kesiapan menghadapi dunia
               kerja dan masa depan.
             </h3>
-            <div className="w-full space-x-10 flex flex-row">
+            <div className="w-full space-x-6 flex flex-row">
               <button className="bg-[#014921] text-white border w-full h-fit py-2 rounded-sm">
                 Daftar Sekarang
               </button>
