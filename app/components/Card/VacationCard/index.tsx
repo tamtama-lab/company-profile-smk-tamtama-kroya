@@ -8,6 +8,7 @@ interface VacationItem {
   description: string;
   total: number;
   precentage: number;
+  quota: number;
 }
 
 export default function VacationCard({
@@ -31,10 +32,9 @@ export default function VacationCard({
       )}
       <div className="flex flex-row justify-start items-center space-x-6">
         <div
-          className="w-20 h-20 rounded-md flex justify-center items-center flex-shrink-0"
+          className="w-20 h-20 rounded-md flex justify-center items-center"
           style={{
-            backgroundColor: item.color,
-            opacity: 0.1,
+            backgroundColor: item.color + "20",
           }}
         >
           <div className="text-4xl text-gray-700">{item.icon}</div>
@@ -50,14 +50,22 @@ export default function VacationCard({
         </div>
       </div>
       <div className="w-full mt-4 space-y-3 border-t-2 border-gray-300">
-        <div className="flex flex-row space-x-3 justify-start items-center mt-1">
-          <h3
-            className="font-bold text-xl rounded-sm"
-            style={{ color: item.color }}
-          >
-            {item.total}
-          </h3>
-          <h3>Total Pendaftar</h3>
+        <div className="flex flex-row space-x-3 justify-start items-center mt-2">
+          <div className="flex flex-row space-x-3 justify-start items-center border-r-2 pr-3 border-gray-300">
+            <h3
+              className="font-bold text-xl rounded-sm"
+              style={{ color: item.color }}
+            >
+              {item.total}
+            </h3>
+            <h3>Total Pendaftar</h3>
+          </div>
+          <div className="flex flex-row space-x-3 justify-start items-center ">
+            <h3>Kuota:</h3>
+            <h3 className="font-semibold text-lg rounded-sm text-[#FF8E8E]">
+              {item.quota} Siswa
+            </h3>
+          </div>
         </div>
         <div className="relative w-full h-6 bg-gray-200 rounded-sm overflow-hidden">
           <div

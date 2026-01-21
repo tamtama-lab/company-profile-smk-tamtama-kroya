@@ -3,6 +3,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { MdOutlineArrowDropDown } from "react-icons/md";
+import { TextButton } from "../Buttons/TextButton";
 
 const currentYear = new Date().getFullYear();
 
@@ -39,7 +40,7 @@ export const Header: React.FC = () => {
                 <a
                   href={item.href}
                   className="relative flex flex-row justify-center items-center text-sm font-medium text-[#2D2D2D] hover:text-[#014921] transition-colors duration-200 ease-in-out
-                  after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-[#014921] 
+                  after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-primary 
                   after:transition-all after:duration-300 after:ease-in-out
                   hover:after:w-full"
                 >
@@ -67,7 +68,7 @@ export const Header: React.FC = () => {
                         href={child.href}
                         className="
                         w-fit relative flex flex-row mb-4 last:mb-0 justify-left items-center text-sm font-medium text-[#2D2D2D] hover:text-[#014921] transition-colors duration-200 ease-in-out
-                        after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-[#014921] 
+                        after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-primary 
                         after:transition-all after:duration-300 after:ease-in-out
                         hover:after:w-full"
                       >
@@ -79,9 +80,14 @@ export const Header: React.FC = () => {
               </div>
             ))}
           </div>
-          <button className="min-w-fit px-3 py-2 bg-[#014921] text-white rounded">
+          <TextButton
+            type="primary"
+            text="Daftar Sekarang"
+            className="min-w-fit w-fit px-3 py-2"
+          />
+          {/* <button className="min-w-fit px-3 py-2 bg-primary text-white rounded">
             Daftar Sekarang
-          </button>
+          </button> */}
         </div>
       </div>
     </header>

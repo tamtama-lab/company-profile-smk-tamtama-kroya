@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+:root {
+    --primary-color: #014921;
+    --secondary-color: #56B680;
+    --tertiary-color: #FF8E8E;
+    --accesnt-color: #F5A623;
+
+}
+
 * {
     button {
         @apply cursor-pointer;
@@ -17,4 +25,61 @@ html {
 
 section[id] {
     scroll-margin-top: 10vh;
+}
+
+@layer components {
+
+    /* declare background color variables */
+    .bg-primary {
+        @apply bg-(--primary-color);
+    }
+
+    .bg-secondary {
+        @apply bg-(--secondary-color);
+    }
+
+    .bg-tertiary {
+        @apply bg-(--tertiary-color);
+    }
+
+    .bg-accent {
+        @apply bg-(--accesnt-color);
+    }
+
+    /* declare text color variables */
+
+    .text-primary {
+        @apply text-(--primary-color);
+    }
+
+    .text-secondary {
+        @apply text-(--secondary-color);
+    }
+
+    .text-tertiary {
+        @apply text-(--tertiary-color);
+    }
+
+    .text-accent {
+        @apply text-(--accesnt-color);
+    }
+
+    /* declare border color variables */
+
+    .border-primary {
+        @apply border-(--primary-color);
+    }
+
+    .border-secondary {
+        @apply border-(--secondary-color);
+    }
+
+    .border--tertiary {
+        @apply border-(--tertiary-color);
+    }
+
+    .border--accent {
+        @apply border-(--accesnt-color);
+    }
+
 }

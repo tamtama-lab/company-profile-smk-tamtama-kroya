@@ -34,7 +34,7 @@ export const PathCard = ({
 }) => {
   return (
     <div className="flex flex-col justify-between p-2 border border-gray-300 min-h-28 h-fit rounded-lg">
-      <p className="text-lg font-bold text-[#014921]">{grade}</p>
+      <p className="text-lg font-bold text-primary">{grade}</p>
       <p>{description}</p>
       {isLocked ? (
         <div className="w-full h-fit flex justify-between items-center">
@@ -48,7 +48,7 @@ export const PathCard = ({
       ) : (
         <div className="w-full h-fit flex justify-between items-center">
           <p className="text-sm">
-            Status : <span className="text-[#014921] font-semibold">BUKA</span>
+            Status : <span className="text-primary font-semibold">BUKA</span>
           </p>
           <div className="w-8 h-8 flex justify-center items-center rounded-md bg-gray-100">
             <MdLockOpen size={20} color="#014921" />
@@ -122,7 +122,7 @@ export const RegistrationRequirementsSection: React.FC<
               </div>
               <div className="w-1/10 h-100 relative">
                 <div className="absolute w-full h-full flex items-center justify-around flex-col space-y-6 z-10">
-                  <div className="w-10 h-10 text-white rounded-full flex justify-center items-center text-xl font-bold bg-[#014921]">
+                  <div className="w-10 h-10 text-white rounded-full flex justify-center items-center text-xl font-bold text-primary">
                     01
                   </div>
                   <div className="w-10 h-10 text-white rounded-full flex justify-center items-center text-xl font-bold bg-[#56B680]">

@@ -18,20 +18,20 @@ const scrollToTop = () => {
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="h-fit bg-[#014921] text-white shadow-lg w-full flex flex-col">
+    <footer className="h-fit bg-primary text-white shadow-lg w-full flex flex-col">
       <div className="h-full w-full grid grid-cols-2 px-36 py-12 gap-x-16 gap-y-5 mb-10">
-        <div className="w-full col-span-2 flex flex-row justify-start items-center border border-[#014921] gap-3">
+        <div className="w-full col-span-2 flex flex-row justify-start items-center border border-primary gap-3">
           <Image
             src="/header/logo.png"
             alt="PPDB Logo"
             width={40}
             height={40}
           />
-          <h1 className="text-2xl font-semibold text-amber-500">
+          <h1 className="text-2xl font-semibold text-accent">
             SMK TAMTAMA KROYA
           </h1>
         </div>
-        <div className="w-full h-full border border-[#014921] flex flex-col justify-between">
+        <div className="w-full h-full border border-primary flex flex-col justify-between">
           <h2>Siap Kerja • Siap Mandiri • Siap Bersaing.</h2>
           <p>
             SMK Tamtama Kroya berkomitmen menghadirkan pendidikan vokasional
@@ -59,7 +59,7 @@ export const Footer: React.FC = () => {
             ].map((social, index) => (
               <div
                 key={index}
-                className="w-10 h-10 bg-[#56B680] group rounded-md flex items-center justify-center"
+                className="w-10 h-10 bg-secondary group rounded-md flex items-center justify-center"
               >
                 <a
                   href={social.link}
@@ -83,7 +83,7 @@ export const Footer: React.FC = () => {
             <p className="group-hover:font-semibold">Back to Top</p>
           </button>
         </div>
-        <div className="w-full h-full border border-[#014921] grid grid-cols-2">
+        <div className="w-full h-full border border-primary grid grid-cols-2">
           <div>
             <h2 className="mb-6">ShotCut Link</h2>
             <div className="w-full h-fit space-y-2">
@@ -122,7 +122,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="h-10 bottom-0 self-baseline bg-amber-400 text-[#014921] w-full flex flex-row justify-center items-center text-sm font-medium">
+      <div className="h-10 bottom-0 self-baseline bg-accent text-primary w-full flex flex-row justify-center items-center text-sm font-medium">
         Copyright © {currentYear}, SMK Tamtama Kroya, All Right Reserved
       </div>
     </footer>

@@ -1,3 +1,4 @@
+import { TextButton } from "@/components/Buttons/TextButton";
 import { GiGraduateCap } from "react-icons/gi";
 const currentYear = new Date().getFullYear();
 
@@ -24,12 +25,8 @@ export const HeroSection: React.FC = () => {
               kerja dan masa depan.
             </h3>
             <div className="w-full space-x-6 flex flex-row">
-              <button className="bg-[#014921] text-white border w-full h-fit py-2 rounded-sm">
-                Daftar Sekarang
-              </button>
-              <button className="border w-full bg-white border-gray-300 h-fit py-2 rounded-sm">
-                Lihat Jurusan
-              </button>
+              <TextButton type="primary" text="Daftar Sekarang" width="full" />
+              <TextButton type="secondary" text="Lihat Jurusan" width="full" />
             </div>
           </div>
           <div className="absolute -left-16 top-9">
