@@ -5,7 +5,7 @@
     --secondary-color: #56B680;
     --tertiary-color: #FF8E8E;
     --accesnt-color: #F5A623;
-
+    --black-color: #2D2D2D;
 }
 
 * {
@@ -13,9 +13,11 @@
         @apply cursor-pointer;
     }
 
-    h1 {
+    h1,
+    h4 {
         @apply font-bold;
     }
+
 }
 
 /* Smooth scroll behavior dengan offset untuk section links */
@@ -31,18 +33,34 @@ section[id] {
 
     /* declare background color variables */
     .bg-primary {
-        @apply bg-(--primary-color);
+        background-color: var(--primary-color);
+    }
+
+    .bg-primary::after,
+    .bg-primary:after {
+        background-color: var(--primary-color);
     }
 
     .bg-secondary {
-        @apply bg-(--secondary-color);
+        background-color: var(--secondary-color);
+    }
+
+    .bg-secondary::after,
+    .bg-secondary:after {
+        background-color: var(--secondary-color);
     }
 
     .bg-tertiary {
-        @apply bg-(--tertiary-color);
+        background-color: var(--tertiary-color);
     }
 
-    .bg-accent {
+    .bg-tertiary::after,
+    .bg-tertiary:after {
+        background-color: var(--tertiary-color);
+    }
+
+    .bg-accent,
+    .bg-accent::after {
         @apply bg-(--accesnt-color);
     }
 
@@ -62,6 +80,10 @@ section[id] {
 
     .text-accent {
         @apply text-(--accesnt-color);
+    }
+
+    .text-black {
+        @apply text-(--black-color);
     }
 
     /* declare border color variables */

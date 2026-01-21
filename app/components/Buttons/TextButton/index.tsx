@@ -4,7 +4,7 @@ export const TextButton: React.FC<{
   text: string;
   type: string;
   className?: string;
-  width?: "full" | "half";
+  width?: "full" | "half" | "fit";
 }> = ({ text, type, className, width }) => {
   let defaultStyle = "";
   switch (type) {
@@ -17,7 +17,7 @@ export const TextButton: React.FC<{
   }
   return (
     <button
-      className={`${width === "full" ? "w-full" : width === "half" ? "w-1/2" : ""} ${defaultStyle} ${className ?? ""}`}
+      className={`${width === "full" ? "w-full" : width === "half" ? "w-1/2" : width === "fit" ? "w-fit" : ""} ${defaultStyle} ${className ?? ""} hover:scale-105 transition-transform duration-200 ease-in-out`}
     >
       {text}
     </button>

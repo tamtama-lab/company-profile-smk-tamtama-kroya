@@ -21,7 +21,7 @@ export default function VacationCard({
   return (
     <div
       key={index}
-      className={`relative w-full border border-gray-400 hover:shadow-md border-l-10 h-60 rounded-xl p-10 flex flex-col justify-between transition-all duration-300 ease-in-out`}
+      className={`relative w-full border border-gray-300 border-l-10 h-60 rounded-xl p-10 flex flex-col justify-between transition-all duration-300 ease-in-out`}
       style={{ borderLeftColor: item.color }}
     >
       {item.isPopular && (

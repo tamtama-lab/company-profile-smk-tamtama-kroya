@@ -85,7 +85,7 @@ export const Footer: React.FC = () => {
         </div>
         <div className="w-full h-full border border-primary grid grid-cols-2">
           <div>
-            <h2 className="mb-6">ShotCut Link</h2>
+            <h4 className="mb-6">ShotCut Link</h4>
             <div className="w-full h-fit space-y-2">
               {navFooterSection.map((item) => (
                 <a
@@ -103,7 +103,7 @@ export const Footer: React.FC = () => {
             </div>
           </div>
           <div>
-            <h2 className="mb-6">Page</h2>
+            <h4 className="mb-6">Page</h4>
             <div className="w-full h-fit space-y-2">
               {navFooterPage.map((item) => (
                 <a

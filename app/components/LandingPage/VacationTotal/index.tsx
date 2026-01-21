@@ -63,7 +63,7 @@ export const VacationTotal: React.FC<{ id?: string }> = ({ id }) => {
           <h1 className="text-2xl text-white">150</h1>
         </span>
       </div> */}
-      <div className="w-full border border-gray-100 grid grid-cols-2 gap-10 px-32">
+      <div className="w-full grid grid-cols-2 gap-10 px-32">
         {vacationList.map((item, index) => (
           <VacationCard key={index} item={item} index={index} />
         ))}

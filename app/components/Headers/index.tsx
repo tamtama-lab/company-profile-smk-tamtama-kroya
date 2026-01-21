@@ -15,7 +15,7 @@ export const Header: React.FC = () => {
   const isPPDBRoute = ppdbRoutes.some((route) => pathname.startsWith(route));
 
   return (
-    <header className="fixed bg-white text-[#2D2D2D] shadow-lg w-full px-10 py-4 z-100">
+    <header className="fixed bg-white text-black shadow-lg w-full px-10 py-4 z-100">
       <div className="w-full flex flex-row justify-between">
         <div className="w-[36%] flex flex-row items-center justify-start">
           <Image
@@ -39,8 +39,8 @@ export const Header: React.FC = () => {
               <div key={item.label} className="relative group/nav">
                 <a
                   href={item.href}
-                  className="relative flex flex-row justify-center items-center text-sm font-medium text-[#2D2D2D] hover:text-[#014921] transition-colors duration-200 ease-in-out
-                  after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-primary 
+                  className="relative flex flex-row justify-center items-center text-sm font-medium text-black hover:text-primary transition-colors duration-200 ease-in-out
+                  after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-[#014921] 
                   after:transition-all after:duration-300 after:ease-in-out
                   hover:after:w-full"
                 >
@@ -67,8 +67,8 @@ export const Header: React.FC = () => {
                         key={child.label}
                         href={child.href}
                         className="
-                        w-fit relative flex flex-row mb-4 last:mb-0 justify-left items-center text-sm font-medium text-[#2D2D2D] hover:text-[#014921] transition-colors duration-200 ease-in-out
-                        after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-primary 
+                        w-fit relative flex flex-row mb-4 last:mb-0 justify-left items-center text-sm font-medium text-black hover:text-primary transition-colors duration-200 ease-in-out
+                        after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-[#014921] 
                         after:transition-all after:duration-300 after:ease-in-out
                         hover:after:w-full"
                       >
@@ -84,6 +84,7 @@ export const Header: React.FC = () => {
             type="primary"
             text="Daftar Sekarang"
             className="min-w-fit w-fit px-3 py-2"
+            width="fit"
           />
           {/* <button className="min-w-fit px-3 py-2 bg-primary text-white rounded">
             Daftar Sekarang
