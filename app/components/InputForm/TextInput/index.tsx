@@ -162,7 +162,7 @@ export const InputTextArea: React.FC<{
         }`}
         placeholder={placeholder}
         maxLength={limit}
-        rows={4}
+        rows={6}
       />
     </div>
   );

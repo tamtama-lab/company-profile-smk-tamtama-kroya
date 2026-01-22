@@ -2,10 +2,11 @@
 
 import { TextButton } from "@/components/Buttons/TextButton";
 import SelectInput from "@/components/InputForm/SelectInput";
-import { InputText } from "@/components/InputForm/TextInput";
+import { InputText, InputTextArea } from "@/components/InputForm/TextInput";
 import React, { useState } from "react";
 
 interface BiodataOrangTuaForm {
+  alamat: string;
   namaAyah: string;
   kondisiAyah: string;
   namaIbu: string;
@@ -26,10 +27,13 @@ export const BiodataOrangTua: React.FC<BiodataOrangTuaProps> = ({
     kondisiAyah: "",
     namaIbu: "",
     kondisiIbu: "",
+    alamat: "",
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -50,7 +54,7 @@ export const BiodataOrangTua: React.FC<BiodataOrangTuaProps> = ({
         memiliki tanda <span className="text-red-500 font-semibold">(*)</span>{" "}
         merupakan data yang wajib diisi
       </div>
-      <div className="grid grid-cols-2 gap-x-5">
+      <div className="grid grid-cols-2 gap-x-5 *:last:col-span-2">
         <InputText
           label="Nama Ayah"
           name="namaAyah"
@@ -90,6 +94,14 @@ export const BiodataOrangTua: React.FC<BiodataOrangTuaProps> = ({
           ]}
           placeholder="Pilih Kondisi Ibu Anda"
           isMandatory
+        />
+        <InputTextArea
+          label="Alamat"
+          name="alamat"
+          value={formData.alamat}
+          placeholder="Masukkan Alamat Domisili Orang Tua Anda "
+          isMandatory
+          onChange={handleChange}
         />
       </div>
 

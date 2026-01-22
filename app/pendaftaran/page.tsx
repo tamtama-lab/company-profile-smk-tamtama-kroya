@@ -122,7 +122,7 @@ export default function RegistrationPage() {
   };
 
   return (
-    <main className="min-h-screen bg-linear-to-b from-white to-gray-50">
+    <main className="min-h-screen bg-linear-to-b from-white to-gray-50 mt-10">
       <div className="w-full p-20">
         {activeTab === "Biodata Siswa" && (
           <div className="w-full">

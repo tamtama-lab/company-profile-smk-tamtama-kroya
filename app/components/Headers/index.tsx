@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import React, { useState } from "react";
 import { MdOutlineArrowDropDown, MdMenu, MdClose } from "react-icons/md";
 import { TextButton } from "../Buttons/TextButton";
+import Link from "next/link";
 
 const currentYear = new Date().getFullYear();
 
@@ -29,12 +30,14 @@ export const Header: React.FC = () => {
     >
       <div className="w-full flex flex-row justify-between items-center">
         <div className="w-auto sm:w-[36%] flex flex-row items-center justify-start">
-          <Image
-            src="/header/logo.png"
-            alt="logo-smk-tamtama-kroya"
-            width={40}
-            height={40}
-          />
+          <Link href="/">
+            <Image
+              src="/header/logo.png"
+              alt="logo-smk-tamtama-kroya"
+              width={40}
+              height={40}
+            />
+          </Link>
           {isPPDBRoute && (
             <div className="hidden sm:flex flex-col ml-3">
               <h1 className="text-sm sm:text-base font-bold">

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState } from "react";
 import { MdMenu, MdClose } from "react-icons/md";
@@ -16,14 +17,16 @@ export const Header: React.FC = () => {
 
   return (
     <header className="fixed bg-white text-black shadow-lg w-full px-4 sm:px-6 lg:px-10 py-3 sm:py-4 z-100 top-0">
-      <div className="w-full hidden flex flex-row justify-between items-center">
+      <div className="w-full flex flex-row justify-between items-center">
         <div className="w-auto sm:w-[36%] flex flex-row items-center justify-start">
-          <Image
-            src="/header/logo.png"
-            alt="logo-smk-tamtama-kroya"
-            width={40}
-            height={40}
-          />
+          <Link href="/">
+            <Image
+              src="/header/logo.png"
+              alt="logo-smk-tamtama-kroya"
+              width={40}
+              height={40}
+            />
+          </Link>
           {isPPDBRoute && (
             <div className="hidden sm:flex flex-col ml-3">
               <h1 className="text-sm sm:text-base font-bold">
