@@ -47,7 +47,7 @@ export const RegistrationPathSection: React.FC<
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full px-4 sm:px-8 py-2 sm:py-3 rounded-full max-sm:rounded-full ${index === 0 ? "rounded-l-full rounded-r-none " : "rounded-l-none rounded-r-full"} font-semibold transition-all duration-300 text-sm sm:text-base ${
+              className={`w-full px-4 sm:px-8 py-2 sm:py-3 rounded-full ${index === 0 ? "rounded-l-full rounded-r-none " : "rounded-l-none rounded-r-full"} font-semibold transition-all duration-300 text-sm sm:text-base ${
                 activeTab === tab.id
                   ? "bg-[#1B5E20] text-white shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"

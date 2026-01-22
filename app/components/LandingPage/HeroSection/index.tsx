@@ -36,8 +36,16 @@ export const HeroSection: React.FC = () => {
               </h3>
             </ScrollAnimationWrapper>
             <ScrollAnimationWrapper className="w-full space-x-6 flex flex-row">
-              <TextButton type="primary" text="Daftar Sekarang" width="full" />
-              <TextButton type="secondary" text="Lihat Jurusan" width="full" />
+              <TextButton
+                variant="primary"
+                text="Daftar Sekarang"
+                width="full"
+              />
+              <TextButton
+                variant="secondary"
+                text="Lihat Jurusan"
+                width="full"
+              />
             </ScrollAnimationWrapper>
           </div>
           {/* <ScrollAnimationWrapper className="absolute max-sm:hidden -left-16 max-sm:-left-12 lg:top-0 max-sm:top-0">

@@ -16,7 +16,7 @@ export const Header: React.FC = () => {
 
   return (
     <header className="fixed bg-white text-black shadow-lg w-full px-4 sm:px-6 lg:px-10 py-3 sm:py-4 z-100 top-0">
-      <div className="w-full flex flex-row justify-between items-center">
+      <div className="w-full hidden flex flex-row justify-between items-center">
         <div className="w-auto sm:w-[36%] flex flex-row items-center justify-start">
           <Image
             src="/header/logo.png"

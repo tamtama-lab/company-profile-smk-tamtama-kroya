@@ -108,7 +108,7 @@ export const Header: React.FC = () => {
           </div>
           <TextButton
             onClick={routeToRegistration}
-            type="primary"
+            variant="primary"
             text="Daftar Sekarang"
             className="min-w-fit w-fit px-3 h-fit py-3 md:text-sm ml-6"
             width="fit"
@@ -176,7 +176,7 @@ export const Header: React.FC = () => {
           <div className="mt-4 pt-4 border-t border-gray-200">
             <TextButton
               onClick={routeToRegistration}
-              type="primary"
+              variant="primary"
               text="Daftar Sekarang"
               className="w-full text-sm"
               width="full"

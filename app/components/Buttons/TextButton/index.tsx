@@ -2,13 +2,13 @@ import React from "react";
 
 export const TextButton: React.FC<{
   text: string;
-  type: string;
+  variant: "primary" | "secondary";
   className?: string;
   onClick?: () => void;
   width?: "full" | "half" | "fit";
-}> = ({ text, type, className, onClick, width }) => {
+}> = ({ text, variant, className, onClick, width }) => {
   let defaultStyle = "";
-  switch (type) {
+  switch (variant) {
     case "primary":
       defaultStyle =
         "bg-primary text-white border h-fit py-2 sm:py-2 px-3 sm:px-4 text-sm sm:text-base rounded-sm font-medium hover:opacity-90";

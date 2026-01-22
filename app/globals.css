@@ -18,6 +18,14 @@
         @apply font-bold;
     }
 
+    input:checked,
+    input:checked:hover,
+    input[type="radio"]:checked:hover,
+    input[type="checkbox"]:checked:hover {
+        @apply accent-(--primary-color);
+    }
+
+
 }
 
 /* Smooth scroll behavior dengan offset untuk section links */
