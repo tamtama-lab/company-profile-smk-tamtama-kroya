@@ -4,6 +4,14 @@ import { GiGraduateCap } from "react-icons/gi";
 const currentYear = new Date().getFullYear();
 
 export const HeroSection: React.FC = () => {
+  const handleRegistrationRoute = () => {
+    window.location.href = "/pendaftaran";
+  };
+
+  const handleDepartmentRoute = () => {
+    window.location.href = "/jurusan";
+  };
+
   return (
     <section className="w-full h-fit min-h-[80vh] bg-[#F5F5F5] text-primary flex flex-row items-center justify-center px-48 max-sm:px-8 max-md:px-16 max-lg:px-12 max-xl:px-40 py-10">
       <div className="w-full h-full flex flex-row max-sm:flex-col justify-between items-center">
@@ -23,7 +31,6 @@ export const HeroSection: React.FC = () => {
               </h1>
             </ScrollAnimationWrapper>
             <ScrollAnimationWrapper>
-              {" "}
               <h2 className="text-xl max-sm:text-lg text-[#014921]">
                 🏅SMK Pusat Keunggulan (PK)
               </h2>
@@ -40,11 +47,13 @@ export const HeroSection: React.FC = () => {
                 variant="primary"
                 text="Daftar Sekarang"
                 width="full"
+                onClick={handleRegistrationRoute}
               />
               <TextButton
-                variant="secondary"
+                variant="outline"
                 text="Lihat Jurusan"
                 width="full"
+                onClick={handleDepartmentRoute}
               />
             </ScrollAnimationWrapper>
           </div>

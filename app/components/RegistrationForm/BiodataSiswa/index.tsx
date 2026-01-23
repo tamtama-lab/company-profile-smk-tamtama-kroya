@@ -11,6 +11,7 @@ import {
   InputTextArea,
 } from "@/components/InputForm/TextInput";
 import React, { useState } from "react";
+import { MandatoryLabel } from "../MandatoryLabel";
 
 interface BiodataSiswaForm {
   adaKip: string;
@@ -34,6 +35,8 @@ interface BiodataSiswaForm {
 
 interface BiodataSiswaProps {
   onNext: (data: BiodataSiswaForm) => void;
+  onPrev: () => void;
+  onCancel?: () => void;
 }
 
 const smpOptions = [
@@ -44,7 +47,11 @@ const smpOptions = [
   "MTs Negeri Kroya",
 ];
 
-export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({ onNext }) => {
+export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
+  onNext,
+  onPrev,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState<BiodataSiswaForm>({
     nama: "",
     nik: "",
@@ -84,12 +91,8 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({ onNext }) => {
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <div className="w-full h-fit bg-green-400/10 text-black px-4 py-1 rounded-md mb-6">
-        <span className="text-red-500 font-semibold">Note:</span> data yang
-        memiliki tanda <span className="text-red-500 font-semibold">(*)</span>{" "}
-        merupakan data yang wajib diisi
-      </div>
-      <div className="grid grid-cols-2 gap-x-5 gap-y-5">
+      <MandatoryLabel notes="Data yang memiliki tanda (*) merupakan data yang wajib diisi" />
+      <div className="grid grid-cols-2 gap-x-5 max-sm:grid-cols-1 gap-y-5">
         <InputText
           label="Nama Lengkap (Sesuai KK)"
           name="nama"
@@ -206,12 +209,28 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({ onNext }) => {
           isMandatory
         />
       </div>
-
-      <div className="flex justify-end gap-4">
+      <div className="flex justify-between gap-4 mt-10 max-sm:grid max-sm:grid-cols-1 max-sm:gap-y-3">
+        <div className="flex gap-6 max-sm:justify-between">
+          <TextButton
+            variant="secondary"
+            text="Kembali"
+            className="px-8 py-2"
+            onClick={onPrev}
+          />
+          {onCancel && (
+            <TextButton
+              variant="outline"
+              text="Batal"
+              className="px-8 py-2"
+              onClick={onCancel}
+            />
+          )}
+        </div>
         <TextButton
           variant="primary"
           text="Selanjutnya"
           className="px-8 py-2"
+          isSubmit
         />
       </div>
     </form>

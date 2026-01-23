@@ -38,14 +38,6 @@ export const Header: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* Mobile menu button */}
-        <button
-          className="lg:hidden text-primary"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {isMenuOpen ? <MdClose size={24} /> : <MdMenu size={24} />}
-        </button>
       </div>
     </header>
   );

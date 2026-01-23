@@ -10,8 +10,8 @@ export const RadioInput: React.FC<{
   // If options are provided, render as a radio group
   if (options && options.length > 0) {
     return (
-      <div className="mb-4">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+      <div className="mb-4 max-sm:mb-1">
+        <label className="block text-sm max-sm:text-xs font-semibold text-gray-700 mb-2">
           {label} {isMandatory && <span className="text-red-500">*</span>}
         </label>
         <div className="flex flex-col gap-4 border border-gray-300 rounded-sm p-4">
@@ -27,9 +27,9 @@ export const RadioInput: React.FC<{
                 checked={value === option.value}
                 onChange={onChange}
                 required={isMandatory}
-                className="w-5 h-5 border-gray-300 focus:outline-none focus:ring-0.5 focus:ring-primary focus:border-transparent rounded-full"
+                className="w-5 h-5 max-sm:w-4 max-sm:h-4 border-gray-300 focus:outline-none focus:ring-0.5 focus:ring-primary focus:border-transparent rounded-full"
               />
-              <span className="text-gray-700">{option.label}</span>
+              <span className="text-gray-700 max-sm:text-xs">{option.label}</span>
             </label>
           ))}
         </div>

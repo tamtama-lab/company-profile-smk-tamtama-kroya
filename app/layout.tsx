@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { HeaderWrapper } from "./components/Headers/HeaderWrapper";
-import { BsWhatsapp } from "react-icons/bs";
-import { Footer } from "./components/Footer";
+import LayoutWrapper from "./Layout/LayoutWrapper";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -19,10 +17,6 @@ export const metadata: Metadata = {
   },
 };
 
-const message =
-  "Halo, tolong infokan terkait pendaftaran di SMK Tamtama Kroya ";
-const encodedMessage = encodeURIComponent(message);
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,17 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
-        <HeaderWrapper />
-        {children}
-        <a
-          href={`https://wa.me/6281325767718?text=${encodedMessage}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed z-50 drop-shadow-xl bottom-4 md:right-8 right-2 bg-[#25d366] p-2 md:mr-4 md:mb-8 rounded-full flex items-center justify-center hover:scale-105 transition-transform"
-        >
-          <BsWhatsapp size={30} color="white" />
-        </a>
-        <Footer />
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );

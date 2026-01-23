@@ -1,71 +1,90 @@
 "use client";
 
+import { TextButton } from "@/components/Buttons/TextButton";
 import React from "react";
+import { LuFileText } from "react-icons/lu";
 
 interface SelesaiProps {
   onSubmit: () => void;
   onPrev: () => void;
+  onCancel?: () => void;
 }
 
-export const Selesai: React.FC<SelesaiProps> = ({ onSubmit, onPrev }) => {
+export const Selesai: React.FC<SelesaiProps> = ({ onPrev, onCancel }) => {
   return (
-    <div className="w-full max-w-2xl mx-auto text-center">
-      {/* Success Icon */}
-      <div className="mb-6 flex justify-center">
-        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center">
-          <svg
-            className="w-12 h-12 text-green-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+    <div className="w-full">
+      <div className="w-full max-sm:text-xs">
+        <div className="bg-amber-100 border border-blue-200 rounded-lg p-4 text-left flex flex-col space-y-6 ">
+          <div className="w-full">
+            <p className=" text-gray-700">
+              <span className="font-semibold text-primary">Selamat</span> Anda
+              telah menyelesaikan seluruh tahapan pengisian formulir pendaftaran
+            </p>
+            <p className="text-primary font-bold">
+              Calon Murid Baru SMK Tamtama Kroya.
+            </p>
+          </div>
+          <div className="w-full">
+            <p className=" text-gray-700">
+              Silakan periksa kembali seluruh data yang telah diisi.
+            </p>
+            <p className=" text-gray-700">
+              Jika sudah sesuai dan yakin, tekan tombol Kirim untuk
+              menyelesaikan proses pendaftaran.
+            </p>
+          </div>
+        </div>
+        <div className="bg-white border-b border-blue-200 rounded-none p-4 text-left flex flex-col space-y-6 ">
+          <div className="w-full">
+            <span className="font-bold text-primary">Catatan Penting:</span>
+            <p className=" text-gray-700">
+              Setelah menekan tombol{" "}
+              <span className="text-primary font-bold">Kirim</span> sistem akan
+              mengirimkan{" "}
+              <span className="text-primary font-bold">
+                File Bukti Pendaftaran
+              </span>{" "}
+              ke alamat email yang telah dimasukkan saat proses pendaftaran
+            </p>
+          </div>
+          <div className="w-full">
+            Simpan file tersebut dan tunjukkan kepada panitia pendaftaran saat
+            proses daftar ulang di{" "}
+            <span className="text-primary font-bold">SMK Tamtama Kroya.</span>
+          </div>
         </div>
       </div>
 
-      <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-        Pendaftaran Berhasil!
-      </h2>
-      <p className="text-gray-600 mb-4">
-        Terima kasih telah melakukan pendaftaran di SMK Tamtama Kroya.
-      </p>
-      <p className="text-gray-600 mb-6">
-        Data Anda telah kami terima. Tim sekolah akan segera menghubungi Anda
-        untuk tahap selanjutnya.
-      </p>
-
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-        <p className="text-sm text-gray-700">
-          <span className="font-semibold">📧 Email Konfirmasi:</span> Kami akan
-          mengirimkan email konfirmasi ke alamat email Anda yang terdaftar.
-        </p>
-        <p className="text-sm text-gray-700 mt-2">
-          <span className="font-semibold">📱 WhatsApp:</span> Hubungi kami via
-          WhatsApp untuk pertanyaan lebih lanjut.
-        </p>
-      </div>
-
       {/* Buttons */}
-      <div className="flex justify-between gap-4">
-        <button
-          type="button"
-          onClick={onPrev}
-          className="px-8 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
-        >
-          Kembali
-        </button>
-        <button
-          onClick={onSubmit}
-          className="px-8 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors"
-        >
-          Selesai
-        </button>
+      <div className="flex justify-between gap-4 mt-10 max-sm:grid max-sm:grid-cols-1 max-sm:gap-y-3">
+        <div className="flex gap-6 max-sm:justify-between">
+          <TextButton
+            variant="secondary"
+            text="Kembali"
+            className="px-8 py-2"
+            onClick={onPrev}
+          />
+          <TextButton
+            variant="outline"
+            icon={<LuFileText />}
+            text="Lihat Detail Data"
+            className="px-8 py-2"
+          />
+        </div>
+        <div className="flex gap-6">
+          <TextButton
+            variant="outline-danger"
+            text="Kosongkan Formulir"
+            className="px-8 py-2"
+            onClick={onPrev}
+          />
+          <TextButton
+            variant="primary"
+            text="Konfirmasi Pendaftaran"
+            className="px-8 py-2"
+            isSubmit
+          />
+        </div>
       </div>
     </div>
   );

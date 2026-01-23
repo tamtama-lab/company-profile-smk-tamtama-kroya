@@ -1,33 +1,84 @@
 "use client";
 
 import React, { useState } from "react";
+import { MandatoryLabel } from "../MandatoryLabel";
+import SelectInput from "@/components/InputForm/SelectInput";
+import { TextButton } from "@/components/Buttons/TextButton";
 
 interface PilihJurusanForm {
-  jurusanPilihan1: string;
-  jurusanPilihan2: string;
+  jurusanDipilih: string;
 }
 
 interface PilihJurusanProps {
   onNext: (data: PilihJurusanForm) => void;
   onPrev: () => void;
+  onCancel?: () => void;
 }
 
 export const PilihJurusan: React.FC<PilihJurusanProps> = ({
   onNext,
   onPrev,
+  onCancel,
 }) => {
   const [formData, setFormData] = useState<PilihJurusanForm>({
-    jurusanPilihan1: "",
-    jurusanPilihan2: "",
+    jurusanDipilih: "",
   });
 
-  const jurusanOptions = [
-    "Teknik Komputer dan Jaringan",
-    "Rekayasa Perangkat Lunak",
-    "Multimedia",
-    "Bisnis dan Pemasaran Digital",
-    "Otomatisasi Industri",
+  const jurusanData = [
+    {
+      label: "Teknik Kendaraan Ringan (TKR)",
+      value: "tkr",
+      image: "/ppdb/tkr.jpg",
+      prospects: [
+        "Mekanik / Teknisi",
+        "Supervisor",
+        "Operator Produksi",
+        "Service Advisor",
+        "Wirausaha (Toko Sparepart, Bengkel Motor dan Mobil)",
+        "Modificator Otomotif",
+      ],
+    },
+    {
+      label: "Teknik Instalasi Tenaga Listrik (TITL)",
+      value: "titl",
+      image: "/ppdb/titl.jpg",
+      prospects: [
+        "Wirausaha",
+        "Teknisi Kontrol Industri",
+        "Teknisi AC Mobil",
+        "Teknisi TV dan Elektronik",
+        "Teknisi Jaringan Listrik",
+      ],
+    },
+    {
+      label: "Teknik Pemesinan (TP)",
+      value: "tp",
+      image: "/ppdb/tp.jpg",
+      prospects: [
+        "Programmer CNC, Bubur dan Milling",
+        "Wirausaha (Bengkel Las, Bubur, dan CNC)",
+        "Operator Produksi",
+      ],
+    },
+    {
+      label: "Desain Komunikasi Visual (DKV)",
+      value: "dkv",
+      image: "/ppdb/dkv.jpg",
+      prospects: [
+        "Editor",
+        "Programmer",
+        "Content Creator",
+        "Media Audio Visual",
+        "Game Developer",
+        "Fotografer",
+        "Videografer",
+      ],
+    },
   ];
+
+  const selectedJurusan = jurusanData.find(
+    (j) => j.value === formData.jurusanDipilih,
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -43,70 +94,86 @@ export const PilihJurusan: React.FC<PilihJurusanProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
-      {/* Info Box */}
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-gray-700 text-sm">
-          📢 Pilih dua jurusan pilihan sesuai dengan minat dan bakat Anda.
-          Jurusan pertama adalah pilihan utama Anda.
-        </p>
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="grid grid-cols-1">
+        <MandatoryLabel notes="Note: Pilih jurusan yang paling sesuai dengan minat dan rencana masa depanmu 😊" />
+        <SelectInput
+          label="Jurusan yang Diminati"
+          name="jurusanDipilih"
+          value={formData.jurusanDipilih}
+          onChange={handleChange}
+          options={jurusanData.map((jurusan) => ({
+            value: jurusan.value,
+            label: jurusan.label,
+          }))}
+          placeholder="Silahkan pilih jurusan"
+          isMandatory
+        />
       </div>
 
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Jurusan Pilihan 1 (Utama) *
-        </label>
-        <select
-          name="jurusanPilihan1"
-          value={formData.jurusanPilihan1}
-          onChange={handleChange}
-          required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-        >
-          <option value="">Pilih Jurusan Utama</option>
-          {jurusanOptions.map((jurusan) => (
-            <option key={jurusan} value={jurusan}>
-              {jurusan}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Career Prospects Section */}
+      {selectedJurusan && (
+        <div className="mt-8 max-sm:mt-3 w-full">
+          <div className="overflow-hidden flex flex-col justify-center items-center  rounded-lg">
+            {/* Image */}
+            <div className="w-[90%] max-sm:w-full rounded-2xl max-sm:rounded-sm h-64 sm:h-80 lg:h-96 bg-gray-300 overflow-hidden">
+              {/* <img
+                src={selectedJurusan.image}
+                alt={selectedJurusan.label}
+                className="w-full h-full object-cover"
+              /> */}
+            </div>
 
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Jurusan Pilihan 2 (Alternatif) *
-        </label>
-        <select
-          name="jurusanPilihan2"
-          value={formData.jurusanPilihan2}
-          onChange={handleChange}
-          required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-        >
-          <option value="">Pilih Jurusan Alternatif</option>
-          {jurusanOptions.map((jurusan) => (
-            <option key={jurusan} value={jurusan}>
-              {jurusan}
-            </option>
-          ))}
-        </select>
-      </div>
+            {/* Prospects Content */}
+            <div className="p-6 max-sm:p-3 bg-white w-full justify-start">
+              <h3 className="text-center max-sm:text-left font-semibold text-xl max-sm:text-lg text-primary mb-2">
+                {selectedJurusan.label}
+              </h3>
+              <h3 className="text-lg max-sm:text-base font-bold text-primary mb-4">
+                Prospek Lulusan
+              </h3>
+              <ul className="space-y-3">
+                {selectedJurusan.prospects.map((prospect, index) => (
+                  <li
+                    key={index}
+                    className="flex max-sm:text-xs items-start gap-3 text-gray-700"
+                  >
+                    {/* <span className="shrink-0 w-6 h-6 rounded-full bg-secondary text-white flex items-center justify-center text-sm font-semibold">
+                     
+                    </span> */}
+                    {index + 1}. {prospect}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Buttons */}
-      <div className="flex justify-between gap-4">
-        <button
-          type="button"
-          onClick={onPrev}
-          className="px-8 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
-        >
-          Kembali
-        </button>
-        <button
-          type="submit"
-          className="px-8 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors"
-        >
-          Lanjutkan
-        </button>
+      <div className="flex justify-between gap-4 mt-10 max-sm:grid max-sm:grid-cols-1 max-sm:gap-y-3">
+        <div className="flex gap-6 max-sm:justify-between">
+          <TextButton
+            variant="secondary"
+            text="Kembali"
+            className="px-8 py-2"
+            onClick={onPrev}
+          />
+          {onCancel && (
+            <TextButton
+              variant="outline"
+              text="Batal"
+              className="px-8 py-2"
+              onClick={onCancel}
+            />
+          )}
+        </div>
+        <TextButton
+          variant="primary"
+          text="Selanjutnya"
+          className="px-8 py-2"
+          isSubmit
+        />
       </div>
     </form>
   );

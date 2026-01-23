@@ -32,14 +32,16 @@ export const Footer: React.FC = () => {
           </h1>
         </div>
         <div className="w-full h-full border border-primary flex flex-col justify-between max-md:space-y-6">
-          <h2 className="text-sm sm:text-base">
-            Siap Kerja • Siap Mandiri • Siap Bersaing.
-          </h2>
-          <p className="text-xs sm:text-sm leading-relaxed">
-            SMK Tamtama Kroya berkomitmen menghadirkan pendidikan vokasional
-            berkualitas dengan pembelajaran berbasis praktik dan industri, guna
-            mencetak lulusan berkarakter, kompeten, dan siap kerja.
-          </p>
+          <div className="w-full ">
+            <h2 className="text-sm sm:text-base mb-4 sm:mb-6">
+              Siap Kerja • Siap Mandiri • Siap Bersaing.
+            </h2>
+            <p className="text-xs sm:text-sm leading-relaxed">
+              SMK Tamtama Kroya berkomitmen menghadirkan pendidikan vokasional
+              berkualitas dengan pembelajaran berbasis praktik dan industri,
+              guna mencetak lulusan berkarakter, kompeten, dan siap kerja.
+            </p>
+          </div>
           <div className="w-fit grid grid-cols-4 gap-3 sm:gap-4 lg:gap-6 justify-start items-center">
             {[
               {

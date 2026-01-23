@@ -107,8 +107,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   };
 
   return (
-    <div className="mb-4" ref={dropdownRef}>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
+    <div className="mb-4 max-sm:mb-1" ref={dropdownRef}>
+      <label className="block text-sm max-sm:text-xs font-semibold text-gray-700 mb-2">
         {label} {isMandatory && <span className="text-red-500">*</span>}
       </label>
 
@@ -143,7 +143,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
             value={searchValue || (value && isValueInOptions ? value : "")}
             onChange={handleSearchChange}
             onFocus={() => setIsOpen(true)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+            max-sm:px-2  max-sm:text-xs"
             placeholder={placeholder}
             required={isMandatory && !value}
             autoComplete="off"
