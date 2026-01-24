@@ -223,17 +223,13 @@ export default function LandingPage() {
   const adminList = [
     {
       number: "6281325767718",
-      label: "0813-2576-7718",
+      label: "Admin 1 : 0813-2576-7718",
       adminName: "(WR)",
     },
-    {
-      number: "082221857717",
-      label: "0822-2185-7717",
-      adminName: "(Sutardi)",
-    },
+
     {
       number: "088215261410",
-      label: "0882-1526-1410",
+      label: "Admin 2 : 0882-1526-1410",
       adminName: "(Anas)",
     },
   ];

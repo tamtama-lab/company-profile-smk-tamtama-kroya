@@ -67,9 +67,9 @@ export const ContactAndSocial: React.FC<{
         align="center"
       />
 
-      <div className="w-full h-full py-16 px-36 border rounded-none overflow-hidden border-gray-300 bg-white grid grid-cols-2 grid-rows-3 max-md:grid-cols-1 max-md:px-3 max-md:py-8 max-md:space-y-0 gap-6 max-md:gap-0">
+      <div className="w-full h-full py-16 px-36 border rounded-none overflow-hidden border-gray-300 bg-white grid grid-cols-2 grid-rows-3 max-md:grid-cols-1 max-lg:grid-cols-1 max-md:px-3 max-lg:px-10 max-md:py-8 max-md:space-y-0 gap-6 max-md:gap-0">
         {/* sisi kiri */}
-        <div className="w-full h-full flex flex-col row-span-3 max-md:grid max-md:grid-cols-2 border-r-2 max-md:border-none border-gray-300 max-md:justify-around justify-around max-md:space-y-6 px-4 max-md:px-0">
+        <div className="w-full h-full flex flex-col row-span-3 max-md:grid max-md:grid-cols-2 max-lg:grid-cols-2 border-r-2 max-md:border-none border-gray-300 max-md:justify-around justify-around max-md:space-y-6 px-4 max-md:px-0">
           {contactList.map((contact, index) => (
             <ScrollAnimationWrapper key={index} direction="up">
               <div className="w-full h-full flex p-4 max-md:p-1 justify-start space-x-5 max-md:space-x-1 flex-row max-sm:flex-col items-start  bg-white border-gray-300">
@@ -161,7 +161,7 @@ export const ContactAndSocial: React.FC<{
               </button>
               {modalOpen && (
                 <div
-                  className="absolute mt-0 max-md:-top-32 max-sm:-top-34  w-full z-20 flex items-center justify-center bg-transparent"
+                  className="absolute mt-0 max-md:-top-32 max-sm:-top-30  w-full z-20 flex items-center justify-center bg-transparent"
                   onClick={closeModal}
                 >
                   <div
@@ -189,7 +189,7 @@ export const ContactAndSocial: React.FC<{
                             href={`https://wa.me/${admin.number}?text=${encodedMessage}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-left"
+                            className="text-left max-sm:text-xs"
                           >
                             {admin.label} {admin.adminName}
                           </a>
