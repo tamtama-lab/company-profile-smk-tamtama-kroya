@@ -107,7 +107,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   };
 
   return (
-    <div className="mb-4 max-sm:mb-1" ref={dropdownRef}>
+    <div className="mb-2 max-sm:mb-1" ref={dropdownRef}>
       <label className="block text-sm max-sm:text-xs font-semibold text-gray-700 mb-2">
         {label} {isMandatory && <span className="text-red-500">*</span>}
       </label>

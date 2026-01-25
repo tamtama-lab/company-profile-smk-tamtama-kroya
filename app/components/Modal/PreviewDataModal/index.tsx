@@ -14,16 +14,16 @@ interface ModalPreviewDataProps {
 const labelMap: Record<string, string> = {
   // Biodata Siswa
   namaLengkap: "Nama Lengkap",
-  email: "Email",
-  nik: "NIK",
-  nisn: "NISN",
   tempatLahir: "Tempat Lahir",
+  email: "Email Aktif",
   tanggalLahir: "Tanggal Lahir",
-  asalSekolah: "Asal Sekolah",
-  alamat: "Alamat",
+  nik: "NIK",
   jenisKelamin: "Jenis Kelamin",
+  nisn: "NISN",
   agama: "Agama",
-  adaKip: "Penerima KIP",
+  asalSekolah: "Asal SMP/MTs",
+  adaKip: "Memiliki KIP",
+  alamat: "Alamat",
   nomorWhatsapp: "Nomor WhatsApp",
   // Biodata Orang Tua
   namaAyah: "Nama Ayah",
@@ -33,20 +33,40 @@ const labelMap: Record<string, string> = {
   noTelponOrangTua: "Nomor Telpon Orang Tua",
   // Biodata Wali
   namaWali: "Nama Wali",
-  nikWali: "NIK Wali",
-  pekerjaanWali: "Pekerjaan Wali",
-  penghasilanWali: "Penghasilan Wali",
-  alamatWali: "Alamat Wali",
   noTelponWali: "Nomor Telpon Wali",
-  hubunganDenganSiswa: "Hubungan Dengan Siswa",
+  alamatWali: "Alamat Wali",
   // Pilih Jurusan
   jurusanDipilih: "Jurusan Dipilih",
 };
 
 const formatValue = (key: string, value: unknown): string => {
-  if (value === null || value === undefined) return "-";
+  if (value === null || value === undefined || value === "") return "-";
   if (key === "adaKip") return value ? "Ya" : "Tidak";
+  if (key === "kondisiAyah" || key === "kondisiIbu ") {
+    return value === "alive" ? "Hidup" : "Meninggal Dunia";
+  }
+  if (key === "jenisKelamin") return value ? "Laki-laki" : "Perempuan";
   if (typeof value === "boolean") return value ? "Ya" : "Tidak";
+  const dateKeys = ["tanggalLahir"];
+  if (key === "jurusanDipilih") {
+    return value === "TKR"
+      ? "Teknik Kendaraan Ringan (TKR)"
+      : value === "TITL"
+        ? "Teknik Instalasi Tenaga Listrik (TITL)"
+        : value === "TP"
+          ? "Teknik Pemesinan (TP)"
+          : value === "DKV"
+            ? "Desain Komunikasi Visual (DKV)"
+            : String(value);
+  }
+  if (dateKeys.includes(key) && typeof value === "string") {
+    const date = new Date(value);
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  }
   return String(value);
 };
 
@@ -65,15 +85,13 @@ const DataSection = ({
   if (entries.length === 0) return null;
 
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-bold text-primary mb-3 pb-2 border-b-2 border-primary">
-        {title}
-      </h3>
+    <div className={`mb-6 `}>
+      <h3 className="text-lg font-semibold text-primary mb-3 pb-2">{title}</h3>
       <div
         className={`grid ${columns === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"} gap-x-6 gap-y-4 mt-4`}
       >
         {entries.map(([key, value]) => (
-          <div key={key} className="border-b border-gray-200 pb-3">
+          <div key={key} className=" border-gray-200 pb-3">
             <p className="text-xs text-gray-600 font-semibold mb-1">
               {labelMap[key] || key}
             </p>
@@ -99,8 +117,8 @@ export const ModalPreviewData: React.FC<ModalPreviewDataProps> = ({
       size="full"
       footer={
         <div className="w-full justify-end flex gap-5">
-          <TextButton variant={"outline"} text="Batal" onClick={onPrev} />
-          <TextButton variant={"primary"} text="Konfirmasi" />
+          <TextButton variant={"outline"} text="Edit" onClick={onPrev} />
+          <TextButton variant={"primary"} text="Konfirmasi" onClick={onClose} />
         </div>
       }
     >

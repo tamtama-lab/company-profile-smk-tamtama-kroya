@@ -7,7 +7,7 @@ export interface BiodataSiswaForm {
   tanggalLahir: string;
   asalSekolah: string;
   alamat: string;
-  jenisKelamin: string;
+  jenisKelamin: string; // Changed from number to string
   agama: string;
   adaKip: boolean;
   nomorWhatsapp: string;
@@ -19,17 +19,12 @@ export interface BiodataOrangTuaForm {
   kondisiAyah: string;
   namaIbu: string;
   kondisiIbu: string;
-  noTelponOrangTua: string;
 }
 
 export interface BiodataWaliForm {
   namaWali: string;
-  nikWali: string;
-  pekerjaanWali: string;
-  penghasilanWali: string;
   alamatWali: string;
   noTelponWali: string;
-  hubunganDenganSiswa: string;
 }
 
 export interface PilihJurusanForm {

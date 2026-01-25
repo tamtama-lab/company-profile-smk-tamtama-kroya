@@ -7,6 +7,7 @@ import { PilihJurusan } from "@/components/RegistrationForm/PilihJurusan";
 import { Selesai } from "@/components/RegistrationForm/Selesai";
 import { TabsStep } from "@/components/TabStep";
 import { SuccessModal } from "@/components/Modal/SuccessModal";
+import { ConfirmationAlert } from "@/components/Modal/ConfirmationAlert";
 import { useState, useEffect } from "react";
 import { GoArrowLeft } from "react-icons/go";
 import { getSchoolList } from "../api/registration/get-school";
@@ -18,7 +19,7 @@ import {
   BiodataWaliForm,
   PilihJurusanForm,
 } from "@/utils/registrationTypes";
-import { Alert, type AlertVariant } from "@/components/ui/alert";
+import { useAlert } from "@/components/ui/alert";
 
 const tabsData = [
   "Biodata Siswa",
@@ -28,22 +29,99 @@ const tabsData = [
   "Selesai",
 ];
 
+const STORAGE_KEY = "smk_tamako_registration_data";
+const STORAGE_TAB_KEY = "smk_tamako_active_tab";
+
 export default function RegistrationPage() {
-  const [activeTab, setActiveTab] = useState(tabsData[0] || "");
+  const { showAlert } = useAlert();
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("");
   const [registrationData, setRegistrationData] = useState<RegistrationData>(
     {},
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [confirmationAlert, setConfirmationAlert] = useState<{
+    isOpen: boolean;
+    type:
+      | "biodataSiswa"
+      | "biodataOrangTua"
+      | "biodataWali"
+      | "pilihJurusan"
+      | "selesai"
+      | null;
+  }>({
+    isOpen: false,
+    type: null,
+  });
   const [successData, setSuccessData] = useState<{
-    registrationId: string;
+    registrationNumber: string;
     studentName: string;
+    majorChoiceCode: string;
   } | null>(null);
-  const [alertInfo, setAlertInfo] = useState<{
-    title?: string;
-    message: string;
-    variant: AlertVariant;
-  } | null>(null);
+  const [formKey, setFormKey] = useState(0); // Add key to force re-render
+
+  // Load data from localStorage on mount (client-side only)
+  useEffect(() => {
+    try {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      const savedTab = localStorage.getItem(STORAGE_TAB_KEY);
+
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          setRegistrationData(parsedData);
+        } catch (error) {
+          console.error("Failed to parse saved data:", error);
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+
+      if (savedTab && tabsData.includes(savedTab)) {
+        setActiveTab(savedTab);
+      } else {
+        setActiveTab(tabsData[0]);
+      }
+
+      setIsHydrated(true);
+    } catch (error) {
+      console.error("Failed to load from localStorage:", error);
+      setActiveTab(tabsData[0]);
+      setIsHydrated(true);
+    }
+  }, []);
+
+  // Save data to localStorage whenever it changes (only after hydration)
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(registrationData));
+    } catch (error) {
+      console.error("Failed to save data to localStorage:", error);
+    }
+  }, [registrationData, isHydrated]);
+
+  // Save active tab to localStorage (only after hydration)
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    try {
+      localStorage.setItem(STORAGE_TAB_KEY, activeTab);
+    } catch (error) {
+      console.error("Failed to save active tab to localStorage:", error);
+    }
+  }, [activeTab, isHydrated]);
+
+  // Clear localStorage on successful submission
+  const clearStoredData = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_TAB_KEY);
+    } catch (error) {
+      console.error("Failed to clear localStorage:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -57,6 +135,7 @@ export default function RegistrationPage() {
     setActiveTab(tab);
   };
 
+  // SELANJUTNYA: Simpan data dan lanjut ke tab berikutnya
   const handleNextBiodataSiswa = (data: BiodataSiswaForm) => {
     setRegistrationData((prev) => ({
       ...prev,
@@ -89,6 +168,7 @@ export default function RegistrationPage() {
     setActiveTab("Selesai");
   };
 
+  // KEMBALI: Kembali ke halaman sebelumnya, data akan di-load dari localStorage
   const handlePrevBiodataOrangTua = () => {
     setActiveTab("Biodata Siswa");
   };
@@ -116,9 +196,9 @@ export default function RegistrationPage() {
         !registrationData.biodataWali ||
         !registrationData.pilihJurusan
       ) {
-        setAlertInfo({
+        showAlert({
           title: "Data Tidak Lengkap",
-          message: "Semua data harus diisi sebelum mengirim",
+          description: "Semua data harus diisi sebelum mengirim",
           variant: "warning",
         });
         setIsSubmitting(false);
@@ -143,24 +223,42 @@ export default function RegistrationPage() {
 
       if (result.success) {
         setSuccessData({
-          registrationId: result.data?.registrationId || "",
+          registrationNumber: result.data?.registrationNumber || "",
           studentName: result.data?.studentName || "",
+          majorChoiceCode: result.data?.majorChoiceCode || "",
         });
         setShowSuccessModal(true);
         setRegistrationData({});
+        clearStoredData(); // Clear localStorage on success
       } else {
-        setAlertInfo({
-          title: "Gagal mendaftar",
-          message: result.message || "Terjadi kesalahan saat mendaftar",
-          variant: "error",
-        });
+        // Check if there are validation errors
+        if (
+          result.errors &&
+          Array.isArray(result.errors) &&
+          result.errors.length > 0
+        ) {
+          showAlert({
+            title: result.message || "Validasi Gagal",
+            variant: "error",
+            autoDismissMs: 12000,
+            errors: result.errors,
+          });
+        } else {
+          showAlert({
+            title: "Gagal Mendaftar",
+            description: result.message || "Terjadi kesalahan saat mendaftar",
+            variant: "error",
+            autoDismissMs: 7000,
+          });
+        }
       }
     } catch (error) {
       console.error("Submit error:", error);
-      setAlertInfo({
-        title: "Terjadi kesalahan",
-        message: "Gagal mengirim data. Silakan coba lagi.",
+      showAlert({
+        title: "Terjadi Kesalahan",
+        description: "Gagal mengirim data. Silakan coba lagi.",
         variant: "error",
+        autoDismissMs: 7000,
       });
     } finally {
       setIsSubmitting(false);
@@ -171,44 +269,135 @@ export default function RegistrationPage() {
     window.location.href = "/";
   };
 
+  // BATAL: Show confirmation alert
   const handleResetBiodataSiswa = () => {
-    setRegistrationData((prev) => ({
-      ...prev,
-      biodataSiswa: undefined,
-    }));
-    setActiveTab("Biodata Siswa");
+    setConfirmationAlert({ isOpen: true, type: "biodataSiswa" });
   };
 
   const handleResetBiodataOrangTua = () => {
-    setRegistrationData((prev) => ({
-      ...prev,
-      biodataOrangTua: undefined,
-    }));
-    setActiveTab("Biodata Orang Tua");
+    setConfirmationAlert({ isOpen: true, type: "biodataOrangTua" });
   };
 
   const handleResetBiodataWali = () => {
-    setRegistrationData((prev) => ({
-      ...prev,
-      biodataWali: undefined,
-    }));
-    setActiveTab("Biodata Wali");
+    setConfirmationAlert({ isOpen: true, type: "biodataWali" });
   };
 
   const handleResetPilihJurusan = () => {
-    setRegistrationData((prev) => ({
-      ...prev,
-      pilihJurusan: undefined,
-    }));
-    setActiveTab("Pilih Jurusan");
+    setConfirmationAlert({ isOpen: true, type: "pilihJurusan" });
+  };
+
+  const handleResetSelesai = () => {
+    setConfirmationAlert({ isOpen: true, type: "selesai" });
+  };
+
+  // Handle confirmation - delete data and force re-render
+  const handleConfirmReset = () => {
+    const { type } = confirmationAlert;
+
+    if (type === "biodataSiswa") {
+      const updatedData = { ...registrationData, biodataSiswa: undefined };
+      setRegistrationData(updatedData);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
+      setFormKey((prev) => prev + 1); // Force re-render
+
+      showAlert({
+        title: "Data Dihapus",
+        description: "Data Biodata Siswa telah dihapus dari formulir",
+        variant: "info",
+        autoDismissMs: 3000,
+      });
+    } else if (type === "biodataOrangTua") {
+      const updatedData = { ...registrationData, biodataOrangTua: undefined };
+      setRegistrationData(updatedData);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
+      setFormKey((prev) => prev + 1); // Force re-render
+
+      showAlert({
+        title: "Data Dihapus",
+        description: "Data Biodata Orang Tua telah dihapus dari formulir",
+        variant: "info",
+        autoDismissMs: 3000,
+      });
+    } else if (type === "biodataWali") {
+      const updatedData = { ...registrationData, biodataWali: undefined };
+      setRegistrationData(updatedData);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
+      setFormKey((prev) => prev + 1); // Force re-render
+
+      showAlert({
+        title: "Data Dihapus",
+        description: "Data Biodata Wali telah dihapus dari formulir",
+        variant: "info",
+        autoDismissMs: 3000,
+      });
+    } else if (type === "pilihJurusan") {
+      const updatedData = { ...registrationData, pilihJurusan: undefined };
+      setRegistrationData(updatedData);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
+      setFormKey((prev) => prev + 1); // Force re-render
+
+      showAlert({
+        title: "Data Dihapus",
+        description: "Data Pilih Jurusan telah dihapus dari formulir",
+        variant: "info",
+        autoDismissMs: 3000,
+      });
+    } else if (type === "selesai") {
+      setRegistrationData({});
+      clearStoredData();
+      setActiveTab("Biodata Siswa");
+      setFormKey((prev) => prev + 1); // Force re-render
+
+      showAlert({
+        title: "Data Dihapus",
+        description: "Semua data formulir telah dihapus",
+        variant: "info",
+        autoDismissMs: 3000,
+      });
+    }
+
+    setConfirmationAlert({ isOpen: false, type: null });
   };
 
   const handleValidationError = (message: string): void => {
-    setAlertInfo({
+    showAlert({
       title: "Data Tidak Lengkap",
-      message: message,
+      description: message,
       variant: "warning",
     });
+  };
+
+  const getConfirmationMessage = () => {
+    const { type } = confirmationAlert;
+    const messages: Record<string, { title: string; message: string }> = {
+      biodataSiswa: {
+        title: "Hapus Data Biodata Siswa?",
+        message:
+          "Semua data Biodata Siswa akan dihapus dan tidak dapat dikembalikan.",
+      },
+      biodataOrangTua: {
+        title: "Hapus Data Biodata Orang Tua?",
+        message:
+          "Semua data Biodata Orang Tua akan dihapus dan tidak dapat dikembalikan.",
+      },
+      biodataWali: {
+        title: "Hapus Data Biodata Wali?",
+        message:
+          "Semua data Biodata Wali akan dihapus dan tidak dapat dikembalikan.",
+      },
+      pilihJurusan: {
+        title: "Hapus Data Pilih Jurusan?",
+        message:
+          "Data Pilih Jurusan akan dihapus dan tidak dapat dikembalikan.",
+      },
+      selesai: {
+        title: "Hapus Semua Data?",
+        message:
+          "Semua data formulir akan dihapus dan tidak dapat dikembalikan. Anda akan kembali ke halaman pertama.",
+      },
+    };
+
+    return messages[type || ""] || { title: "", message: "" };
   };
 
   const renderFormContent = () => {
@@ -216,6 +405,7 @@ export default function RegistrationPage() {
       case "Biodata Siswa":
         return (
           <BiodataSiswa
+            key={`biodataSiswa-${formKey}`}
             onPrev={handleRouteToHome}
             onNext={handleNextBiodataSiswa}
             onCancel={handleResetBiodataSiswa}
@@ -226,6 +416,7 @@ export default function RegistrationPage() {
       case "Biodata Orang Tua":
         return (
           <BiodataOrangTua
+            key={`biodataOrangTua-${formKey}`}
             onNext={handleNextBiodataOrangTua}
             onPrev={handlePrevBiodataOrangTua}
             onCancel={handleResetBiodataOrangTua}
@@ -236,6 +427,7 @@ export default function RegistrationPage() {
       case "Biodata Wali":
         return (
           <BiodataWali
+            key={`biodataWali-${formKey}`}
             onNext={handleNextBiodataWali}
             onPrev={handlePrevBiodataWali}
             onCancel={handleResetBiodataWali}
@@ -246,6 +438,7 @@ export default function RegistrationPage() {
       case "Pilih Jurusan":
         return (
           <PilihJurusan
+            key={`pilihJurusan-${formKey}`}
             onNext={handleNextPilihJurusan}
             onPrev={handlePrevPilihJurusan}
             onCancel={handleResetPilihJurusan}
@@ -256,12 +449,10 @@ export default function RegistrationPage() {
       case "Selesai":
         return (
           <Selesai
+            key={`selesai-${formKey}`}
             onSubmit={handleSubmitSelesai}
             onPrev={handlePrevSelesai}
-            onCancel={() => {
-              setRegistrationData({});
-              setActiveTab("Biodata Siswa");
-            }}
+            onCancel={handleResetSelesai}
             registrationData={registrationData}
             isSubmitting={isSubmitting}
           />
@@ -271,17 +462,16 @@ export default function RegistrationPage() {
     }
   };
 
+  // Don't render until hydration is complete to avoid hydration mismatch
+  if (!isHydrated) {
+    return null;
+  }
+
+  const confirmMessage = getConfirmationMessage();
+
   return (
     <main className="min-h-screen bg-linear-to-b from-white to-gray-50 mt-10 max-sm:mt-16">
       <div className="w-full p-5 sm:border max-sm:p-5 md:p-10 lg:p-14 xl:p-20 flex flex-col items-center gap-6">
-        {alertInfo && (
-          <Alert
-            variant={alertInfo.variant}
-            title={alertInfo.title}
-            description={alertInfo.message}
-            onClose={() => setAlertInfo(null)}
-          />
-        )}
         {activeTab === "Biodata Siswa" && (
           <div className="w-full flex flex-col mb-6 max-sm:mb-0">
             <div className="w-full flex flex-row justify-between mb-3">
@@ -322,10 +512,22 @@ export default function RegistrationPage() {
         onClose={() => {
           setShowSuccessModal(false);
           setActiveTab("Biodata Siswa");
+          clearStoredData();
           window.location.href = "/";
         }}
-        registrationId={successData?.registrationId}
+        registrationNumber={successData?.registrationNumber}
         studentName={successData?.studentName}
+        majorChoiceCode={successData?.majorChoiceCode}
+      />
+      <ConfirmationAlert
+        isOpen={confirmationAlert.isOpen}
+        title={confirmMessage.title}
+        message={confirmMessage.message}
+        onConfirm={handleConfirmReset}
+        onCancel={() => setConfirmationAlert({ isOpen: false, type: null })}
+        confirmText="Hapus"
+        cancelText="Batal"
+        variant="danger"
       />
     </main>
   );

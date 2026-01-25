@@ -6,7 +6,7 @@ interface StudentDetail {
   fullName: string;
   placeOfBirth: string;
   dateOfBirth: string;
-  gender: string;
+  gender: number;
   religion: string;
   schoolOriginNpsn: string;
   address: string;
@@ -33,6 +33,12 @@ interface RegistrationPayload {
   majorChoiceCode: string;
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+  rule: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: RegistrationPayload = await request.json();
@@ -42,7 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           success: false, 
-          message: "Missing required fields" 
+          message: "Data yang diperlukan tidak lengkap" 
         },
         { status: 400 }
       );
@@ -55,7 +61,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Server configuration error. Please contact administrator.",
+          message: "Kesalahan konfigurasi server. Silakan hubungi administrator.",
         },
         { status: 500 }
       );
@@ -73,10 +79,18 @@ export async function POST(request: NextRequest) {
     const apiData = await apiResponse.json();
 
     if (!apiResponse.ok) {
+      // Translate error message
+      let translatedMessage = apiData.message || "Terjadi kesalahan saat memproses pendaftaran.";
+      if (translatedMessage === "The given data was invalid") {
+        translatedMessage = "Data yang diberikan tidak valid";
+      }
+
       return NextResponse.json(
         {
           success: false,
-          message: apiData.message || "Terjadi kesalahan saat memproses pendaftaran.",
+          message: translatedMessage,
+          errors: apiData.errors || [],
+          errorCode: apiData.error || undefined,
         },
         { status: apiResponse.status }
       );
@@ -87,11 +101,12 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: apiData.message || "Pendaftaran berhasil! Bukti pendaftaran telah dikirim ke email Anda.",
-        data: apiData.data || {
-          registrationId: apiData.registrationId,
-          registrationDate: apiData.registrationDate,
-          studentName: body.studentDetail.fullName,
-          majorChoice: body.majorChoiceCode,
+        data: {
+          registrationNumber: apiData.registrationNumber,
+          registrationId: apiData.id,
+          majorChoiceCode: apiData.majorChoiceCode,
+          studentName: apiData.studentDetail?.fullName || body.studentDetail.fullName,
+          createdAt: apiData.createdAt,
         },
       },
       { status: 201 }

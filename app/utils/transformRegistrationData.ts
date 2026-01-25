@@ -7,7 +7,7 @@ interface RegistrationPayload {
     fullName: string;
     placeOfBirth: string;
     dateOfBirth: string;
-    gender: string;
+    gender: number;
     religion: string;
     schoolOriginNpsn: string;
     address: string;
@@ -20,7 +20,6 @@ interface RegistrationPayload {
     fatherLivingStatus: string;
     motherName: string;
     motherLivingStatus: string;
-    parentPhoneNumber: string;
     parentAddress: string;
     guardianName: string;
     guardianPhoneNumber: string;
@@ -34,7 +33,6 @@ export const transformToApiFormat = (
 ): RegistrationPayload => {
   const { biodataSiswa, biodataOrangTua, biodataWali, pilihJurusan } = data;
 
-
   return {
     studentDetail: {
       nisn: biodataSiswa?.nisn || "",
@@ -42,7 +40,7 @@ export const transformToApiFormat = (
       fullName: biodataSiswa?.namaLengkap || "",
       placeOfBirth: biodataSiswa?.tempatLahir || "",
       dateOfBirth: biodataSiswa?.tanggalLahir || "",
-      gender: biodataSiswa?.jenisKelamin || "",
+      gender: parseInt(biodataSiswa?.jenisKelamin || "1", 10), // Parse string to number
       religion: biodataSiswa?.agama || "",
       schoolOriginNpsn: biodataSiswa?.asalSekolah || "",
       address: biodataSiswa?.alamat || "",
@@ -55,7 +53,6 @@ export const transformToApiFormat = (
       fatherLivingStatus: biodataOrangTua?.kondisiAyah || "",
       motherName: biodataOrangTua?.namaIbu || "",
       motherLivingStatus: biodataOrangTua?.kondisiIbu || "",
-      parentPhoneNumber: biodataOrangTua?.noTelponOrangTua || "",
       parentAddress: biodataOrangTua?.alamat || "",
       guardianName: biodataWali?.namaWali || "",
       guardianPhoneNumber: biodataWali?.noTelponWali || "",

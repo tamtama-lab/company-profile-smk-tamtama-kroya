@@ -14,7 +14,7 @@ const SelectInput = React.forwardRef<HTMLSelectElement, SelectInputProps>(
     ref,
   ) => {
     return (
-      <div className="flex flex-col gap-2 mb-4 max-sm:mb-1">
+      <div className="flex flex-col gap-2 mb-2 max-sm:mb-1">
         {label && (
           <label className="text-sm max-sm:text-xs font-medium text-gray-700">
             {label}

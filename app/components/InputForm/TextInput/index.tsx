@@ -5,6 +5,7 @@ import {
   normalizePhoneNumber,
 } from "@/utils/phoneNumberFormat";
 import { IoMdClose } from "react-icons/io";
+import { useState } from "react";
 
 const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 const emailFormat = (str: string) =>
@@ -37,8 +38,8 @@ export const InputText: React.FC<{
   isCapitalize,
   isUppercase,
 }) => {
+  const [touched, setTouched] = useState(false);
   const isAboveLimit = limit ? value.length > limit : false;
-  const isError = false; // You can implement your error logic here
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value;
@@ -55,6 +56,15 @@ export const InputText: React.FC<{
 
     e.target.value = newValue;
     onChange(e);
+  };
+
+  const handleBlur = () => {
+    setTouched(true);
+  };
+
+  const handleFocus = () => {
+    // Optional: reset touched saat focus kembali
+    // setTouched(false);
   };
 
   const handleEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -74,9 +84,10 @@ export const InputText: React.FC<{
 
   const isValidEmail =
     isEmail && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  const showEmailError = touched && isValidEmail;
 
   return (
-    <div className="mb-4 max-sm:mb-1">
+    <div className="mb-2 max-sm:mb-1">
       <div className="flex justify-between items-center mb-2">
         <label className="block text-sm max-sm:text-xs font-semibold text-gray-700">
           {label} {isMandatory && <span className="text-red-500">*</span>}
@@ -96,11 +107,13 @@ export const InputText: React.FC<{
         name={name}
         value={value}
         onChange={handleChange}
+        onBlur={handleBlur}
+        onFocus={handleFocus}
         required={isMandatory}
         className={`w-full px-4 max-sm:text-sm py-2 max-sm:py-1 border rounded-sm 
           placeholder-gray-400 max-sm:placeholder:text-xs
           focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white focus:border-transparent transition-colors ${
-            isAboveLimit || isValidEmail
+            isAboveLimit || showEmailError
               ? "border-red-500 focus:ring-red-500"
               : "border-gray-300"
           }`}
@@ -108,7 +121,7 @@ export const InputText: React.FC<{
         onKeyDown={isEmail ? handleEmailKeyDown : undefined}
         maxLength={limit}
       />
-      {isValidEmail && (
+      {showEmailError && (
         <span className="text-red-500 text-xs mt-1">
           Format email tidak valid
         </span>
@@ -143,7 +156,7 @@ export const InputNumber: React.FC<{
   };
 
   return (
-    <div className="mb-4 max-sm:mb-1">
+    <div className="mb-2 max-sm:mb-1">
       <div className="flex justify-between items-center mb-2">
         <label className="block text-sm max-sm:text-xs font-semibold text-gray-700">
           {label} {isMandatory && <span className="text-red-500">*</span>}
@@ -212,16 +225,22 @@ export const InputPhoneNumber: React.FC<InputPhoneNumberProps> = ({
   isMandatory,
   limit = 15,
 }) => {
+  const [touched, setTouched] = useState(false);
   const isAboveLimit = value.length > limit;
   const isInvalid = value.length > 0 && !isValidIndoPhone(value);
+  const showError = touched && isInvalid;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, "");
     onChange(normalizePhoneNumber(raw));
   };
 
+  const handleBlur = () => {
+    setTouched(true);
+  };
+
   return (
-    <div className="mb-4 max-sm:mb-1">
+    <div className="mb-2 max-sm:mb-1">
       <div className="flex justify-between items-center mb-2">
         <label className="text-sm max-sm:text-xs font-semibold text-gray-700">
           {label} {isMandatory && <span className="text-red-500">*</span>}
@@ -242,17 +261,18 @@ export const InputPhoneNumber: React.FC<InputPhoneNumberProps> = ({
           name={name}
           value={value}
           onChange={handleChange}
+          onBlur={handleBlur}
           placeholder={placeholder}
           className={`w-full px-4 py-2 border rounded-sm text-sm
             focus:outline-none focus:ring-2 transition-colors
             ${
-              isAboveLimit || isInvalid
+              isAboveLimit || showError
                 ? "border-red-500 focus:ring-red-500 pr-10"
                 : "border-gray-300 focus:ring-primary"
             }`}
         />
 
-        {(isAboveLimit || isInvalid) && (
+        {(isAboveLimit || showError) && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <div className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center">
               <IoMdClose size={14} />
@@ -261,7 +281,7 @@ export const InputPhoneNumber: React.FC<InputPhoneNumberProps> = ({
         )}
       </div>
 
-      {isInvalid && (
+      {showError && (
         <span className="text-xs text-red-500 mt-1 block">
           Nomor HP harus diawali 62 dan valid
         </span>
@@ -294,7 +314,7 @@ export const InputTextArea: React.FC<{
   };
 
   return (
-    <div className="mb-4">
+    <div className="mb-2 max-sm:mb-1">
       <div className="flex justify-between items-center mb-2">
         <label className="block text-sm max-sm:text-xs font-semibold text-gray-700">
           {label} {isMandatory && <span className="text-red-500">*</span>}

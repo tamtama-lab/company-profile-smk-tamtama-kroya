@@ -2,6 +2,7 @@
 import { Footer } from "@/components/Footer";
 import RegistrationHeader from "@/components/Headers/RegistrationHeader";
 import Header from "@/components/Headers";
+import { AlertProvider } from "@/components/ui/alert";
 import { usePathname } from "next/navigation";
 import { JSX } from "react";
 import { BsWhatsapp } from "react-icons/bs";
@@ -40,7 +41,7 @@ export default function LayoutWrapper({
   const encodedMessage = encodeURIComponent(message);
 
   return (
-    <>
+    <AlertProvider>
       {isRegistrationPage ? <RegistrationHeader /> : <Header />}
       {children}
       <a
@@ -52,6 +53,6 @@ export default function LayoutWrapper({
         <BsWhatsapp size={30} color="white" />
       </a>
       {isRegistrationPage ? <></> : <Footer />}
-    </>
+    </AlertProvider>
   );
 }

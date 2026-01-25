@@ -121,7 +121,7 @@ export const RegistrationRequirementsSection: React.FC<
                   <PathCard
                     grade={"Gelombang 3"}
                     description={"Juni - Juli"}
-                    isLocked={false}
+                    isLocked={true}
                   />
                 </ScrollAnimationWrapper>
               </div>

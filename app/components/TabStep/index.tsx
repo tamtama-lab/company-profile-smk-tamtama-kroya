@@ -24,8 +24,8 @@ export const TabsStep: React.FC<TabsStepProps> = ({
               key={index}
               className="relative w-fit h-fit flex flex-col justify-center items-center"
             >
-              <button
-                onClick={() => onTabChange(step)}
+              <div
+                // onClick={() => onTabChange(step)}
                 className={`w-10 h-10 max-sm:w-7 max-sm:h-7 rounded-full flex justify-center items-center text-xl max-sm:text-sm font-bold bg-primary ${
                   activeTab === step
                     ? "bg-primary text-white"
@@ -33,7 +33,7 @@ export const TabsStep: React.FC<TabsStepProps> = ({
                 }`}
               >
                 0{index + 1}
-              </button>
+              </div>
               <span
                 className={`absolute w-fit min-w-48 max-sm:w-fit max-sm:min-w-16 text-center top-12 max-sm:top-8 uppercase max-sm:text-[10px] ${
                   activeTab === step ? "text-primary" : "text-gray-400"

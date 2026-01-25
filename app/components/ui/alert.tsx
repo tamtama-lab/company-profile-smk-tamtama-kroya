@@ -1,15 +1,28 @@
 "use client";
 
-import React, { JSX, useCallback, useEffect, useState } from "react";
+import React, {
+  JSX,
+  useCallback,
+  useEffect,
+  useState,
+  createContext,
+  useContext,
+} from "react";
 import {
-  LuTriangle,
   LuInfo,
   LuX,
   LuCheckCheck,
   LuCircleX,
+  LuTriangleAlert,
 } from "react-icons/lu";
 
 export type AlertVariant = "info" | "success" | "warning" | "error";
+
+interface ValidationError {
+  field: string;
+  message: string;
+  rule: string;
+}
 
 interface AlertProps {
   title?: string;
@@ -20,7 +33,32 @@ interface AlertProps {
   children?: React.ReactNode;
   floating?: boolean;
   autoDismissMs?: number;
+  errors?: ValidationError[];
 }
+
+export interface AlertMessage {
+  id: string;
+  title?: string;
+  description?: string;
+  variant: AlertVariant;
+  autoDismissMs?: number;
+  errors?: ValidationError[];
+}
+
+interface AlertContextType {
+  showAlert: (alert: Omit<AlertMessage, "id">) => void;
+  hideAlert: (id: string) => void;
+}
+
+const AlertContext = createContext<AlertContextType | undefined>(undefined);
+
+export const useAlert = () => {
+  const context = useContext(AlertContext);
+  if (!context) {
+    throw new Error("useAlert must be used within AlertProvider");
+  }
+  return context;
+};
 
 const baseContainer =
   "w-full max-w-xl rounded-lg border px-4 py-3 flex items-start gap-3 text-sm";
@@ -39,12 +77,85 @@ const variantStyles: Record<
   },
   warning: {
     container: "bg-amber-50 border-amber-200 text-amber-800",
-    icon: <LuTriangle className="mt-0.5 text-amber-600" size={18} />,
+    icon: <LuTriangleAlert className="mt-0.5 text-amber-600" size={18} />,
   },
   error: {
     container: "bg-red-50 border-red-200 text-red-800",
     icon: <LuCircleX className="mt-0.5 text-red-600" size={18} />,
   },
+};
+
+// Translation mapping for field names
+const fieldTranslations: Record<string, string> = {
+  "parentDetail.fatherLivingStatus": "Kondisi Ayah",
+  "parentDetail.motherLivingStatus": "Kondisi Ibu",
+  "parentDetail.fatherName": "Nama Ayah",
+  "parentDetail.motherName": "Nama Ibu",
+  "parentDetail.parentPhoneNumber": "Nomor Telepon Orang Tua",
+  "parentDetail.parentAddress": "Alamat Orang Tua",
+  "parentDetail.guardianName": "Nama Wali",
+  "parentDetail.guardianPhoneNumber": "Nomor Telepon Wali",
+  "parentDetail.guardianAddress": "Alamat Wali",
+  "studentDetail.nisn": "NISN",
+  "studentDetail.nik": "NIK",
+  "studentDetail.fullName": "Nama Lengkap",
+  "studentDetail.placeOfBirth": "Tempat Lahir",
+  "studentDetail.dateOfBirth": "Tanggal Lahir",
+  "studentDetail.gender": "Jenis Kelamin",
+  "studentDetail.religion": "Agama",
+  "studentDetail.schoolOriginNpsn": "NPSN Sekolah Asal",
+  "studentDetail.address": "Alamat",
+  "studentDetail.phoneNumber": "Nomor Telepon",
+  "studentDetail.email": "Email",
+  majorChoiceCode: "Kode Jurusan",
+};
+
+// Translation for common validation messages
+const translateErrorMessage = (message: string, field: string): string => {
+  const translations: Record<string, string> = {
+    // Specific field validations
+    "The nisn field must be 10 characters long":
+      "NISN harus terdiri dari 10 karakter",
+    "The nik field must be 16 characters long":
+      "NIK harus terdiri dari 16 karakter",
+    "The dateOfBirth field must be a datetime value":
+      "Tanggal lahir harus berupa tanggal yang valid",
+    "The selected gender is invalid": "Jenis kelamin yang dipilih tidak valid",
+    "The selected religion is invalid": "Agama yang dipilih tidak valid",
+    "The email field must be a valid email address":
+      "Email harus berupa alamat email yang valid",
+    "The selected fatherLivingStatus is invalid":
+      "Kondisi ayah yang dipilih tidak valid",
+    "The selected motherLivingStatus is invalid":
+      "Kondisi ibu yang dipilih tidak valid",
+
+    // Generic patterns
+    "must be 10 characters long": "harus terdiri dari 10 karakter",
+    "must be 16 characters long": "harus terdiri dari 16 karakter",
+    "must be a datetime value": "harus berupa tanggal yang valid",
+    "must be a valid email address": "harus berupa alamat email yang valid",
+    "is invalid": "tidak valid",
+    "is required": "wajib diisi",
+    "must be a valid email": "harus berupa email yang valid",
+    "must be a valid phone number": "harus berupa nomor telepon yang valid",
+    "The selected": "Yang dipilih",
+  };
+
+  let translatedMessage = message;
+
+  // Try to find exact match first
+  if (translations[message]) {
+    return translations[message];
+  }
+
+  // Then try partial matches
+  for (const [key, value] of Object.entries(translations)) {
+    if (message.includes(key)) {
+      translatedMessage = translatedMessage.replace(key, value);
+    }
+  }
+
+  return translatedMessage;
 };
 
 export const Alert: React.FC<AlertProps> = ({
@@ -56,10 +167,11 @@ export const Alert: React.FC<AlertProps> = ({
   children,
   floating = false,
   autoDismissMs,
+  errors,
 }) => {
   const { container, icon } = variantStyles[variant];
   const [entered, setEntered] = useState(false);
-  const EXIT_DURATION = 180;
+  const EXIT_DURATION = 110;
 
   useEffect(() => {
     const t = setTimeout(() => setEntered(true), 10);
@@ -85,10 +197,24 @@ export const Alert: React.FC<AlertProps> = ({
       <div className="shrink-0" aria-hidden>
         {icon}
       </div>
-      <div className="flex-1 space-y-1">
+      <div className="flex-1 space-y-2">
         {title && <div className="font-semibold leading-tight">{title}</div>}
         {description && (
           <div className="leading-relaxed text-sm">{description}</div>
+        )}
+        {errors && errors.length > 0 && (
+          <div className="flex flex-col gap-1.5 mt-2">
+            {errors.map((error, index) => (
+              <div key={index} className="flex flex-col gap-0.5">
+                <span className="text-xs font-medium">
+                  {fieldTranslations[error.field] || error.field}:
+                </span>
+                <span className="text-sm pl-2">
+                  {translateErrorMessage(error.message, error.field)}
+                </span>
+              </div>
+            ))}
+          </div>
         )}
         {children}
       </div>
@@ -108,8 +234,43 @@ export const Alert: React.FC<AlertProps> = ({
   if (!floating) return body;
 
   return (
-    <div className="fixed inset-x-0 top-0 z-99999 flex justify-center pointer-events-none">
-      <div className="w-full max-w-xl p-4 pointer-events-auto">{body}</div>
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] flex justify-center pointer-events-none">
+      <div className="w-full max-w-xl px-4 pointer-events-auto">{body}</div>
     </div>
+  );
+};
+
+export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [alerts, setAlerts] = useState<AlertMessage[]>([]);
+
+  const showAlert = useCallback((alert: Omit<AlertMessage, "id">) => {
+    const id = `alert-${Date.now()}-${Math.random()}`;
+    setAlerts((prev) => [...prev, { ...alert, id }]);
+  }, []);
+
+  const hideAlert = useCallback((id: string) => {
+    setAlerts((prev) => prev.filter((alert) => alert.id !== id));
+  }, []);
+
+  return (
+    <AlertContext.Provider value={{ showAlert, hideAlert }}>
+      {children}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-3 pointer-events-none w-full max-w-xl px-4">
+        {alerts.map((alert) => (
+          <div key={alert.id} className="pointer-events-auto">
+            <Alert
+              title={alert.title}
+              description={alert.description}
+              variant={alert.variant}
+              onClose={() => hideAlert(alert.id)}
+              autoDismissMs={alert.autoDismissMs || 5000}
+              errors={alert.errors}
+            />
+          </div>
+        ))}
+      </div>
+    </AlertContext.Provider>
   );
 };

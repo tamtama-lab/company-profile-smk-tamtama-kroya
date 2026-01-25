@@ -7,16 +7,30 @@ import { FaCheckCircle } from "react-icons/fa";
 interface SuccessModalProps {
   isOpen: boolean;
   onClose: () => void;
-  registrationId?: string;
+  registrationNumber?: string;
   studentName?: string;
+  majorChoiceCode?: string;
 }
 
 export const SuccessModal: React.FC<SuccessModalProps> = ({
   isOpen,
   onClose,
-  registrationId,
+  registrationNumber,
   studentName,
+  majorChoiceCode,
 }) => {
+  // Mapping major codes to full names
+  const majorNames: Record<string, string> = {
+    TKR: "Teknik Kendaraan Ringan",
+    TITL: "Teknik Instalasi Tenaga Listrik",
+    DKV: "Desain Komunikasi Visual",
+    TP: "Teknik Pemesinan",
+  };
+
+  const majorName = majorChoiceCode
+    ? majorNames[majorChoiceCode] || majorChoiceCode
+    : "";
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -34,9 +48,28 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
             Selamat, <span className="font-bold">{studentName}</span>!
           </p>
         )}
-        <div className="bg-gray-50 p-4 rounded-lg w-full">
-          <p className="text-sm text-gray-600 mb-2">Nomor Pendaftaran Anda:</p>
-          <p className="text-xl font-bold text-primary">{registrationId}</p>
+        <div className="bg-gray-50 p-4 rounded-lg w-full space-y-3">
+          <div>
+            <p className="text-sm text-gray-600 mb-1">Nomor Pendaftaran:</p>
+            <p className="text-xl font-bold text-primary">
+              {registrationNumber}
+            </p>
+          </div>
+          {majorChoiceCode && (
+            <div>
+              <p className="text-sm text-gray-600 mb-1">
+                Jurusan yang Dipilih:
+              </p>
+              <p className="text-lg font-semibold text-gray-800">
+                {majorName}
+                {majorChoiceCode && (
+                  <span className="text-sm text-gray-500 ml-2">
+                    ({majorChoiceCode})
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
         </div>
         <div className="text-left space-y-2 w-full">
           <p className="text-sm text-gray-700">

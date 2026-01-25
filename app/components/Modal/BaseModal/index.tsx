@@ -42,29 +42,31 @@ export const BaseModal: React.FC<BaseModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`bg-white rounded-lg shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col ${sizeClasses[size]} sm:max-w-screen sm:w-screen max-md:flex-col max-md:max-w-screen ${contentClassName}`}
+        className={`bg-white rounded-lg shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${sizeClasses[size]} sm:max-w-screen sm:w-screen max-md:flex-col max-md:max-w-screen ${contentClassName}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        {(title || showCloseButton) && (
-          <div className="w-full p-4">
-            <div className="flex justify-between items-center border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-primary">{title}</h2>
-              {showCloseButton && (
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors text-3xl"
-                  aria-label="Close modal"
-                >
-                  <IoClose />
-                </button>
-              )}
+        <div className="w-full">
+          {(title || showCloseButton) && (
+            <div className="w-full p-4">
+              <div className="flex justify-between items-center border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-primary">{title}</h2>
+                {showCloseButton && (
+                  <button
+                    onClick={onClose}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors text-3xl"
+                    aria-label="Close modal"
+                  >
+                    <IoClose />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Content */}
-        <div className="flex-1 p-4">{children}</div>
+        <div className="flex-1 p-4 h-[80%] overflow-y-scroll">{children}</div>
         {footer && <div className="p-4 border-t border-gray-300">{footer}</div>}
       </div>
     </div>
