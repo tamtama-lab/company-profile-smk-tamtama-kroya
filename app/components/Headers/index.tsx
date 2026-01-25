@@ -9,7 +9,6 @@ import { FaGraduationCap, FaHandHoldingHeart, FaPhone } from "react-icons/fa6";
 import { AiOutlineRise } from "react-icons/ai";
 import { PiPathBold } from "react-icons/pi";
 import { FaCheckCircle } from "react-icons/fa";
-import { CiLocationOn } from "react-icons/ci";
 import { IoMdPin } from "react-icons/io";
 
 const currentYear = new Date().getFullYear();
@@ -92,8 +91,13 @@ export const Header: React.FC = () => {
   };
 
   const ppdbRoutes = ["/ppdb", "/"];
+
   const routeToRegistration = () => {
     window.location.href = "/pendaftaran";
+  };
+
+  const routeToLogin = () => {
+    window.location.href = "/login";
   };
 
   const isPPDBRoute = ppdbRoutes.some((route) => pathname.startsWith(route));
@@ -136,8 +140,8 @@ export const Header: React.FC = () => {
         </button>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:w-[60%] lg:flex lg:flex-row sm:items-center sm:justify-end">
-          <div className="w-full flex flex-row  space-x-6 lg:space-x-8">
+        <div className="hidden lg:w-[70%] lg:flex lg:flex-row lg:justify-between sm:items-center sm:justify-end">
+          <div className="w-auto flex flex-row space-x-6 lg:space-x-8">
             {NavItems.map((item) => (
               <div key={item.label} className="relative group/nav">
                 <a
@@ -189,13 +193,22 @@ export const Header: React.FC = () => {
               </div>
             ))}
           </div>
-          <TextButton
-            onClick={routeToRegistration}
-            variant="primary"
-            text="Daftar Sekarang"
-            className="min-w-fit w-fit px-3 h-fit py-3 md:text-sm ml-6"
-            width="fit"
-          />
+          <div className="flex flex-row">
+            <TextButton
+              onClick={routeToLogin}
+              variant="outline"
+              text="Log In Guru"
+              className="w-fit px-3 h-fit py-3 md:text-sm ml-6"
+              width="fit"
+            />
+            <TextButton
+              onClick={routeToRegistration}
+              variant="primary"
+              text="Daftar Sekarang"
+              className="w-fit px-3 h-fit py-3 md:text-sm ml-6"
+              width="fit"
+            />
+          </div>
         </div>
       </div>
 
@@ -257,11 +270,19 @@ export const Header: React.FC = () => {
               </div>
             ))}
           </div>
-          <div className="pt-6 mt-6 border-t border-gray-200">
+          <div className="pt-6 mt-6 border-t border-gray-200 flex flex-row justify-center">
+            <TextButton
+              onClick={routeToLogin}
+              variant="outline"
+              text="Log In Guru"
+              className="min-w-fit w-fit px-3 h-fit py-3 md:text-sm ml-6"
+              width="full"
+            />
             <TextButton
               onClick={routeToRegistration}
               variant="primary"
               text="Daftar Sekarang"
+              className="min-w-fit w-fit px-3 h-fit py-3 md:text-sm ml-6"
               width="full"
             />
           </div>

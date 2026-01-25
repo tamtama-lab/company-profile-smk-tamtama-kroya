@@ -22,7 +22,7 @@ export default function LandingPage() {
     {
       id: "prestasi",
       label: "Jalur Prestasi",
-      image: "/ppdb/jalur-prestasi.jpg",
+      image: "/ppdb/akademik.jpg",
       items: [
         {
           grade: "Peringkat 1 Kelas (Gratis SPP 9 Bulan)",
@@ -44,7 +44,7 @@ export default function LandingPage() {
     {
       id: "non-akademik",
       label: "Jalur Non-Akademik",
-      image: "/ppdb/jalur-non-akademik.jpg",
+      image: "/ppdb/non-akademik.jpg",
       items: [
         {
           grade: "Juara Nasional (Gratis SPP 1 Tahun)",
@@ -243,7 +243,7 @@ export default function LandingPage() {
       <WhyChooseUs id="mengapa-pilih-tamtama" />
 
       {/* Jumlah Pendaftar per Jurusan */}
-      <VacationTotal />
+      <VacationTotal id="jumlah-peminat" />
 
       {/* Jalur Pendaftaran */}
       <RegistrationPathSection

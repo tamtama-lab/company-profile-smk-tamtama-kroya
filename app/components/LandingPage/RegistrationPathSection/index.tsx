@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SectionTitle } from "@/components/SectionTitle";
 import { ScrollAnimationWrapper } from "@/components/ScrollAnimationWrapper";
 import React from "react";
-import Script from "next/script";
+import Image from "next/image";
 
 interface PathTabProps {
   id: string;
@@ -67,10 +67,16 @@ export const RegistrationPathSection: React.FC<
               className={`w-full h-full flex flex-row gap-6 max-sm:gap-2 lg:gap-0 ${activeTabData.id === "non-akademik" ? "flex-row-reverse" : "flex-row"}`}
             >
               {/* Image Section */}
-              <div className="w-full lg:w-1/2 h-full max-sm:h-64 lg:h-full flex items-center justify-center">
+              <div className="w-full lg:w-1/2 h-fit max-sm:h-fit lg:h-full flex items-center justify-center">
                 {activeTabData.image ? (
-                  <ScrollAnimationWrapper className="w-full h-full bg-gray-300 rounded-2xl overflow-hidden">
-                    <></>
+                  <ScrollAnimationWrapper className="w-full aspect-h-3 aspect-w-4 bg-gray-300 rounded-2xl max-sm:rounded-lg overflow-hidden">
+                    <Image
+                      src={activeTabData.image}
+                      alt={activeTabData.label}
+                      width={500}
+                      height={300}
+                      className="object-cover w-full h-full"
+                    />
                   </ScrollAnimationWrapper>
                 ) : (
                   <div className="w-full h-full bg-linear-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
