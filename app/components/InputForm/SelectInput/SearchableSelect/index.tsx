@@ -209,9 +209,9 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
             !fetchError &&
             remoteOptions.length > 0 && (
               <>
-                {remoteOptions.map((option) => (
+                {remoteOptions.map((option, index) => (
                   <div
-                    key={option}
+                    key={index}
                     onClick={() => handleSelectOption(option)}
                     className={`px-4 py-2 cursor-pointer hover:bg-blue-50 transition-colors ${
                       value === option

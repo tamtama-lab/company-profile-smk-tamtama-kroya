@@ -272,7 +272,7 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
                     {...field}
                     fetchOptions={fetchSchools}
                     minChars={3}
-                    placeholder="Cari sekolah (min 3 karakter)"
+                    placeholder="Pilih Asal Sekolah Anda"
                     isMandatory
                   />
                 </FormControl>
