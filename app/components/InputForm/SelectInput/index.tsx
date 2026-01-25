@@ -9,7 +9,10 @@ interface SelectInputProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 const SelectInput = React.forwardRef<HTMLSelectElement, SelectInputProps>(
-  ({ label, error, options, className, isMandatory, ...props }, ref) => {
+  (
+    { label, error, options, className, isMandatory, placeholder, ...props },
+    ref,
+  ) => {
     return (
       <div className="flex flex-col gap-2 mb-4 max-sm:mb-1">
         {label && (
@@ -21,17 +24,18 @@ const SelectInput = React.forwardRef<HTMLSelectElement, SelectInputProps>(
         <div className="relative">
           <select
             ref={ref}
-            placeholder={props.placeholder}
-            className={`appearance-none w-full px-3 py-2 pr-10 border placeholder-gray-300 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer transition-all duration-200 max-sm:px-2
-              
-              max-sm:text-xs ${
-                error ? "border-red-500 focus:ring-red-500" : ""
-              } ${className || ""}`}
+            className={`appearance-none w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer transition-all duration-200 max-sm:px-2 max-sm:text-xs ${
+              !props.value && placeholder ? "text-gray-400" : "text-gray-900"
+            } ${
+              error ? "border-red-500 focus:ring-red-500" : ""
+            } ${className || ""}`}
             {...props}
           >
-            <option value="" className=" text-gray-400">
-              {props.placeholder || "Pilih"}
-            </option>
+            {placeholder && (
+              <option value="" disabled hidden>
+                {placeholder}
+              </option>
+            )}
             {options.map((option) => (
               <option
                 key={option.value}

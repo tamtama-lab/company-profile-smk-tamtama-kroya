@@ -1,16 +1,28 @@
 "use client";
 
 import { TextButton } from "@/components/Buttons/TextButton";
-import React from "react";
+import { ModalPreviewData } from "@/components/Modal/PreviewDataModal";
+import React, { useState } from "react";
 import { LuFileText } from "react-icons/lu";
+import { RegistrationData } from "@/utils/registrationTypes";
 
 interface SelesaiProps {
   onSubmit: () => void;
   onPrev: () => void;
   onCancel?: () => void;
+  registrationData?: RegistrationData;
+  isSubmitting?: boolean;
 }
 
-export const Selesai: React.FC<SelesaiProps> = ({ onPrev, onCancel }) => {
+export const Selesai: React.FC<SelesaiProps> = ({
+  onSubmit,
+  onPrev,
+  onCancel,
+  registrationData,
+  isSubmitting = false,
+}) => {
+  const [modalDetailData, setModalDetailData] = useState(false);
+
   return (
     <div className="w-full">
       <div className="w-full max-sm:text-xs">
@@ -63,12 +75,14 @@ export const Selesai: React.FC<SelesaiProps> = ({ onPrev, onCancel }) => {
             text="Kembali"
             className="px-8 py-2"
             onClick={onPrev}
+            disabled={isSubmitting}
           />
           <TextButton
             variant="outline"
             icon={<LuFileText />}
             text="Lihat Detail Data"
             className="px-8 py-2"
+            onClick={() => setModalDetailData(true)}
           />
         </div>
         <div className="flex gap-6">
@@ -76,16 +90,26 @@ export const Selesai: React.FC<SelesaiProps> = ({ onPrev, onCancel }) => {
             variant="outline-danger"
             text="Kosongkan Formulir"
             className="px-8 py-2"
-            onClick={onPrev}
+            onClick={onCancel}
+            disabled={isSubmitting}
           />
           <TextButton
             variant="primary"
-            text="Konfirmasi Pendaftaran"
+            text={
+              isSubmitting ? "Mengirimkan Data ..." : "Konfirmasi Pendaftaran"
+            }
             className="px-8 py-2"
-            isSubmit
+            onClick={onSubmit}
+            disabled={isSubmitting}
           />
         </div>
       </div>
+      <ModalPreviewData
+        isOpen={modalDetailData}
+        onClose={() => setModalDetailData(false)}
+        onPrev={onPrev}
+        data={registrationData}
+      />
     </div>
   );
 };

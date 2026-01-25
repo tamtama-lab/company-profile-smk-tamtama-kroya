@@ -9,7 +9,18 @@ export const TextButton: React.FC<{
   width?: "full" | "half" | "fit";
   icon?: React.ReactNode;
   isSubmit?: boolean;
-}> = ({ text, variant, className, onClick, width, icon, isSubmit, ref }) => {
+  disabled?: boolean;
+}> = ({
+  text,
+  variant,
+  className,
+  onClick,
+  width,
+  icon,
+  isSubmit,
+  ref,
+  disabled,
+}) => {
   let defaultStyle = "";
   switch (variant) {
     case "primary":
@@ -37,7 +48,8 @@ export const TextButton: React.FC<{
     <button
       type={isSubmit ? "submit" : "button"}
       onClick={onClick}
-      className={`${width === "full" ? "w-full" : width === "half" ? "w-1/2" : width === "fit" ? "w-fit" : ""} ${defaultStyle} ${className ?? ""} flex flex-row items-center max-sm:text-xs justify-center gap-2 hover:scale-105 transition-transform duration-200 ease-in-out`}
+      disabled={disabled}
+      className={`${width === "full" ? "w-full" : width === "half" ? "w-1/2" : width === "fit" ? "w-fit" : ""} ${defaultStyle} ${className ?? ""} ${disabled ? "opacity-50 cursor-not-allowed" : ""} flex flex-row items-center max-sm:text-xs justify-center gap-2 hover:scale-105 transition-transform duration-200 ease-in-out`}
     >
       {icon}
       {text}

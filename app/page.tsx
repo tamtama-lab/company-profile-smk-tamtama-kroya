@@ -152,7 +152,7 @@ export default function LandingPage() {
     {
       name: "Beasiswa & Biaya Terjangkau",
       description:
-        "Program kelas industri bersama Isuzu, Panasonic, Astra, dan mitra industri terpercaya.",
+        "Program kelas industri bersama Isuzu, Panasonic, PT. Mada Wikri Tunggal, dan mitra industri terpercaya.",
       icon: <FaRegMoneyBill1 />,
     },
     {

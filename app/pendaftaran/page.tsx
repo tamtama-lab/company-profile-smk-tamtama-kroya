@@ -6,9 +6,19 @@ import { BiodataWali } from "@/components/RegistrationForm/BiodataWali";
 import { PilihJurusan } from "@/components/RegistrationForm/PilihJurusan";
 import { Selesai } from "@/components/RegistrationForm/Selesai";
 import { TabsStep } from "@/components/TabStep";
+import { SuccessModal } from "@/components/Modal/SuccessModal";
 import { useState, useEffect } from "react";
 import { GoArrowLeft } from "react-icons/go";
 import { getSchoolList } from "../api/registration/get-school";
+import { transformToApiFormat } from "@/utils/transformRegistrationData";
+import {
+  RegistrationData,
+  BiodataSiswaForm,
+  BiodataOrangTuaForm,
+  BiodataWaliForm,
+  PilihJurusanForm,
+} from "@/utils/registrationTypes";
+import { Alert, type AlertVariant } from "@/components/ui/alert";
 
 const tabsData = [
   "Biodata Siswa",
@@ -18,18 +28,22 @@ const tabsData = [
   "Selesai",
 ];
 
-interface RegistrationData {
-  biodataSiswa?: unknown;
-  biodataOrangTua?: unknown;
-  biodataWali?: unknown;
-  pilihJurusan?: unknown;
-}
-
 export default function RegistrationPage() {
   const [activeTab, setActiveTab] = useState(tabsData[0] || "");
   const [registrationData, setRegistrationData] = useState<RegistrationData>(
     {},
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState<{
+    registrationId: string;
+    studentName: string;
+  } | null>(null);
+  const [alertInfo, setAlertInfo] = useState<{
+    title?: string;
+    message: string;
+    variant: AlertVariant;
+  } | null>(null);
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -43,7 +57,7 @@ export default function RegistrationPage() {
     setActiveTab(tab);
   };
 
-  const handleNextBiodataSiswa = (data: unknown) => {
+  const handleNextBiodataSiswa = (data: BiodataSiswaForm) => {
     setRegistrationData((prev) => ({
       ...prev,
       biodataSiswa: data,
@@ -51,7 +65,7 @@ export default function RegistrationPage() {
     setActiveTab("Biodata Orang Tua");
   };
 
-  const handleNextBiodataOrangTua = (data: unknown) => {
+  const handleNextBiodataOrangTua = (data: BiodataOrangTuaForm) => {
     setRegistrationData((prev) => ({
       ...prev,
       biodataOrangTua: data,
@@ -59,7 +73,7 @@ export default function RegistrationPage() {
     setActiveTab("Biodata Wali");
   };
 
-  const handleNextBiodataWali = (data: unknown) => {
+  const handleNextBiodataWali = (data: BiodataWaliForm) => {
     setRegistrationData((prev) => ({
       ...prev,
       biodataWali: data,
@@ -67,7 +81,7 @@ export default function RegistrationPage() {
     setActiveTab("Pilih Jurusan");
   };
 
-  const handleNextPilihJurusan = (data: unknown) => {
+  const handleNextPilihJurusan = (data: PilihJurusanForm) => {
     setRegistrationData((prev) => ({
       ...prev,
       pilihJurusan: data,
@@ -91,9 +105,66 @@ export default function RegistrationPage() {
     setActiveTab("Pilih Jurusan");
   };
 
-  const handleSubmitSelesai = () => {
-    console.log("All registration data:", registrationData);
-    // Add API call here to submit data
+  const handleSubmitSelesai = async () => {
+    try {
+      setIsSubmitting(true);
+
+      // Validate all data is present
+      if (
+        !registrationData.biodataSiswa ||
+        !registrationData.biodataOrangTua ||
+        !registrationData.biodataWali ||
+        !registrationData.pilihJurusan
+      ) {
+        setAlertInfo({
+          title: "Data Tidak Lengkap",
+          message: "Semua data harus diisi sebelum mengirim",
+          variant: "warning",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Transform data to API format
+      const apiPayload = transformToApiFormat(registrationData);
+      console.log("Sending payload:", apiPayload);
+
+      // Submit to API
+      const response = await fetch("/api/registrations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(apiPayload),
+      });
+
+      const result = await response.json();
+      console.log("API Response:", result);
+
+      if (result.success) {
+        setSuccessData({
+          registrationId: result.data?.registrationId || "",
+          studentName: result.data?.studentName || "",
+        });
+        setShowSuccessModal(true);
+        setRegistrationData({});
+      } else {
+        setAlertInfo({
+          title: "Gagal mendaftar",
+          message: result.message || "Terjadi kesalahan saat mendaftar",
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      setAlertInfo({
+        title: "Terjadi kesalahan",
+        message: "Gagal mengirim data. Silakan coba lagi.",
+        variant: "error",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRouteToHome = () => {
@@ -105,6 +176,7 @@ export default function RegistrationPage() {
       ...prev,
       biodataSiswa: undefined,
     }));
+    setActiveTab("Biodata Siswa");
   };
 
   const handleResetBiodataOrangTua = () => {
@@ -112,6 +184,7 @@ export default function RegistrationPage() {
       ...prev,
       biodataOrangTua: undefined,
     }));
+    setActiveTab("Biodata Orang Tua");
   };
 
   const handleResetBiodataWali = () => {
@@ -119,6 +192,7 @@ export default function RegistrationPage() {
       ...prev,
       biodataWali: undefined,
     }));
+    setActiveTab("Biodata Wali");
   };
 
   const handleResetPilihJurusan = () => {
@@ -126,6 +200,15 @@ export default function RegistrationPage() {
       ...prev,
       pilihJurusan: undefined,
     }));
+    setActiveTab("Pilih Jurusan");
+  };
+
+  const handleValidationError = (message: string): void => {
+    setAlertInfo({
+      title: "Data Tidak Lengkap",
+      message: message,
+      variant: "warning",
+    });
   };
 
   const renderFormContent = () => {
@@ -136,6 +219,8 @@ export default function RegistrationPage() {
             onPrev={handleRouteToHome}
             onNext={handleNextBiodataSiswa}
             onCancel={handleResetBiodataSiswa}
+            initialData={registrationData.biodataSiswa}
+            onValidationError={handleValidationError}
           />
         );
       case "Biodata Orang Tua":
@@ -144,6 +229,8 @@ export default function RegistrationPage() {
             onNext={handleNextBiodataOrangTua}
             onPrev={handlePrevBiodataOrangTua}
             onCancel={handleResetBiodataOrangTua}
+            initialData={registrationData.biodataOrangTua}
+            onValidationError={handleValidationError}
           />
         );
       case "Biodata Wali":
@@ -152,6 +239,8 @@ export default function RegistrationPage() {
             onNext={handleNextBiodataWali}
             onPrev={handlePrevBiodataWali}
             onCancel={handleResetBiodataWali}
+            initialData={registrationData.biodataWali}
+            onValidationError={handleValidationError}
           />
         );
       case "Pilih Jurusan":
@@ -160,11 +249,22 @@ export default function RegistrationPage() {
             onNext={handleNextPilihJurusan}
             onPrev={handlePrevPilihJurusan}
             onCancel={handleResetPilihJurusan}
+            initialData={registrationData.pilihJurusan}
+            onValidationError={handleValidationError}
           />
         );
       case "Selesai":
         return (
-          <Selesai onSubmit={handleSubmitSelesai} onPrev={handlePrevSelesai} />
+          <Selesai
+            onSubmit={handleSubmitSelesai}
+            onPrev={handlePrevSelesai}
+            onCancel={() => {
+              setRegistrationData({});
+              setActiveTab("Biodata Siswa");
+            }}
+            registrationData={registrationData}
+            isSubmitting={isSubmitting}
+          />
         );
       default:
         return null;
@@ -174,6 +274,14 @@ export default function RegistrationPage() {
   return (
     <main className="min-h-screen bg-linear-to-b from-white to-gray-50 mt-10 max-sm:mt-16">
       <div className="w-full p-5 sm:border max-sm:p-5 md:p-10 lg:p-14 xl:p-20 flex flex-col items-center gap-6">
+        {alertInfo && (
+          <Alert
+            variant={alertInfo.variant}
+            title={alertInfo.title}
+            description={alertInfo.message}
+            onClose={() => setAlertInfo(null)}
+          />
+        )}
         {activeTab === "Biodata Siswa" && (
           <div className="w-full flex flex-col mb-6 max-sm:mb-0">
             <div className="w-full flex flex-row justify-between mb-3">
@@ -209,6 +317,16 @@ export default function RegistrationPage() {
           />
         </div>
       </div>
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          setActiveTab("Biodata Siswa");
+          window.location.href = "/";
+        }}
+        registrationId={successData?.registrationId}
+        studentName={successData?.studentName}
+      />
     </main>
   );
 }

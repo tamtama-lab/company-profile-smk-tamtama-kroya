@@ -6,90 +6,87 @@ import {
   InputText,
   InputTextArea,
 } from "@/components/InputForm/TextInput";
-import React, { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
 import { MandatoryLabel } from "../MandatoryLabel";
-
-interface BiodataWaliForm {
-  namaWali: string;
-  nikWali: string;
-  pekerjaanWali: string;
-  penghasilanWali: string;
-  alamatWali: string;
-  noTelponWali: string;
-  hubunganDenganSiswa: string;
-}
+import { BiodataWaliForm } from "@/utils/registrationTypes";
 
 interface BiodataWaliProps {
   onNext: (data: BiodataWaliForm) => void;
   onPrev: () => void;
   onCancel?: () => void;
+  initialData?: BiodataWaliForm;
+  onValidationError?: (message: string) => void;
 }
 
 export const BiodataWali: React.FC<BiodataWaliProps> = ({
   onNext,
   onPrev,
   onCancel,
+  initialData,
+  onValidationError,
 }) => {
-  const [formData, setFormData] = useState<BiodataWaliForm>({
-    namaWali: "",
-    nikWali: "",
-    pekerjaanWali: "",
-    penghasilanWali: "",
-    alamatWali: "",
-    noTelponWali: "",
-    hubunganDenganSiswa: "",
+  const { register, handleSubmit, watch, setValue } = useForm<BiodataWaliForm>({
+    defaultValues: initialData || {
+      namaWali: "",
+      nikWali: "",
+      pekerjaanWali: "",
+      penghasilanWali: "",
+      alamatWali: "",
+      noTelponWali: "",
+      hubunganDenganSiswa: "",
+    },
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const formData = watch();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onNext(formData);
+  const onSubmit = (data: BiodataWaliForm) => {
+    if (!data.namaWali?.trim()) {
+      onValidationError?.("Nama Wali harus diisi");
+      return;
+    }
+    if (!data.noTelponWali?.trim()) {
+      onValidationError?.("Nomor Telpon Wali harus diisi");
+      return;
+    }
+    if (!data.alamatWali?.trim()) {
+      onValidationError?.("Alamat Wali harus diisi");
+      return;
+    }
+    onNext(data);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
-      <MandatoryLabel notes=" Data wali hanya perlu diisi apabila orang tua tidak dapat dihubungi atau tidak tersedia." />
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full">
+      <MandatoryLabel notes="Data wali hanya perlu diisi apabila orang tua tidak dapat dihubungi atau tidak tersedia." />
       <div className="grid grid-cols-2 gap-x-5 max-sm:grid-cols-1 gap-y-5 max-sm:gap-y-2">
         <InputText
           label="Nama Wali"
-          name="namaWali"
-          value={formData.namaWali}
-          onChange={handleChange}
           placeholder="Masukkan Nama Wali Anda"
           isMandatory
+          name="namaWali"
+          value={formData.namaWali}
+          onChange={(e) => setValue("namaWali", e.target.value)}
         />
         <InputNumber
           label="Nomor Telpon Wali"
-          name="noTelponWali"
-          value={formData.noTelponWali}
-          onChange={handleChange}
           limit={15}
           placeholder="Masukkan Nomor Telpon Wali"
           isMandatory
+          name="noTelponWali"
+          value={formData.noTelponWali}
+          onChange={(e) => setValue("noTelponWali", e.target.value)}
         />
-
         <InputTextArea
           label="Alamat"
+          placeholder="Masukkan Alamat Domisili Wali Anda"
+          isMandatory
           name="alamatWali"
           value={formData.alamatWali}
-          placeholder="Masukkan Alamat Domisili Wali Anda "
-          isMandatory
-          onChange={handleChange}
+          onChange={(e) => setValue("alamatWali", e.target.value)}
         />
       </div>
 
-      {/* Buttons */}
       <div className="flex justify-between gap-4 mt-10 max-sm:grid max-sm:grid-cols-1 max-sm:gap-y-3">
         <div className="flex gap-6 max-sm:justify-between">
           <TextButton
@@ -107,7 +104,12 @@ export const BiodataWali: React.FC<BiodataWaliProps> = ({
             />
           )}
         </div>
-        <TextButton variant="primary" text="Lanjutkan" className="px-8 py-2" />
+        <TextButton
+          variant="primary"
+          text="Lanjutkan"
+          className="px-8 py-2"
+          isSubmit
+        />
       </div>
     </form>
   );

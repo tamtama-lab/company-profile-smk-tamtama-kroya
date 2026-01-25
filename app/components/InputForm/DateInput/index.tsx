@@ -42,7 +42,7 @@ export const DateInput: React.FC<DateInputProps> = ({
       {/* Label */}
       <label
         htmlFor={name}
-        className="block text-sm font-semibold text-gray-700 mb-2"
+        className="block text-sm max-sm:text-xs font-semibold text-gray-700 mb-2"
       >
         {label} {isMandatory && <span className="text-red-500">*</span>}
       </label>
@@ -54,7 +54,7 @@ export const DateInput: React.FC<DateInputProps> = ({
             id={name}
             className="w-full flex flex-row border border-gray-300 justify-start text-left px-4 py-2 max-sm:py-1 rounded-sm font-normal"
           >
-            <div className="w-full max-sm:text-sm flex items-center">
+            <div className="w-full max-sm:text-xs flex items-center">
               {" "}
               {selectedDate ? (
                 dayjs(selectedDate).locale("id-ID").format("dddd, DD MMMM YYYY")

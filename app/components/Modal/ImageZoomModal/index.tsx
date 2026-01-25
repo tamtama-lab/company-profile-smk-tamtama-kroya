@@ -3,9 +3,6 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import {
-  AiOutlineClose,
-  AiOutlineMinus,
-  AiOutlinePlus,
   AiOutlineZoomIn,
   AiOutlineZoomOut,
 } from "react-icons/ai";
