@@ -122,7 +122,7 @@ export const ModalPreviewData: React.FC<ModalPreviewDataProps> = ({
         </div>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-6 overflow-y-auto max-h-[60vh]">
         {!data || Object.keys(data).length === 0 ? (
           <p className="text-gray-500 text-center py-8">
             Tidak ada data untuk ditampilkan

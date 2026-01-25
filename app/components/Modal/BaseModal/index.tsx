@@ -66,7 +66,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-4 h-[80%] overflow-y-scroll">{children}</div>
+        <div className="flex-1 p-4 h-[80%]">{children}</div>
         {footer && <div className="p-4 border-t border-gray-300">{footer}</div>}
       </div>
     </div>
