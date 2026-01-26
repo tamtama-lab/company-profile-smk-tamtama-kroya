@@ -96,9 +96,7 @@ export const Header: React.FC = () => {
     window.location.href = "/pendaftaran";
   };
 
-  const routeToLogin = () => {
-    window.location.href = "/login";
-  };
+
 
   const isPPDBRoute = ppdbRoutes.some((route) => pathname.startsWith(route));
 
@@ -195,13 +193,6 @@ export const Header: React.FC = () => {
           </div>
           <div className="flex flex-row">
             <TextButton
-              onClick={routeToLogin}
-              variant="outline"
-              text="Log In Guru"
-              className="w-fit px-3 h-fit py-3 md:text-sm ml-6"
-              width="fit"
-            />
-            <TextButton
               onClick={routeToRegistration}
               variant="primary"
               text="Daftar Sekarang"
@@ -271,13 +262,6 @@ export const Header: React.FC = () => {
             ))}
           </div>
           <div className="pt-6 mt-6 border-t border-gray-200 flex flex-row justify-center">
-            <TextButton
-              onClick={routeToLogin}
-              variant="outline"
-              text="Log In Guru"
-              className="min-w-fit w-fit px-3 h-fit py-3 md:text-sm ml-6"
-              width="full"
-            />
             <TextButton
               onClick={routeToRegistration}
               variant="primary"

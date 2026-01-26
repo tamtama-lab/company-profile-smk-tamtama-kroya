@@ -10,7 +10,6 @@ import { SuccessModal } from "@/components/Modal/SuccessModal";
 import { ConfirmationAlert } from "@/components/Modal/ConfirmationAlert";
 import { useState, useEffect } from "react";
 import { GoArrowLeft } from "react-icons/go";
-import { getSchoolList } from "../api/registration/get-school";
 import { transformToApiFormat } from "@/utils/transformRegistrationData";
 import {
   RegistrationData,
@@ -120,41 +119,6 @@ export default function RegistrationPage() {
       localStorage.removeItem(STORAGE_TAB_KEY);
     } catch (error) {
       console.error("Failed to clear localStorage:", error);
-    }
-  };
-
-  // useEffect(() => {
-  //   const fetchSchools = async () => {
-  //     const schools = await getSchoolList();
-  //     console.log("School List:", schools);
-  //   };
-  //   fetchSchools();
-  // }, []);
-
-  const fetchSchools = async (query: string): Promise<string[]> => {
-    try {
-      const res = await fetch(
-        `/api/registrations/school-lookup?q=${encodeURIComponent(query)}`,
-      );
-      const result = await res.json();
-
-      if (!res.ok) {
-        // Handle error response
-        if (result.errors && Array.isArray(result.errors)) {
-          const errorMsg = result.errors[0]?.message || result.message;
-          throw new Error(errorMsg);
-        }
-        throw new Error(result.message || "Gagal mengambil data sekolah");
-      }
-
-      const schools = result.data || [];
-      return Array.isArray(schools) ? schools : [];
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Terjadi kesalahan saat mengambil data sekolah";
-      throw new Error(message);
     }
   };
 

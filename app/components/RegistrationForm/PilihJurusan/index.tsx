@@ -164,7 +164,7 @@ export const PilihJurusan: React.FC<PilihJurusanProps> = ({
                 <h3 className="text-center max-sm:text-left font-semibold text-xl max-sm:text-lg text-primary mb-2">
                   {selectedJurusan.label}
                 </h3>
-                <h3 className="text-lg max-sm:text-base font-bold text-primary mb-4">
+                <h3 className="text-lg max-sm:text-base font-bold text-primary mb-4 underline underline-offset-2">
                   Prospek Lulusan
                 </h3>
                 <ul className="space-y-3">

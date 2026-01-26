@@ -9,6 +9,7 @@ import {
   PiTiktokLogo,
   PiYoutubeLogo,
 } from "react-icons/pi";
+import { TextButton } from "../Buttons/TextButton";
 
 const currentYear = new Date().getFullYear();
 
@@ -17,6 +18,10 @@ const scrollToTop = () => {
 };
 
 export const Footer: React.FC = () => {
+  const routeToLogin = () => {
+    window.location.href = "/login";
+  };
+
   return (
     <footer className="h-fit bg-primary text-white shadow-lg w-full flex flex-col">
       <div className="h-full w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 px-4 sm:px-10 lg:px-20 xl:px-36 py-8 sm:py-10 lg:py-12 gap-x-8 lg:gap-x-16 gap-y-6 lg:gap-y-5 mb-6 sm:mb-8 lg:mb-10">
@@ -76,18 +81,19 @@ export const Footer: React.FC = () => {
               </div>
             ))}
           </div>
-          <button
-            onClick={scrollToTop}
-            className="w-fit h-fit flex items-center rounded-md group justify-center gap-2 sm:gap-3 border p-2 hover:bg-secondary/10 transition-colors"
-          >
-            <BsChevronUp
-              size={20}
-              className="sm:w-6 sm:h-6 transition-transform group-hover:transition-transform duration-200 ease-in-out group-hover:-translate-y-1"
+          <div className="w-full flex flex-row justify-start items-center gap-4 sm:gap-6">
+            <TextButton
+              text="Kembali ke Atas"
+              icon={<BsChevronUp size={20} className="sm:w-6 sm:h-6" />}
+              variant="ghost"
+              onClick={scrollToTop}
             />
-            <p className="text-xs sm:text-sm group-hover:font-semibold">
-              Back to Top
-            </p>
-          </button>
+            <TextButton
+              text="Log In Guru"
+              variant="ghost"
+              onClick={routeToLogin}
+            />
+          </div>
         </div>
         <div className="w-full h-full border border-primary grid grid-cols-2 gap-0">
           <div className="border-r border-primary">

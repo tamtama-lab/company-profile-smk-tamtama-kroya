@@ -1,6 +1,7 @@
 import { FaCheck } from "react-icons/fa6";
 import { SectionTitle } from "../../SectionTitle";
 import { ScrollAnimationWrapper } from "@/components/ScrollAnimationWrapper";
+import Image from "next/image";
 
 export const WhyChooseUs: React.FC<{ id?: string }> = ({ id }) => {
   const reasons = [
@@ -22,11 +23,14 @@ export const WhyChooseUs: React.FC<{ id?: string }> = ({ id }) => {
       />
 
       <div className="w-full h-auto lg:h-[70vh] border border-gray-100 flex flex-col lg:flex-row lg:px-8 xl:px-16 gap-6 lg:gap-0">
-        <ScrollAnimationWrapper
-          direction="up"
-          className="w-full lg:w-4/10 h-48 sm:h-64 lg:h-full flex items-center justify-center"
-        >
-          <div className="w-full h-full bg-gray-300 rounded-2xl max-sm:rounded-lg"></div>
+        <ScrollAnimationWrapper className="w-full aspect-h-3 aspect-w-4 bg-gray-300 rounded-2xl max-sm:rounded-lg overflow-hidden">
+          <Image
+            src="/ppdb/smk-tamtama.jpeg"
+            alt="why-choose-us-smk-tamtama-kroya"
+            width={400}
+            height={200}
+            className="w-full h-full aspect-video object-cover rounded-xl max-sm:rounded-lg"
+          />
         </ScrollAnimationWrapper>
 
         <ScrollAnimationWrapper

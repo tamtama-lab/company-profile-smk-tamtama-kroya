@@ -3,7 +3,13 @@ import React from "react";
 export const TextButton: React.FC<{
   text?: string;
   ref?: React.Ref<HTMLButtonElement>;
-  variant: "primary" | "secondary" | "light" | "outline" | "outline-danger";
+  variant:
+    | "primary"
+    | "secondary"
+    | "light"
+    | "outline"
+    | "outline-danger"
+    | "ghost";
   className?: string;
   onClick?: () => void;
   width?: "full" | "half" | "fit";
@@ -41,6 +47,10 @@ export const TextButton: React.FC<{
     case "outline-danger":
       defaultStyle =
         "border bg-white text-red-500 border-red-500 h-fit py-2 sm:py-2 px-3 sm:px-4 text-sm sm:text-base rounded-sm font-medium hover:bg-red-50";
+      break;
+    case "ghost":
+      defaultStyle =
+        "border bg-transparent text-white border-white h-fit py-2 sm:py-2 px-3 sm:px-4 text-sm sm:text-base rounded-sm font-medium";
       break;
   }
   return (

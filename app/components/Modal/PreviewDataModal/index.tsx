@@ -92,7 +92,7 @@ const DataSection = ({
       >
         {entries.map(([key, value]) => (
           <div key={key} className=" border-gray-200 pb-3">
-            <p className="text-xs text-gray-600 font-semibold mb-1">
+            <p className="text-xs text-primary font-semibold mb-1">
               {labelMap[key] || key}
             </p>
             <p className="text-sm text-gray-800">{formatValue(key, value)}</p>

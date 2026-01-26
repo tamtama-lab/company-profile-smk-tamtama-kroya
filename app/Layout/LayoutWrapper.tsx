@@ -23,6 +23,14 @@ export default function LayoutWrapper({
     "/not-found",
   ];
 
+  // Auth pages - sudah memiliki layout tersendiri di app/(auth)/layout.tsx
+  // const authRoutes = [
+  //   "/login",
+  //   "/register",
+  //   "/forgot-password",
+  //   "/reset-password",
+  // ];
+
   const registrationHeaderRoutes = ["/pendaftaran"];
 
   // Cek apakah pathname dimulai dengan path tanpa header

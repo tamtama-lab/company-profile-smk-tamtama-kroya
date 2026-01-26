@@ -3,6 +3,7 @@
 import { BaseModal } from "@/components/Modal/BaseModal";
 import { TextButton } from "@/components/Buttons/TextButton";
 import { FaCheckCircle } from "react-icons/fa";
+import { IoLocationOutline } from "react-icons/io5";
 
 interface SuccessModalProps {
   isOpen: boolean;
@@ -88,6 +89,16 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
           text="Kembali ke Beranda"
           className="w-full px-8 py-3"
           onClick={onClose}
+        />
+        <TextButton
+          className="text-primary border-primary max-md:py-2"
+          icon={<IoLocationOutline className="text-xl" />}
+          variant={"outline"}
+          width="full"
+          text="Lihat Lokasi Sekolah"
+          onClick={() =>
+            window.open("https://maps.app.goo.gl/K7yiBoFCgicosfzv9", "_blank")
+          }
         />
       </div>
     </BaseModal>

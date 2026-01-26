@@ -58,14 +58,6 @@ interface BiodataSiswaProps {
   onValidationError?: (message: string) => void;
 }
 
-const smpOptions = [
-  "SMP Negeri 1 Kroya",
-  "SMP Negeri 2 Kroya",
-  "SMP Swasta Tamtama",
-  "SMP Islam Al-Hikmah",
-  "MTs Negeri Kroya",
-];
-
 export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
   onNext,
   onPrev,
@@ -168,7 +160,7 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
                   <FormInput
                     {...field}
                     label="Email Aktif"
-                    placeholder="Masukkan Email aktif Anda"
+                    placeholder="Masukkan Email Aktif Anda"
                     isMandatory
                     isEmail
                     error={form.formState.errors.email?.message}

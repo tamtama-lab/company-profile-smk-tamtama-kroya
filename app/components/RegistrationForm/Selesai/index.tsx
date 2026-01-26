@@ -51,12 +51,14 @@ export const Selesai: React.FC<SelesaiProps> = ({
             <span className="font-bold text-primary">Catatan Penting:</span>
             <p className=" text-gray-700">
               Setelah menekan tombol{" "}
-              <span className="text-primary font-bold">Kirim</span> sistem akan
-              mengirimkan{" "}
+              <span className="text-primary font-bold">
+                Konfirmasi Pendaftaran
+              </span>{" "}
+              sistem akan mengirimkan{" "}
               <span className="text-primary font-bold">
                 File Bukti Pendaftaran
               </span>{" "}
-              ke alamat email yang telah dimasukkan saat proses pendaftaran
+              ke alamat email yang telah dimasukkan saat proses pendaftaran.
             </p>
           </div>
           <div className="w-full">
