@@ -314,7 +314,7 @@ export const InputTextArea: React.FC<{
   };
 
   return (
-    <div className="mb-2 max-sm:mb-1">
+    <div className="mb-1 max-sm:mb-1">
       <div className="flex justify-between items-center mb-2">
         <label className="block text-sm max-sm:text-xs font-semibold text-gray-700">
           {label} {isMandatory && <span className="text-red-500">*</span>}

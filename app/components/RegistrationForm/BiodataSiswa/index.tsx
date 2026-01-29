@@ -40,7 +40,7 @@ const biodataSiswaSchema = z.object({
     }),
   tempatLahir: z.string().min(1, "Tempat lahir wajib diisi"),
   tanggalLahir: z.string().min(1, "Tanggal lahir wajib diisi"),
-  asalSekolah: z.string().min(1, ""),
+  asalSekolah: z.string().min(1, "Asal Sekolah wajib diisi"),
   alamat: z.string().min(1, "Alamat wajib diisi"),
   jenisKelamin: z.string().min(1, "Jenis kelamin wajib dipilih"),
   agama: z.string().min(1, "Agama wajib dipilih"),
@@ -269,7 +269,6 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
                     isMandatory
                   />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />

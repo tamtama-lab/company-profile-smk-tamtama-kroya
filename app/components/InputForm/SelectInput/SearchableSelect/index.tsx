@@ -48,10 +48,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   );
   const isValueInOptions = combinedOptions.includes(value);
 
-  // Validasi error: mandatory tapi kosong dan sudah di-touch
-  const isEmpty = isMandatory && !value && touched;
-  const showError = error || (isEmpty ? "Asal Sekolah wajib diisi" : "");
-  const hasError = !!showError;
+  // Gunakan error dari Zod validation
+  const hasError = !!error;
 
   // Update useTextInput ketika value berubah
   useEffect(() => {
@@ -350,7 +348,6 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                 : "border-gray-300 focus:ring-primary"
             }`}
             placeholder={placeholder}
-            required={isMandatory}
           />
           {/* Tombol kembali ke select */}
           <button
@@ -379,7 +376,6 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                 : "border-gray-300 focus:ring-primary"
             }`}
             placeholder={placeholder}
-            required={isMandatory && !value}
             autoComplete="off"
           />
 
@@ -393,7 +389,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
 
       {/* Error message */}
       {hasError && (
-        <span className="text-red-500 text-xs mt-1 block">{showError}</span>
+        <span className="text-red-500 text-xs mt-1 block">{error}</span>
       )}
     </div>
   );
