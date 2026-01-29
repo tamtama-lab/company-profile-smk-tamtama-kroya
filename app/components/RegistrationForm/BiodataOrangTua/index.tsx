@@ -20,9 +20,9 @@ import { useAlert } from "@/components/ui/alert";
 
 const biodataOrangTuaSchema = z.object({
   namaAyah: z.string().min(1, "Nama Ayah harus diisi"),
-  kondisiAyah: z.string().min(1, "Kondisi Ayah harus dipilih"),
+  kondisiAyah: z.string().min(1, "Kondisi Ayah harus diisi"),
   namaIbu: z.string().min(1, "Nama Ibu harus diisi"),
-  kondisiIbu: z.string().min(1, "Kondisi Ibu harus dipilih"),
+  kondisiIbu: z.string().min(1, "Kondisi Ibu harus diisi"),
   alamat: z.string().min(1, "Alamat harus diisi"),
 });
 

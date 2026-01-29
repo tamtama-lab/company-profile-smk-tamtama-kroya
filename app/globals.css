@@ -140,4 +140,8 @@ section[id] {
         @apply border-(--accesnt-color);
     }
 
+    .border--danger {
+        @apply border-(--danger-color);
+    }
+
 }

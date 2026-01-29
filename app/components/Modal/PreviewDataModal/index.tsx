@@ -42,7 +42,7 @@ const labelMap: Record<string, string> = {
 const formatValue = (key: string, value: unknown): string => {
   if (value === null || value === undefined || value === "") return "-";
   if (key === "adaKip") return value ? "Ya" : "Tidak";
-  if (key === "kondisiAyah" || key === "kondisiIbu ") {
+  if (key === "kondisiAyah" || key === "kondisiIbu") {
     return value === "alive" ? "Hidup" : "Meninggal Dunia";
   }
   if (key === "jenisKelamin") return value ? "Laki-laki" : "Perempuan";

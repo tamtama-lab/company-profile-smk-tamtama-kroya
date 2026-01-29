@@ -89,6 +89,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
           text="Kembali ke Beranda"
           className="w-full px-8 py-3"
           onClick={onClose}
+          hoverEffect={false}
         />
         <TextButton
           className="text-primary border-primary max-md:py-2"
@@ -96,6 +97,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
           variant={"outline"}
           width="full"
           text="Lihat Lokasi Sekolah"
+          hoverEffect={false}
           onClick={() =>
             window.open("https://maps.app.goo.gl/K7yiBoFCgicosfzv9", "_blank")
           }

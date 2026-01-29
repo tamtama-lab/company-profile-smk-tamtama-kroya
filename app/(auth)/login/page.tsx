@@ -13,14 +13,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import z from "zod";
 import { TextButton } from "@/components/Buttons/TextButton";
 import { useAlert } from "@/components/ui/alert";
+import { isAuthenticated, saveAuthData, AuthData } from "@/utils/auth";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Mohon isi username terlebih dahulu"),
   password: z.string().min(6, "Password minimal 6 karakter"),
+  remember_me: z.boolean(),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -29,14 +31,33 @@ export default function LoginPage() {
   const { showAlert } = useAlert();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: "",
       password: "",
+      remember_me: false,
     },
   });
+
+  // Check if user already authenticated, redirect to dashboard
+  useEffect(() => {
+    const checkAuth = () => {
+      if (isAuthenticated()) {
+        // Get redirect destination or default to dashboard
+        const redirectPath =
+          sessionStorage.getItem("redirectAfterLogin") || "/dashboard";
+        sessionStorage.removeItem("redirectAfterLogin");
+        router.replace(redirectPath);
+      } else {
+        setCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
@@ -48,7 +69,11 @@ export default function LoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          username: data.username,
+          password: data.password,
+          remember_me: data.remember_me,
+        }),
       });
 
       const result = await response.json();
@@ -58,19 +83,28 @@ export default function LoginPage() {
         return;
       }
 
-      // Simpan token ke localStorage atau cookie
-      localStorage.setItem("authToken", result.token);
-      localStorage.setItem("tokenType", result.type);
-      localStorage.setItem("tokenExpiresAt", result.expiresAt);
+      // Save auth data based on remember_me preference
+      const authData: AuthData = {
+        access_token: result.access_token,
+        expiresAt: result.expiresAt,
+        user: result.user,
+      };
+      saveAuthData(authData, data.remember_me);
 
-      // Redirect ke halaman dashboard atau home
+      // Redirect ke halaman dashboard atau intended destination
       showAlert({
         title: "Login berhasil",
-        description: "Anda diarahkan ke dashboard",
+        description: `Selamat datang, ${result.user.fullName}!`,
         variant: "success",
       });
+
+      // Get redirect destination or default to dashboard
+      const redirectPath =
+        sessionStorage.getItem("redirectAfterLogin") || "/dashboard";
+      sessionStorage.removeItem("redirectAfterLogin");
+
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push(redirectPath);
       }, 1500);
     } catch (error) {
       showAlert({ title: "Terjadi kesalahan, coba lagi", variant: "error" });
@@ -81,8 +115,17 @@ export default function LoginPage() {
   };
 
   const message = "Halo! Mohon bantu saya untuk pembuatan akun guru";
-
   const encodedMessage = encodeURIComponent(message);
+
+  // Show loading while checking authentication
+  if (checkingAuth) {
+    return (
+      <div className="w-full max-w-md px-6 flex flex-col items-center justify-center min-h-100">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-600 mt-4">Memeriksa sesi...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md px-6 flex flex-col items-center space-y-6">
@@ -153,6 +196,8 @@ export default function LoginPage() {
                 id="remember"
                 className="w-4 h-4"
                 aria-label="Ingat Saya"
+                checked={form.watch("remember_me")}
+                onChange={(e) => form.setValue("remember_me", e.target.checked)}
               />
               <label
                 htmlFor="remember"

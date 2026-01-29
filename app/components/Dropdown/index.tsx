@@ -6,7 +6,7 @@ export interface DropdownProps {
   onOpen: () => void;
   onClose: () => void;
   position?: "left" | "right" | "bottom" | "top";
-  label: string;
+  label: ReactNode;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   width?: string; // e.g., "w-full", "w-[60%]", "w-32"
@@ -76,21 +76,21 @@ export default function Dropdown({
   const chevronRotation = getChevronRotation(position, isOpen);
 
   return (
-    <div className={`relative z-100 ${width} ${height}`}>
+    <div className={`relative ${width} ${height}`}>
       <button
-        className={`h-full w-full border-2 ${isOpen ? `${borderColor}` : borderColor} flex flex-row ${rounded} ${color} justify-between items-center space-x-4 max-md:px-1 max-md:py-1 max-md:text-sm ${textColor} group transition-transform duration-200 ease-in-out cursor-pointer ${className}`}
+        className={`h-full w-full ${isOpen ? `${borderColor}` : borderColor} flex flex-row ${rounded} ${color} justify-between items-center space-x-4 max-md:px-1 max-md:py-1 max-md:text-sm ${textColor} group transition-transform duration-200 ease-in-out cursor-pointer ${className}`}
         onClick={onOpen}
         disabled={disabled}
       >
         <div className="flex items-center space-x-2">
           {leftIcon && <div className="shrink-0">{leftIcon}</div>}
         </div>
-        <p className="max-sm:text-xs">{label}</p>
+        {label}
         <div className="flex items-center space-x-2">
           {rightIcon && <div className="shrink-0">{rightIcon}</div>}
           {!hideChevron && (
             <IoChevronDown
-              className={`w-5 h-5 transition-transform duration-300 ${chevronRotation}`}
+              className={`w-3 h-3 transition-transform duration-300 ${chevronRotation}`}
             />
           )}
         </div>
@@ -98,7 +98,7 @@ export default function Dropdown({
 
       {isOpen && (
         <div
-          className="fixed inset-0 z-100"
+          className="fixed inset-0 z-1"
           onClick={onClose}
           style={{ background: "transparent" }}
         />

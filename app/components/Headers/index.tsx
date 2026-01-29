@@ -103,7 +103,7 @@ export const Header: React.FC = () => {
       className={`fixed bg-white text-black shadow-lg w-full px-4 sm:px-6 lg:px-10 py-3 sm:py-4 z-100 top-0 `}
     >
       <div className="w-full flex flex-row justify-between items-center">
-        <div className="w-auto sm:w-[36%] flex flex-row items-center justify-start">
+        <div className="w-fit flex flex-row items-center justify-start">
           <Link href="/">
             <Image
               src="/header/logo.png"
@@ -136,82 +136,82 @@ export const Header: React.FC = () => {
         </button>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:w-[76%] lg:flex lg:flex-row lg:justify-between sm:items-center sm:justify-end">
-          <div className="w-auto flex flex-row space-x-6 lg:space-x-8">
-            {NavItems.map((item) => (
-              <div key={item.label} className="relative group/nav">
-                <a
-                  href={item.href}
-                  className="relative flex flex-row justify-center items-center text-xs sm:text-sm font-medium text-black hover:text-primary transition-colors duration-200 ease-in-out
+        {/* <div className="hidden w-auto lg:w-[70%] xl:w-[80%] lg:flex lg:flex-row lg:justify-between sm:items-center sm:justify-end"> */}
+        <div className="w-fit h-full hidden lg:flex justify-center flex-row space-x-6 lg:space-x-8">
+          {NavItems.map((item) => (
+            <div key={item.label} className="relative group/nav">
+              <a
+                href={item.href}
+                className="relative flex flex-row justify-center items-center text-xs sm:text-sm font-medium text-black hover:text-primary transition-colors duration-200 ease-in-out
                   after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-[#014921] 
                   after:transition-all after:duration-300 after:ease-in-out
                   hover:after:w-full"
-                >
-                  {item.label}
-                  {item.children ? (
-                    <MdOutlineArrowDropDown
-                      size={18}
-                      className="group-hover:-rotate-90 transition-transform duration-200 ease-in-out ml-1"
-                    />
-                  ) : (
-                    ""
-                  )}
-                </a>
-                {item?.children && (
-                  <div
-                    className="absolute left-0 top-full mt-0 w-fit min-w-52 max-w-full bg-white shadow-lg drop-shadow-gray-300 border border-gray-200 rounded-md p-3 sm:p-4
+              >
+                {item.label}
+                {item.children ? (
+                  <MdOutlineArrowDropDown
+                    size={18}
+                    className="group-hover:-rotate-90 transition-transform duration-200 ease-in-out ml-1"
+                  />
+                ) : (
+                  ""
+                )}
+              </a>
+              {item?.children && (
+                <div
+                  className="absolute left-0 top-full mt-0 w-fit min-w-52 max-w-full bg-white shadow-lg drop-shadow-gray-300 border border-gray-200 rounded-md p-3 sm:p-4
                     opacity-0 translate-y-2 pointer-events-none invisible
                     space-y-6
                     transition-all duration-300 ease-out
                     group-hover/nav:opacity-100 group-hover/nav:translate-y-0 group-hover/nav:pointer-events-auto group-hover/nav:visible
                     group-focus-within/nav:opacity-100 group-focus-within/nav:translate-y-0 group-focus-within/nav:pointer-events-auto group-focus-within/nav:visible"
-                  >
-                    {item.children.map((child) => (
-                      <div
-                        key={child.label}
-                        className="w-full flex flex-row gap-3"
-                      >
-                        {child?.icon ?? ""}
-                        <a
-                          href={child.href}
-                          className="
+                >
+                  {item.children.map((child) => (
+                    <div
+                      key={child.label}
+                      className="w-full flex flex-row gap-3"
+                    >
+                      {child?.icon ?? ""}
+                      <a
+                        href={child.href}
+                        className="
                         w-fit relative last:mb-0 justify-left items-center text-xs sm:text-sm font-medium text-black hover:text-primary transition-colors duration-200 ease-in-out
                         after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-[#014921] 
                         after:transition-all after:duration-300 after:ease-in-out
                         hover:after:w-full"
-                        >
-                          {child.label}
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-row">
-            <TextButton
-              onClick={() =>
-                window.open(
-                  "https://youtu.be/ZrENGBxv5cg?si=VlwJaA0cye0QKbzK",
-                  "_blank",
-                )
-              }
-              variant="outline"
-              text="Tutorial Pendaftaran"
-              className="w-fit px-3 h-fit py-3 md:text-sm ml-6"
-              width="fit"
-            />
-            <TextButton
-              onClick={routeToRegistration}
-              variant="primary"
-              text="Daftar Sekarang"
-              className="w-fit px-3 h-fit py-3 md:text-sm ml-6"
-              width="fit"
-            />
-          </div>
+                      >
+                        {child.label}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex-row hidden lg:flex">
+          <TextButton
+            onClick={() =>
+              window.open(
+                "https://youtu.be/ZrENGBxv5cg?si=VlwJaA0cye0QKbzK",
+                "_blank",
+              )
+            }
+            variant="outline"
+            text="Tutorial Pendaftaran"
+            className="w-fit px-3 h-fit py-3 md:text-sm ml-6"
+            width="fit"
+          />
+          <TextButton
+            onClick={routeToRegistration}
+            variant="primary"
+            text="Daftar Sekarang"
+            className="w-fit px-3 h-fit py-3 md:text-sm ml-6"
+            width="fit"
+          />
         </div>
       </div>
+      {/* </div> */}
 
       {/* Mobile Navigation */}
       <div

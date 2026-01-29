@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import z, { email } from "zod";
+import z from "zod";
 
 // Validation schema
 const loginSchema = z.object({
-  username: z.string().email("Email tidak valid"),
+  username: z.string().min(1, "Username harus diisi"),
   password: z.string().min(1, "Password harus diisi"),
+  remember_me: z.boolean().optional().default(false),
 });
+
+// Backend API URL - sesuaikan dengan environment
+const API_BASE_URL = process.env.BACKEND_URL || "http://localhost:3333";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,27 +27,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { username, password } = validation.data;
+    const { username, password, remember_me } = validation.data;
 
-    // TODO: Implementasi autentikasi dengan database
-    // Contoh: cek email dan password di database
-    // Jika valid, generate JWT token
+    // Call backend API untuk autentikasi
+    const backendResponse = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    });
 
-    // Mock response (ganti dengan logic autentikasi sebenarnya)
-    const mockUser = {
-      username: username,
-      id: "user-123",
-    };
+    const backendData = await backendResponse.json();
 
-    // Generate mock token (gunakan library seperti jsonwebtoken di production)
-    const token = Buffer.from(JSON.stringify(mockUser)).toString("base64");
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 hari
+    if (!backendResponse.ok) {
+      return NextResponse.json(
+        {
+          error: backendData.message || "Username atau password salah",
+        },
+        { status: backendResponse.status }
+      );
+    }
 
+    // Calculate expiration based on remember_me
+    // If remember_me is true, use longer expiration (7 days)
+    // If remember_me is false, use session-based expiration (1 day)
+    const expirationDays = remember_me ? 7 : 1;
+    const expiresAt = backendData.expiresAt || new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000).toISOString();
+
+    // Return response sesuai format yang diharapkan
     return NextResponse.json(
       {
-        type: "Bearer",
-        token: token,
-        expiresAt: expiresAt.toISOString(),
+        access_token: backendData.access_token,
+        expiresAt: expiresAt,
+        user: backendData.user,
+        remember_me: remember_me,
       },
       { status: 200 }
     );

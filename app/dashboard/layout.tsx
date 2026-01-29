@@ -2,6 +2,7 @@
 
 import DashboardHeader from "@/components/Headers/DashboardHeader";
 import { SidebarProvider, useSidebar } from "@/providers/SidebarContext";
+import { AuthGuard } from "@/components/AuthGuard";
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
@@ -14,12 +15,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
 
       {/* Main Content */}
-      <main
-        className={`flex-1 pt-20 pb-8 transition-all duration-300 ${
-          isCollapsed ? "ml-20" : "ml-64"
-        }`}
-      >
-        <div className="px-6 lg:px-10 space-y-6">{children}</div>
+      <main className={`flex-1 pt-20 pb-8 transition-all duration-300 `}>
+        <div className="p-10">{children}</div>
       </main>
     </div>
   );
@@ -31,8 +28,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
-      <DashboardLayoutContent>{children}</DashboardLayoutContent>
-    </SidebarProvider>
+    <AuthGuard allowedRoles={["teacher", "admin"]}>
+      <SidebarProvider>
+        <DashboardLayoutContent>{children}</DashboardLayoutContent>
+      </SidebarProvider>
+    </AuthGuard>
   );
 }

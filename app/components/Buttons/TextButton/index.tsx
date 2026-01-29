@@ -17,6 +17,7 @@ export const TextButton: React.FC<{
   icon?: React.ReactNode;
   isSubmit?: boolean;
   disabled?: boolean;
+  hoverEffect?: boolean;
 }> = ({
   text,
   variant,
@@ -26,6 +27,7 @@ export const TextButton: React.FC<{
   icon,
   isSubmit,
   disabled,
+  hoverEffect = true,
 }) => {
   let defaultStyle = "";
   switch (variant) {
@@ -63,7 +65,7 @@ export const TextButton: React.FC<{
       type={isSubmit ? "submit" : "button"}
       onClick={onClick}
       disabled={disabled}
-      className={`${width === "full" ? "w-full" : width === "half" ? "w-1/2" : width === "fit" ? "w-fit" : ""} ${defaultStyle} ${className ?? ""} ${disabled ? "opacity-50 cursor-not-allowed" : ""} flex flex-row items-center max-sm:text-xs justify-center gap-2 hover:scale-105 transition-transform duration-200 ease-in-out`}
+      className={`${width === "full" ? "w-full" : width === "half" ? "w-1/2" : width === "fit" ? "w-fit" : ""} ${defaultStyle} ${className ?? ""} ${disabled ? "opacity-50 cursor-not-allowed" : ""} flex flex-row items-center max-sm:text-xs justify-center gap-2 ${hoverEffect ? "hover:scale-105 transition-transform duration-200 ease-in-out" : ""}`}
     >
       {icon}
       {text}

@@ -23,8 +23,8 @@ export interface BiodataOrangTuaForm {
 
 export interface BiodataWaliForm {
   namaWali: string;
-  alamatWali: string;
   noTelponWali: string;
+  alamatWali: string;
 }
 
 export interface PilihJurusanForm {
