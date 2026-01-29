@@ -30,7 +30,12 @@ export const Header: React.FC = () => {
 
   // User info with fallback for SSR
   const displayName = user?.fullName || "Username";
-  const displayRole = user?.role || "Role";
+  const displayRole =
+    user?.role === "teacher"
+      ? "Guru"
+      : user?.role === "admin"
+        ? "Admin"
+        : "Role";
 
   const handleLogout = async () => {
     showAlert({
