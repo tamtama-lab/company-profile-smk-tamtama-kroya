@@ -89,7 +89,6 @@ export const PilihJurusan: React.FC<PilihJurusanProps> = ({
   onCancel,
   initialData,
   isTeacherMode,
-  onValidationError,
 }) => {
   const { showAlert } = useAlert();
 

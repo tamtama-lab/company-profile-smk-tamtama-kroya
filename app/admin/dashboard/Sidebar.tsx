@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import {
   FiBarChart2,
   FiCalendar,
@@ -101,12 +102,28 @@ const sidebarItems = [
 ];
 
 export default function Sidebar({ collapsed }: { collapsed: boolean }) {
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(["dashboard"]),
-  ); // Default expand dashboard
+  const pathname = usePathname();
 
-  const currentPath =
-    typeof window !== "undefined" ? window.location.pathname : "";
+  // Compute initial expanded groups based on current pathname
+  const getInitialExpandedGroups = () => {
+    const activeGroup = sidebarItems.find((section) =>
+      section.items.some((item) => item.href === pathname),
+    )?.group;
+    return new Set(activeGroup ? ["dashboard", activeGroup] : ["dashboard"]);
+  };
+
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(getInitialExpandedGroups);
+
+  useEffect(() => {
+    const activeGroup = sidebarItems.find((section) =>
+      section.items.some((item) => item.href === pathname),
+    )?.group;
+
+    if (activeGroup && !expandedGroups.has(activeGroup)) {
+      setExpandedGroups(new Set([...expandedGroups, activeGroup]));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   const toggleGroup = (group: string) => {
     setExpandedGroups((prev) => {
@@ -146,7 +163,7 @@ export default function Sidebar({ collapsed }: { collapsed: boolean }) {
                   <a
                     key={item.label}
                     href={item.href}
-                    className={`flex items-center gap-3 py-2 px-4 rounded ${currentPath === item.href ? "bg-primary text-white" : ""} hover:bg-primary text-gray-800 font-medium transition-all ${collapsed ? "justify-center text-xl px-1" : "text-base"}`}
+                    className={`flex items-center gap-3 py-2 px-4 rounded ${pathname === item.href ? "bg-primary text-white" : ""} hover:bg-primary text-gray-800 font-medium transition-all ${collapsed ? "justify-center text-xl px-1" : "text-base"}`}
                     title={item.label}
                   >
                     <span>{<item.icon className="text-xl" />}</span>

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/popover";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
-import { BiCalendar, BiCloset } from "react-icons/bi";
+import { BiCalendar } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
 
 dayjs.locale("id");
