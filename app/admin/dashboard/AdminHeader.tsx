@@ -51,11 +51,12 @@ export default function AdminHeader({
       <header className="fixed bg-white text-black shadow-sm w-full px-4 sm:px-6 lg:px-10 py-3 sm:py-4 z-100 top-0 ">
         <div className="w-full flex flex-row justify-between items-center">
           <div className="w-[21%] flex  flex-row items-center justify-between">
-            <div className="w-fit flex flex-row  shrink-0">
+            <div className="shrink-0 flex flex-row ">
               <Image
                 src="/header/logo.png"
                 alt="logo-smk-tamtama-kroya"
                 width={40}
+                className="shrink-0"
                 height={40}
               />
               <div className="hidden sm:flex flex-col ml-3">
