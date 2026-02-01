@@ -3,9 +3,16 @@ export interface StatsCardData {
   icon: React.ElementType;
   amount: number;
   isFirstUnique?: boolean;
+  isLoading?: boolean;
 }
 
-export default function StatsCard({ data }: { data: StatsCardData[] }) {
+export default function StatsCard({
+  data,
+  isLoading,
+}: {
+  data: StatsCardData[];
+  isLoading: boolean;
+}) {
   return (
     <div className="w-full grid grid-cols-4 max-sm:grid-cols-1 gap-3 mb-4">
       {data.map((item, idx) => (
@@ -18,7 +25,13 @@ export default function StatsCard({ data }: { data: StatsCardData[] }) {
             <div>
               <item.icon className="text-5xl" />
             </div>
-            <div className="text-3xl font-bold">{item.amount}</div>
+            <div className="text-3xl font-bold">
+              {isLoading ? (
+                <div className="h-8 w-8 bg-gray-200 animate-pulse rounded mt-1"></div>
+              ) : (
+                item.amount
+              )}
+            </div>
           </div>
         </div>
       ))}

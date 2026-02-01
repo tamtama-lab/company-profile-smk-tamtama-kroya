@@ -2,8 +2,9 @@
 
 import { useAuth } from "@/components/AuthGuard";
 import StatsCard from "@/components/Card/StatsCard";
+import { getAuthHeader } from "@/utils/auth";
 import dayjs from "dayjs";
-import { title } from "process";
+import { useEffect, useState } from "react";
 import { FiUser, FiUsers } from "react-icons/fi";
 import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { MdOutlineToday } from "react-icons/md";
@@ -36,28 +37,71 @@ export function GreetingCard() {
   );
 }
 
-const statsData = [
-  {
-    title: "Total Pendaftar",
-    icon: FiUsers,
-    amount: 1200,
-    isFirstUnique: true,
-  },
-  { title: "Pendaftar Hari Ini", icon: MdOutlineToday, amount: 120 },
-  {
-    title: "Pendaftar Oleh Guru",
-    icon: LiaChalkboardTeacherSolid,
-    amount: 800,
-  },
-  { title: "Pendaftar Mandiri", icon: FiUser, amount: 400 },
-];
+interface DashboardStats {
+  registration_total_count: number;
+  daily_registration_count: number;
+  weekly_registration_count: number;
+  registrations_by_teacher: number;
+  registrations_independent: number;
+}
 
 export default function AdminDashboardPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`/api/dashboard/stats`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeader(),
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const statsData = [
+    {
+      title: "Total Pendaftar",
+      icon: FiUsers,
+      amount: stats?.registration_total_count ?? 0,
+      isFirstUnique: true,
+    },
+    {
+      title: "Pendaftar Hari Ini",
+      icon: MdOutlineToday,
+      amount: stats?.daily_registration_count ?? 0,
+    },
+    {
+      title: "Pendaftar Oleh Guru",
+      icon: LiaChalkboardTeacherSolid,
+      amount: stats?.registrations_by_teacher ?? 0,
+    },
+    {
+      title: "Pendaftar Mandiri",
+      icon: FiUser,
+      amount: stats?.registrations_independent ?? 0,
+    },
+  ];
+
   return (
     <div className="w-full h-[calc(100vh-4px)] bg-gray-100 p-4">
       <div className="h-full">
         <GreetingCard />
-        <StatsCard data={statsData} />
+        <StatsCard data={statsData} isLoading={isLoading} />
         <div className="w-full h-100 bg-white rounded-md drop-shadow-sm"></div>
       </div>
     </div>
