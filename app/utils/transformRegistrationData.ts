@@ -14,6 +14,7 @@ interface RegistrationPayload {
     phoneNumber: string;
     email: string;
     isKipRecipient: boolean;
+    kipNumber?: string;
   };
   parentDetail: {
     fatherName: string;
@@ -87,7 +88,7 @@ export const transformToApiFormat = (
       phoneNumber: biodataSiswa?.nomorWhatsapp || "",
       email: biodataSiswa?.email || "",
       isKipRecipient: biodataSiswa?.adaKip === true,
-      kipNumber: biodataSiswa?.kipNumber || "",
+      kipNumber: biodataSiswa?.nomorKip || "",
     },
     parentDetail: {
       fatherName: biodataOrangTua?.namaAyah || "",
@@ -111,21 +112,21 @@ export const transformFromApiFormat = (
   return {
     biodataSiswa: {
       namaLengkap: studentDetail.fullName,
-      email: studentDetail.email,
+      email: studentDetail.email || "",
       nik: studentDetail.nik || "",
       nisn: studentDetail.nisn || "",
       tempatLahir: studentDetail.placeOfBirth,
       tanggalLahir: studentDetail.dateOfBirth,
-      asalSekolah: studentDetail.schoolOriginName,
-      alamat: studentDetail.address,
+      asalSekolah: studentDetail.schoolOriginName || "",
+      alamat: studentDetail.address || "",
       jenisKelamin: studentDetail.gender === "1" ? "Laki-laki" : "Perempuan",
       agama: studentDetail.religion,
       adaKip: studentDetail.isKipRecipient === 1,
-      kipNumber: (studentDetail as any).kipNumber || "",
-      nomorWhatsapp: studentDetail.phoneNumber,
+      nomorKip: studentDetail.kipNumber || "",
+      nomorWhatsapp: studentDetail.phoneNumber || "",
     },
     biodataOrangTua: {
-      alamat: parentDetail.parentAddress,
+      alamat: parentDetail.parentAddress || "",
       namaAyah: parentDetail.fatherName,
       kondisiAyah: parentDetail.fatherLivingStatus,
       namaIbu: parentDetail.motherName,

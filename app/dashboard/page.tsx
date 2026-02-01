@@ -1,6 +1,5 @@
 "use client";
 
-import dayjs from "dayjs";
 import { useAuth } from "@/components/AuthGuard";
 import { useEffect, useState } from "react";
 import { getAuthHeader, getCurrentUser } from "@/utils/auth";
@@ -19,6 +18,8 @@ import { RegistrationData } from "@/utils/registrationTypes";
 import { transformFromApiFormat } from "@/utils/transformRegistrationData";
 import { useAlert } from "@/components/ui/alert";
 import ReusableTable, { Column } from "@/components/Table/ReusableTable";
+import dayjs from "dayjs";
+import "dayjs/locale/id";
 
 export function GreetingCard() {
   const { user } = useAuth();
@@ -271,7 +272,7 @@ export function StudentDataTable() {
       dataIndex: "id",
       key: "id",
       render: (value, record, index) => (currentPage - 1) * limit + index + 1,
-      width: 60,
+      width: 80,
       align: "center",
     },
     {
@@ -279,12 +280,14 @@ export function StudentDataTable() {
       dataIndex: "fullName",
       key: "fullName",
       sorter: true,
+      width: 200,
     },
     {
       title: "No. Pendaftaran",
       dataIndex: "registrationId",
       key: "registrationId",
       sorter: true,
+      width: 200,
     },
     {
       title: "Waktu Pendaftaran",
@@ -295,6 +298,7 @@ export function StudentDataTable() {
           .locale("id")
           .format("DD MMMM YYYY, HH:mm"),
       sorter: true,
+      width: 240,
     },
     {
       title: "Alamat",
@@ -307,6 +311,7 @@ export function StudentDataTable() {
       dataIndex: "schoolOriginName",
       key: "schoolOriginName",
       sorter: true,
+      width: 200,
     },
     {
       title: "Aksi",
@@ -321,13 +326,13 @@ export function StudentDataTable() {
         />
       ),
       align: "center",
-      width: 100,
+      width: 120,
     },
   ];
 
   return (
     <div className="bg-white max-w-screen rounded-lg shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 max-sm:p-2 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-800">
@@ -417,7 +422,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="w-full max-w-screen h-full min-h-screen space-y-6 p-10 max-sm:p-2">
+    <div className="w-full max-w-screen h-full min-h-screen space-y-6 p-10 pb-30 max-sm:p-2">
       <GreetingCard />
       <StatsGrid />
       <StudentDataTable />

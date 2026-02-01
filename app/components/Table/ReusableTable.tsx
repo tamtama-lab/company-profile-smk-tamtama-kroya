@@ -157,9 +157,9 @@ export default function ReusableTable<T extends object = any>({
   }
 
   return (
-    <div className={`w-full border ${className}`}>
+    <div className={`w-full ${className}`}>
       <div
-        className={`overflow-x-auto ${scroll?.x ? "overflow-x-scroll" : ""} ${scroll?.y ? "overflow-y-auto" : ""}`}
+        className={`overflow-x-auto thin-scrollbar ${scroll?.x ? "overflow-x-scroll" : ""} ${scroll?.y ? "overflow-y-auto" : ""}`}
         style={wrapperStyles}
       >
         <table
@@ -193,7 +193,16 @@ export default function ReusableTable<T extends object = any>({
                   onClick={() => handleSort(column)}
                 >
                   <div className="flex items-center justify-between">
-                    <span>{column.title}</span>
+                    <span
+                      className={column.width ? "truncate block" : ""}
+                      style={
+                        column.width
+                          ? { width: column.width, maxWidth: column.width }
+                          : undefined
+                      }
+                    >
+                      {column.title}
+                    </span>
                     {column.sorter && (
                       <span className="ml-2">
                         {sortConfig?.key === column.key
@@ -221,13 +230,24 @@ export default function ReusableTable<T extends object = any>({
                   return (
                     <td
                       key={column.key}
-                      className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${
+                      className={`px-6 py-4 text-sm max-sm:text-xs text-gray-900 ${column.width ? "truncate" : "wrap-break-word whitespace-normal"} ${
                         column.align === "center"
                           ? "text-center"
                           : column.align === "right"
                             ? "text-right"
                             : "text-left"
                       }`}
+                      style={
+                        column.width
+                          ? {
+                              width: column.width,
+                              maxWidth:
+                                typeof column.width === "number"
+                                  ? `${column.width}px`
+                                  : column.width,
+                            }
+                          : undefined
+                      }
                     >
                       {renderedValue}
                     </td>
@@ -241,8 +261,8 @@ export default function ReusableTable<T extends object = any>({
       {pagination && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white border-t border-gray-200">
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-700">
-              Menampilkan {(pagination.current - 1) * pagination.pageSize + 1} -{" "}
+            <span className="text-sm max-sm:text-xs text-gray-700">
+              {(pagination.current - 1) * pagination.pageSize + 1} -{" "}
               {Math.min(
                 pagination.current * pagination.pageSize,
                 pagination.total,
@@ -259,12 +279,12 @@ export default function ReusableTable<T extends object = any>({
                 )
               }
               disabled={pagination.current === 1}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm max-sm:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <MdChevronLeft className="w-4 h-4" />
               Sebelumnya
             </button>
-            <span className="text-sm text-gray-700">
+            <span className="text-sm max-sm:text-xs text-gray-700">
               {pagination.current} dari{" "}
               {Math.ceil(pagination.total / pagination.pageSize)}
             </span>
@@ -282,7 +302,7 @@ export default function ReusableTable<T extends object = any>({
                 pagination.current ===
                 Math.ceil(pagination.total / pagination.pageSize)
               }
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center max-sm:text-xs gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Selanjutnya
               <MdChevronRight className="w-4 h-4" />
@@ -290,7 +310,9 @@ export default function ReusableTable<T extends object = any>({
           </div>
           {pagination.showSizeChanger && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">Ukuran halaman:</span>
+              <span className="text-sm max-sm:text-xs text-gray-700">
+                Data:
+              </span>
               <select
                 value={pagination.pageSize}
                 onChange={(e) => {
@@ -298,7 +320,7 @@ export default function ReusableTable<T extends object = any>({
                   pagination.onChange(1, newSize);
                   pagination.onShowSizeChange?.(1, newSize);
                 }}
-                className="px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="px-2 py-1 text-sm max-sm:text-xs border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               >
                 {(pagination.pageSizeOptions || [10, 20, 50, 100]).map(
                   (size) => (

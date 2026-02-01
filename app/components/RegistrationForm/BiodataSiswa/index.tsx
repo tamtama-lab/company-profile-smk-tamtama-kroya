@@ -46,7 +46,7 @@ const biodataSiswaSchema = z
     jenisKelamin: z.string().min(1, "Jenis Kelamin wajib diisi"),
     agama: z.string().min(1, "Agama wajib diisi"),
     adaKip: z.boolean(),
-    kipNumber: z
+    nomorKip: z
       .string()
       .optional()
       .refine((val) => !val || val.length <= 10, {
@@ -56,10 +56,10 @@ const biodataSiswaSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.adaKip) {
-      if (!data.kipNumber || String(data.kipNumber).trim() === "") {
+      if (!data.nomorKip || String(data.nomorKip).trim() === "") {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["kipNumber"],
+          path: ["nomorKip"],
           message: "Nomor KIP wajib diisi",
         });
       }
@@ -103,7 +103,7 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
       jenisKelamin: "", // Changed to empty string
       agama: "",
       adaKip: false,
-      kipNumber: "",
+      nomorKip: "",
       nomorWhatsapp: "",
     },
   });
@@ -565,7 +565,7 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
             {form.watch("adaKip") && (
               <FormField
                 control={form.control}
-                name="kipNumber"
+                name="nomorKip"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
@@ -575,11 +575,11 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
                         placeholder="Masukkan Nomor KIP"
                         isMandatory
                         maxLength={10}
-                        error={form.formState.errors.kipNumber?.message}
+                        error={form.formState.errors.nomorKip?.message}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           field.onChange(e);
-                          if (form.formState.errors.kipNumber) {
-                            form.clearErrors("kipNumber");
+                          if (form.formState.errors.nomorKip) {
+                            form.clearErrors("nomorKip");
                           }
                         }}
                       />

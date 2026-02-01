@@ -2,7 +2,7 @@ export interface BiodataSiswaForm {
   namaLengkap: string;
   email: string;
   nik: string;
-  nisn: string;
+  nisn?: string;
   tempatLahir: string;
   tanggalLahir: string;
   asalSekolah: string;
@@ -10,7 +10,7 @@ export interface BiodataSiswaForm {
   jenisKelamin: string; // Changed from number to string
   agama: string;
   adaKip: boolean;
-  kipNumber?: string;
+  nomorKip?: string;
   nomorWhatsapp: string;
 }
 

@@ -185,3 +185,30 @@ input[type="number"] {
     -moz-appearance: textfield;
     /* Firefox */
 }
+
+/* Chrome, Edge, Safari */
+.thin-scrollbar::-webkit-scrollbar {
+    height: 6px;
+    /* horizontal */
+    width: 6px;
+    /* vertical */
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 9999px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+/* Firefox */
+.thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}

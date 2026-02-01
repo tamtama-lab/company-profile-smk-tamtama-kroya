@@ -13,6 +13,7 @@ interface StudentDetail {
   phoneNumber: string;
   email: string;
   isKipRecipient: boolean;
+  kipNumber?: string;
 }
 
 interface ParentDetail {
