@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/utils";
-import { forwardRef, useState } from "react";
+import { forwardRef, useState, useRef, useEffect } from "react";
 import { IoMdClose, IoMdEye, IoMdEyeOff } from "react-icons/io";
 import {
   isValidIndoPhone,
@@ -181,11 +181,39 @@ export const FormInputNumber = forwardRef<
   FormInputNumberProps
 >(
   (
-    { label, isMandatory, limit, minLength, error, className, value, ...props },
+    {
+      label,
+      isMandatory,
+      limit,
+      minLength,
+      error,
+      className,
+      value,
+      onKeyDown,
+      onWheel,
+      ...props
+    },
     ref,
   ) => {
     const stringValue = String(value || "");
     const isAboveLimit = limit ? stringValue.length > limit : false;
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Prevent arrow keys from changing number value
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        return;
+      }
+      if (onKeyDown) onKeyDown(e);
+    };
+
+    const handleWheel = (e: React.WheelEvent<HTMLInputElement>) => {
+      // Prevent mouse wheel from changing value while focused
+      if (document.activeElement === e.currentTarget) {
+        e.preventDefault();
+      }
+      if (onWheel) onWheel(e);
+    };
 
     return (
       <div className="w-full">
@@ -211,6 +239,8 @@ export const FormInputNumber = forwardRef<
             ref={ref}
             type="number"
             value={value}
+            onKeyDown={handleKeyDown}
+            onWheel={handleWheel}
             className={cn(
               "w-full px-4 max-sm:text-xs py-2 border rounded-sm",
               "placeholder-gray-400 max-sm:placeholder:text-xs",
@@ -352,8 +382,17 @@ export interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLText
 
 export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
   ({ label, isMandatory, limit, error, className, value, ...props }, ref) => {
+    const internalRef = useRef<HTMLTextAreaElement | null>(null);
     const stringValue = String(value || "");
     const isAboveLimit = limit ? stringValue.length > limit : false;
+
+    // Adjust height on mount and when value changes
+    useEffect(() => {
+      const el = internalRef.current;
+      if (!el) return;
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    }, [value]);
 
     return (
       <div className="w-full">
@@ -374,11 +413,32 @@ export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
             )}
           </div>
         )}
+        {/* Auto-resizing textarea with vertical manual resize support */}
         <textarea
-          ref={ref}
+          ref={(el) => {
+            // forwardRef support with proper typing
+            if (typeof ref === "function")
+              (ref as (instance: HTMLTextAreaElement | null) => void)(el);
+            else if (ref && typeof ref === "object")
+              (
+                ref as React.MutableRefObject<HTMLTextAreaElement | null>
+              ).current = el;
+            // store on internal ref for autogrow
+            internalRef.current = el;
+          }}
           value={value}
+          onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
+            // Auto grow
+            const el = e.currentTarget as HTMLTextAreaElement;
+            el.style.height = "auto";
+            el.style.height = `${el.scrollHeight}px`;
+            const handler = props.onInput as
+              | React.FormEventHandler<HTMLTextAreaElement>
+              | undefined;
+            if (handler) handler(e);
+          }}
           className={cn(
-            "w-full px-4 py-2 border rounded-sm resize-none",
+            "w-full px-4 py-2 border rounded-sm resize-y",
             "focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white focus:border-transparent",
             "max-sm:px-2 max-sm:text-xs transition-colors",
             (isAboveLimit || error) && "border-red-500 focus:ring-red-500",
@@ -386,8 +446,14 @@ export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
             className,
           )}
           maxLength={limit || 256}
-          rows={6}
+          rows={3}
           {...props}
+        />
+        {/* Initialize height based on value */}
+        <script
+          // This is a small sentinel script for clarity only; actual resizing is handled by React refs/effects
+          // Kept empty intentionally
+          type="text/javascript"
         />
       </div>
     );

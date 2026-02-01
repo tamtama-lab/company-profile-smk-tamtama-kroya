@@ -156,7 +156,7 @@ export const ModalPreviewData: React.FC<ModalPreviewDataProps> = ({
       title={title || "Detail Data Formulir Pendaftaran"}
       size="full"
       footer={
-        !footer ? (
+        footer !== null ? (
           <div className="w-full justify-end flex gap-5">
             <TextButton variant={"outline"} text="Edit" onClick={onPrev} />
             <TextButton

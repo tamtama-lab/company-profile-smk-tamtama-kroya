@@ -98,6 +98,7 @@ const fieldTranslations: Record<string, string> = {
   "parentDetail.guardianAddress": "Alamat Wali",
   "studentDetail.nisn": "NISN",
   "studentDetail.nik": "NIK",
+  "studentDetail.kipNumber": "Nomor KIP",
   "studentDetail.fullName": "Nama Lengkap",
   "studentDetail.placeOfBirth": "Tempat Lahir",
   "studentDetail.dateOfBirth": "Tanggal Lahir",
@@ -116,8 +117,10 @@ const translateErrorMessage = (message: string, field: string): string => {
     // Specific field validations
     "The nisn field must be 10 characters long":
       "NISN harus terdiri dari 10 karakter",
+    "the nik has already been taken": "NIK sudah terdaftar",
     "The nik field must be 16 characters long":
       "NIK harus terdiri dari 16 karakter",
+
     "The dateOfBirth field must be a datetime value":
       "Tanggal lahir harus berupa tanggal yang valid",
     "The selected gender is invalid": "Jenis kelamin yang dipilih tidak valid",
@@ -128,6 +131,8 @@ const translateErrorMessage = (message: string, field: string): string => {
       "Kondisi ayah yang dipilih tidak valid",
     "The selected motherLivingStatus is invalid":
       "Kondisi ibu yang dipilih tidak valid",
+    "The kipNumber field must not be greater than 10 characters":
+      "Nomor KIP tidak boleh lebih dari 10 karakter",
 
     // Generic patterns
     "must be 10 characters long": "harus terdiri dari 10 karakter",

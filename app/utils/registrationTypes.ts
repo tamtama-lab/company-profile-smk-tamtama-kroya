@@ -10,6 +10,7 @@ export interface BiodataSiswaForm {
   jenisKelamin: string; // Changed from number to string
   agama: string;
   adaKip: boolean;
+  kipNumber?: string;
   nomorWhatsapp: string;
 }
 

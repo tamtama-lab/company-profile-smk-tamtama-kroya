@@ -41,12 +41,13 @@ interface ApiRegistrationResponse {
     dateOfBirth: string;
     gender: string;
     religion: string;
-    schoolOriginName: string;
+    schoolOriginName: string | null;
     schoolOriginNpsn: string | null;
     address: string;
-    phoneNumber: string;
-    email: string;
+    phoneNumber: string | null;
+    email: string | null;
     isKipRecipient: number;
+    kipNumber?: string | null;
   };
   parentDetail: {
     id: number;
@@ -86,6 +87,7 @@ export const transformToApiFormat = (
       phoneNumber: biodataSiswa?.nomorWhatsapp || "",
       email: biodataSiswa?.email || "",
       isKipRecipient: biodataSiswa?.adaKip === true,
+      kipNumber: biodataSiswa?.kipNumber || "",
     },
     parentDetail: {
       fatherName: biodataOrangTua?.namaAyah || "",
@@ -119,6 +121,7 @@ export const transformFromApiFormat = (
       jenisKelamin: studentDetail.gender === "1" ? "Laki-laki" : "Perempuan",
       agama: studentDetail.religion,
       adaKip: studentDetail.isKipRecipient === 1,
+      kipNumber: (studentDetail as any).kipNumber || "",
       nomorWhatsapp: studentDetail.phoneNumber,
     },
     biodataOrangTua: {

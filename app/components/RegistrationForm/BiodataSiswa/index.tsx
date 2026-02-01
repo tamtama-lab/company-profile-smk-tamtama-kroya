@@ -25,28 +25,46 @@ import {
 } from "@/components/ui/form-input";
 import { useAlert } from "@/components/ui/alert";
 
-const biodataSiswaSchema = z.object({
-  namaLengkap: z.string().min(1, "Nama lengkap wajib diisi"),
-  email: z
-    .string()
-    .email("Format email tidak valid")
-    .min(1, "Email wajib diisi"),
-  nik: z.string().default(""),
-  nisn: z
-    .string()
-    .optional()
-    .refine((val) => !val || val.length >= 10, {
-      message: "NISN minimal 10 digit",
-    }),
-  tempatLahir: z.string().min(1, "Tempat Lahir wajib diisi"),
-  tanggalLahir: z.string().min(1, "Tanggal Lahir wajib diisi"),
-  asalSekolah: z.string().min(1, "Asal SMP/MTs wajib diisi"),
-  alamat: z.string().min(1, "Alamat wajib diisi"),
-  jenisKelamin: z.string().min(1, "Jenis Kelamin wajib diisi"),
-  agama: z.string().min(1, "Agama wajib diisi"),
-  adaKip: z.boolean(),
-  nomorWhatsapp: z.string().min(10, "Nomor WhatsApp minimal 10 digit"),
-});
+const biodataSiswaSchema = z
+  .object({
+    namaLengkap: z.string().min(1, "Nama lengkap wajib diisi"),
+    email: z
+      .string()
+      .email("Format email tidak valid")
+      .min(1, "Email wajib diisi"),
+    nik: z.string().min(1, "NIK wajib diisi").length(16, "NIK harus 16 digit"),
+    nisn: z
+      .string()
+      .optional()
+      .refine((val) => !val || val.length >= 10, {
+        message: "NISN minimal 10 digit",
+      }),
+    tempatLahir: z.string().min(1, "Tempat Lahir wajib diisi"),
+    tanggalLahir: z.string().min(1, "Tanggal Lahir wajib diisi"),
+    asalSekolah: z.string().min(1, "Asal SMP/MTs wajib diisi"),
+    alamat: z.string().min(1, "Alamat wajib diisi"),
+    jenisKelamin: z.string().min(1, "Jenis Kelamin wajib diisi"),
+    agama: z.string().min(1, "Agama wajib diisi"),
+    adaKip: z.boolean(),
+    kipNumber: z
+      .string()
+      .optional()
+      .refine((val) => !val || val.length <= 10, {
+        message: "Nomor KIP maksimal 10 digit",
+      }),
+    nomorWhatsapp: z.string().min(10, "Nomor WhatsApp minimal 10 digit"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.adaKip) {
+      if (!data.kipNumber || String(data.kipNumber).trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["kipNumber"],
+          message: "Nomor KIP wajib diisi",
+        });
+      }
+    }
+  });
 
 type BiodataSiswaFormData = z.infer<typeof biodataSiswaSchema>;
 
@@ -68,6 +86,9 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
 }) => {
   const { showAlert } = useAlert();
 
+  const [nikValid, setNikValid] = React.useState<boolean | null>(null);
+  const [checkingNik, setCheckingNik] = React.useState(false);
+
   const form = useForm({
     resolver: zodResolver(biodataSiswaSchema),
     defaultValues: initialData || {
@@ -82,12 +103,75 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
       jenisKelamin: "", // Changed to empty string
       agama: "",
       adaKip: false,
+      kipNumber: "",
       nomorWhatsapp: "",
     },
   });
 
-  const onSubmit = (data: BiodataSiswaFormData) => {
-    onNext(data as BiodataSiswaForm);
+  const onSubmit = async (data: BiodataSiswaFormData) => {
+    const nikVal = data.nik;
+
+    try {
+      if (checkingNik) {
+        showAlert({
+          title: "Sedang Memeriksa NIK",
+          description: "Harap tunggu sampai pemeriksaan NIK selesai.",
+          variant: "warning",
+        });
+        return;
+      }
+
+      if (!nikVal || nikVal.length < 16) {
+        form.setError("nik", { type: "manual", message: "NIK harus 16 digit" });
+        showAlert({
+          title: "NIK Tidak Lengkap",
+          description: "NIK harus 16 digit",
+          variant: "warning",
+        });
+        return;
+      }
+
+      // If we already know it's invalid, block
+      if (nikValid === false) {
+        form.setError("nik", {
+          type: "manual",
+          message: "NIK sudah digunakan",
+        });
+        showAlert({
+          title: "NIK Sudah Digunakan",
+          description: "NIK sudah digunakan. Tidak bisa melanjutkan.",
+          variant: "warning",
+        });
+        return;
+      }
+
+      // Validation must have been done on the NIK field (onBlur). If it hasn't been done, block and ask user to validate first.
+      if (nikValid === null) {
+        form.setError("nik", {
+          type: "manual",
+          message: "Ketik ulang NIK untuk mengecek data siswa.",
+        });
+        showAlert({
+          title: "Validasi NIK Belum Dilakukan",
+          description: "Ketik ulang NIK untuk mengecek data siswa.",
+          variant: "warning",
+        });
+        return;
+      }
+
+      // At this point, NIK is valid
+      onNext(data as BiodataSiswaForm);
+    } catch (err) {
+      setCheckingNik(false);
+      showAlert({
+        title: "Gagal Memproses Form",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Terjadi kesalahan saat memproses form",
+        variant: "warning",
+      });
+    }
   };
 
   const fetchSchools = async (query: string): Promise<string[]> => {
@@ -113,6 +197,42 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
         error instanceof Error
           ? error.message
           : "Terjadi kesalahan saat mengambil data sekolah";
+      throw new Error(message);
+    }
+  };
+
+  const checkNik = async (nikValue: string): Promise<boolean> => {
+    try {
+      const res = await fetch(
+        `/api/registrations/check-nik?nik=${encodeURIComponent(nikValue)}`,
+      );
+      const result = await res.json();
+
+      if (!res.ok) {
+        // Handle error response
+        if (result.errors && Array.isArray(result.errors)) {
+          const errorMsg = result.errors[0]?.message || result.message;
+          throw new Error(errorMsg);
+        }
+        throw new Error(result.message || "Gagal memeriksa NIK");
+      }
+
+      // Expect response: { valid: true|false }
+      if (typeof result.valid === "boolean") {
+        return result.valid;
+      }
+
+      // Fallback: if result.data is present and truthy
+      if (result.data !== undefined) {
+        return Boolean(result.data);
+      }
+
+      return false;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat memeriksa NIK";
       throw new Error(message);
     }
   };
@@ -189,10 +309,55 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
                     {...field}
                     label="NIK (Nomor Induk Kependudukan)"
                     limit={16}
+                    isMandatory
                     placeholder={
                       "Masukkan NIK " + (isTeacherMode ? "Calon Murid" : "Anda")
                     }
                     error={form.formState.errors.nik?.message}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      field.onChange(e);
+                      setNikValid(null);
+                      if (form.formState.errors.nik) {
+                        form.clearErrors("nik");
+                      }
+                    }}
+                    onBlur={async (e: React.FocusEvent<HTMLInputElement>) => {
+                      field.onBlur?.();
+                      const val = String(e.target.value || "");
+                      // Only check when it looks like a full NIK (16 digits)
+                      if (!val || val.length < 16) return;
+                      try {
+                        setCheckingNik(true);
+                        const isValid = await checkNik(val);
+                        setCheckingNik(false);
+                        setNikValid(isValid);
+
+                        if (!isValid) {
+                          form.setError("nik", {
+                            type: "manual",
+                            message: "NIK sudah digunakan",
+                          });
+                          showAlert({
+                            title: "NIK Sudah Digunakan",
+                            description:
+                              "NIK sudah digunakan. Silakan periksa kembali atau gunakan NIK lain.",
+                            variant: "warning",
+                          });
+                        } else {
+                          form.clearErrors("nik");
+                        }
+                      } catch (err) {
+                        setCheckingNik(false);
+                        showAlert({
+                          title: "Gagal Memeriksa NIK",
+                          description:
+                            err instanceof Error
+                              ? err.message
+                              : "Terjadi kesalahan saat memeriksa NIK",
+                          variant: "warning",
+                        });
+                      }
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -370,30 +535,61 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="adaKip"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <RadioInput
-                    label="Apakah Memiliki KIP?"
-                    name="adaKip"
-                    isMandatory
-                    value={field.value ? "Ya" : "Tidak"}
-                    onChange={(e) => {
-                      field.onChange(e.target.value === "Ya");
-                    }}
-                    options={[
-                      { value: "Ya", label: "Ya" },
-                      { value: "Tidak", label: "Tidak" },
-                    ]}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+          <div className="flex flex-col max-sm:gap-4">
+            <FormField
+              control={form.control}
+              name="adaKip"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <RadioInput
+                      label="Apakah Memiliki KIP?"
+                      name="adaKip"
+                      isMandatory
+                      value={field.value ? "Ya" : "Tidak"}
+                      onChange={(e) => {
+                        field.onChange(e.target.value === "Ya");
+                      }}
+                      options={[
+                        { value: "Ya", label: "Ya" },
+                        { value: "Tidak", label: "Tidak" },
+                      ]}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Conditional KIP Number field */}
+            {form.watch("adaKip") && (
+              <FormField
+                control={form.control}
+                name="kipNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <FormInputNumber
+                        {...field}
+                        label="Nomor KIP"
+                        placeholder="Masukkan Nomor KIP"
+                        isMandatory
+                        maxLength={10}
+                        error={form.formState.errors.kipNumber?.message}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          field.onChange(e);
+                          if (form.formState.errors.kipNumber) {
+                            form.clearErrors("kipNumber");
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
-          />
+          </div>
 
           <FormField
             control={form.control}
@@ -440,6 +636,7 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
             text="Selanjutnya"
             className="px-8 py-2"
             isSubmit
+            disabled={checkingNik}
           />
         </div>
       </form>
