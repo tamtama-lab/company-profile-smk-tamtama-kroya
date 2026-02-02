@@ -149,11 +149,12 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
       if (nikValid === null) {
         form.setError("nik", {
           type: "manual",
-          message: "Ketik ulang NIK untuk mengecek data siswa.",
+          message: "Nomor NIK tersebut sudah terdaftar di sistem.",
         });
         showAlert({
-          title: "Validasi NIK Belum Dilakukan",
-          description: "Ketik ulang NIK untuk mengecek data siswa.",
+          title: "NIK Tersebut Sudah Ada",
+          description:
+            "Cek ulang NIK yang dimasukkan dan tulis ulang NIK yang benar",
           variant: "warning",
         });
         return;
