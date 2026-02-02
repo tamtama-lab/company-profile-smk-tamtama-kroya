@@ -21,6 +21,7 @@ import ReusableTable, { Column } from "@/components/Table/ReusableTable";
 import { ModalPreviewData } from "@/components/Modal/PreviewDataModal";
 import Skeleton from "@/components/Skeleton";
 import { LuEye, LuPen, LuTrash2 } from "react-icons/lu";
+import Link from "next/link";
 
 export function GreetingCard() {
   const { user } = useAuth();
@@ -380,7 +381,7 @@ export default function AdminDashboardPage() {
             <h3 className="text-base font-medium text-gray-700 mb-2 p-4">
               Grafik Pendaftaran
             </h3>
-            <div className="w-full flex flex-row gap-4 justify-center">
+            <div className="w-full flex flex-row gap-4 justify-center px-4">
               {isLoading ? (
                 <Skeleton className="h-40 w-full" />
               ) : (
@@ -393,7 +394,7 @@ export default function AdminDashboardPage() {
               <h3 className="text-base font-medium text-gray-700 mb-2 p-4">
                 Grafik Pendaftaran per Jurusan
               </h3>
-              <div className="w-full flex flex-row gap-4 justify-center">
+              <div className="w-full flex flex-row gap-4 justify-center px-4">
                 {isLoading ? (
                   <Skeleton className="h-40 w-full" />
                 ) : (
@@ -404,7 +405,17 @@ export default function AdminDashboardPage() {
           </div>
         </div>
         <div className="w-full h-fit p-4 bg-white rounded-xl shadow-sm">
-          {" "}
+          <div className="w-full h-fit flex flex-row justify-between items-center py-4">
+            <h3 className="text-xl font-medium text-gray-700">
+              Pendaftaran Terbaru
+            </h3>
+            <Link
+              className="text-primary text-base hover:underline"
+              href="/pendaftaran"
+            >
+              Lihat Selengkapnya
+            </Link>
+          </div>
           <ReusableTable
             columns={columns}
             dataSource={students}
@@ -422,7 +433,7 @@ export default function AdminDashboardPage() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           data={selectedData || undefined}
-        />{" "}
+        />
       </div>
     </div>
   );
