@@ -32,6 +32,7 @@ interface RegistrationPayload {
 interface ApiRegistrationResponse {
   id: number;
   registrationNumber: number;
+  registrationBatchId: number;
   majorChoiceCode: string;
   studentDetail: {
     id: number;
@@ -171,6 +172,9 @@ export function transformRecentRegistrations(items: unknown): Student[] {
     const registrationNumber = Number(
       item["registrationNumber"] ?? item["registrationId"] ?? sd["registrationId"] ?? id,
     );
+    const registrationBatchId = Number(
+      item["registrationBatchId"] ?? sd["registrationBatchId"] ?? 0,
+    );
     const updatedAt = String(
       item["updatedAt"] ?? sd["updatedAt"] ?? item["createdAt"] ?? new Date().toISOString(),
     );
@@ -192,6 +196,7 @@ export function transformRecentRegistrations(items: unknown): Student[] {
       isKipRecipient: Number(sd["isKipRecipient"] ?? 0),
       registrationId: id,
       registrationNumber: registrationNumber,
+      registrationBatchId: registrationBatchId,
       updatedAt: updatedAt,
     };
   });

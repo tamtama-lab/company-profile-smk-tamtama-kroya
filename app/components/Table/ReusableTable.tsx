@@ -198,7 +198,8 @@ export default function ReusableTable<T extends object = any>({
                 >
                   <div className="flex text-center items-center justify-between">
                     <span
-                      className={column.width ? "truncate block" : ""}
+                      // className={column.width ? "truncate block" : ""}
+                      className={column.width ? "wrap-break-word" : ""}
                       style={
                         column.width
                           ? { width: column.width, maxWidth: column.width }

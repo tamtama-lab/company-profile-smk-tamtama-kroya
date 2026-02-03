@@ -313,7 +313,7 @@ export default function AdminDashboardPage() {
       key: "registrationNumber",
       sorter: true,
       align: "center",
-      width: 200,
+      width: 130,
       render: (value, record) =>
         record.registrationNumber || record.registrationId,
     },
@@ -322,7 +322,7 @@ export default function AdminDashboardPage() {
       title: "Asal SMP/MTs",
       dataIndex: "schoolOriginName",
       key: "schoolOriginName",
-      sorter: true,
+      // sorter: true,
       width: 200,
     },
     {
@@ -334,6 +334,15 @@ export default function AdminDashboardPage() {
         formatRelativeTime(value as string | number | Date | null | undefined),
       sorter: true,
       width: 240,
+    },
+    {
+      title: "Gelombang Pendaftaran",
+      dataIndex: "registrationBatchId",
+      key: "registrationBatchId",
+      sorter: true,
+      align: "center",
+      width: 120,
+      render: (value, record) => record.registrationBatchId,
     },
     {
       title: "Aksi",

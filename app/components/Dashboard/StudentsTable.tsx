@@ -20,6 +20,7 @@ export interface Student {
   isKipRecipient: number;
   registrationId: number;
   registrationNumber?: number;
+  registrationBatchId?: number;
   updatedAt: string;
 }
 
