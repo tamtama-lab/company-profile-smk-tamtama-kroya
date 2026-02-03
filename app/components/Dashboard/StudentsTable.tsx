@@ -22,6 +22,8 @@ export interface Student {
   registrationNumber?: number;
   registrationBatchId?: number;
   updatedAt: string;
+  author: Record<string, unknown> | null;
+  authorName: string | "";
 }
 
 interface StudentsTableProps {

@@ -8,7 +8,7 @@ export function TitleSection({
   return (
     <div
       id="title-section"
-      className="w-full rounded-xl p-6 flex flex-col justify-center items-start gap-2"
+      className="w-full rounded-xl py-4 flex flex-col justify-center items-start gap-2"
     >
       <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
       <h2

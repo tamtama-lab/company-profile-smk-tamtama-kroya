@@ -36,7 +36,7 @@ export function GreetingCard() {
   return (
     <div
       id="greeting-card"
-      className="w-full rounded-xl p-6 flex flex-col justify-center items-start gap-2"
+      className="w-full py-4 rounded-xl flex flex-col justify-center items-start gap-2"
     >
       <h1 className="text-xl font-semibold text-gray-800">
         {greeting}, {user?.fullName || "User"} 👋🏻

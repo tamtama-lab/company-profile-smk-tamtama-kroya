@@ -68,6 +68,15 @@ interface ApiRegistrationResponse {
     name: string;
     abbreviation: string;
   };
+  author:{
+     id: number;
+     fullName: string;
+     role:string,
+     createdAt:string,
+     updatedAt:string,
+     username:string,
+
+  }
 }
 
 export const transformToApiFormat = (
@@ -148,8 +157,6 @@ export const transformFromApiFormat = (
 import type { Student } from "@/components/Dashboard";
 
 export function transformRecentRegistrations(items: unknown): Student[] {
-  console.log("Transformer input:", items);
-  // Normalize input: backend may return the array directly or wrapped in { data: [] } / { rows: [] }
   let list: Array<Record<string, unknown>> = [];
 
   if (Array.isArray(items)) {
@@ -164,9 +171,9 @@ export function transformRecentRegistrations(items: unknown): Student[] {
     return [];
   }
 
-  console.log("Normalized list:", list);
   const result = list.map((item) => {
     const sd = (item["studentDetail"] as Record<string, unknown>) || {};
+    const author = (item["author"] as Record<string, unknown>) || {};
 
     const id = Number(item["id"] ?? sd["id"] ?? 0);
     const registrationNumber = Number(
@@ -187,7 +194,6 @@ export function transformRecentRegistrations(items: unknown): Student[] {
       placeOfBirth: String(sd["placeOfBirth"] ?? ""),
       dateOfBirth: String(sd["dateOfBirth"] ?? ""),
       gender: String(sd["gender"] ?? ""),
-      religion: String(sd["religion"] ?? ""),
       schoolOriginName: String(sd["schoolOriginName"] ?? ""),
       schoolOriginNpsn: sd["schoolOriginNpsn"] as string | null ?? null,
       address: String(sd["address"] ?? ""),
@@ -198,8 +204,13 @@ export function transformRecentRegistrations(items: unknown): Student[] {
       registrationNumber: registrationNumber,
       registrationBatchId: registrationBatchId,
       updatedAt: updatedAt,
+      // provide religion which Student expects
+      religion: String(sd["religion"] ?? ""),
+      // provide author shape (kept simple and derived from the author object)
+      authorName: author ? (author["fullName"] ? String(author["fullName"]) : "-") : "-",
+      author: author ?? null,
+      // author
     };
   });
-  console.log("Transformer output:", result);
   return result;
 }

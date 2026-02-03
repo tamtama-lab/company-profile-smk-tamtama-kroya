@@ -9,6 +9,10 @@
     --accesnt-color: #F5A623;
     --black-color: #2D2D2D;
     --danger-color: #FF3B30;
+    --major-tkr-color: #FF0000;
+    --major-dkv-color: #0000FF;
+    --major-titl-color: #4D4FA4;
+    --major-tp-color: #5DB1F5;
 }
 
 @layer components {
@@ -117,6 +121,56 @@
 
     .border--danger {
         @apply border-(--danger-color);
+    }
+
+    /* declare major color variables */
+
+    .bg-major-tkr {
+        background-color: var(--major-tkr-color);
+    }
+
+    .text-major-tkr {
+        color: var(--major-tkr-color);
+    }
+
+    .border-major-tkr {
+        border-color: var(--major-tkr-color);
+    }
+
+    .bg-major-dkv {
+        background-color: var(--major-dkv-color);
+    }
+
+    .text-major-dkv {
+        color: var(--major-dkv-color);
+    }
+
+    .border-major-dkv {
+        border-color: var(--major-dkv-color);
+    }
+
+    .bg-major-titl {
+        background-color: var(--major-titl-color);
+    }
+
+    .text-major-titl {
+        color: var(--major-titl-color);
+    }
+
+    .border-major-titl {
+        border-color: var(--major-titl-color);
+    }
+
+    .bg-major-tp {
+        background-color: var(--major-tp-color);
+    }
+
+    .text-major-tp {
+        color: var(--major-tp-color);
+    }
+
+    .border-major-tp {
+        border-color: var(--major-tp-color);
     }
 
 }
