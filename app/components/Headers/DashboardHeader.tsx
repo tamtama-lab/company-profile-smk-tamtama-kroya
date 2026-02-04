@@ -69,11 +69,12 @@ export const Header: React.FC = () => {
         className={`fixed bg-white text-black shadow-sm w-full px-4 sm:px-6 lg:px-10 py-3 sm:py-4 z-100 top-0 `}
       >
         <div className="w-full flex flex-row justify-between items-center">
-          <div className="w-[20%] pr-4 flex flex-row items-center justify-start border-r-2 border-gray-300">
-            <div className="w-fit shrink-0 flex flex-row">
+          <div className="w-[24%] pr-4 flex flex-row items-center justify-start border-r-2 border-gray-300">
+            <div className="w-fit flex flex-row">
               <Image
                 src="/header/logo.png"
                 alt="logo-smk-tamtama-kroya"
+                // className="shrink-0"
                 width={40}
                 height={40}
               />
@@ -206,6 +207,7 @@ export const Header: React.FC = () => {
                   variant="outline-danger"
                   icon={<LuLogOut className="w-6 h-6 items-end" />}
                   text="Keluar"
+                  isLoading={isLoading}
                   width="full"
                   className="flex justify-start"
                   onClick={confirmLogout}

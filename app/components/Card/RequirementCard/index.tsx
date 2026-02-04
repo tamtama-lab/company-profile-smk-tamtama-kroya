@@ -23,19 +23,10 @@ export const RequirementCard = ({
   isRequired,
   onToggle,
   onRequiredChange,
-  onLabelChange,
   onDelete,
   isEditable = false,
 }: RequirementCardProps) => {
-  const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [localLabel, setLocalLabel] = useState(label);
-
-  const handleLabelBlur = () => {
-    setIsEditingLabel(false);
-    if (onLabelChange && localLabel !== label) {
-      onLabelChange(id, localLabel);
-    }
-  };
 
   return (
     <div className="flex items-center gap-3 py-2 px-2 hover:bg-gray-50 transition-colors group">
@@ -62,24 +53,17 @@ export const RequirementCard = ({
       </button>
 
       {/* Label Input */}
-      {isEditingLabel ? (
-        <InputText
-          name=""
-          label=""
-          //   className="flex-1"
+
+      <div className="w-8/10">
+        <input
+          placeholder="Masukkan syarat pendaftaran"
+          className={`w-full h-10 px-3 py-2 border border-gray-300 rounded ${
+            isEditable ? "cursor-pointer hover:border-primary" : ""
+          } ${!isActive ? "text-gray-400" : "text-gray-700"}`}
           value={localLabel}
           onChange={(e) => setLocalLabel(e.target.value)}
         />
-      ) : (
-        <div
-          onClick={() => isEditable && setIsEditingLabel(true)}
-          className={`flex-1 px-3 py-1 border border-gray-300 rounded ${
-            isEditable ? "cursor-pointer hover:border-primary" : ""
-          } ${!isActive ? "text-gray-400" : "text-gray-700"}`}
-        >
-          {label}
-        </div>
-      )}
+      </div>
 
       {/* Delete Button */}
       <button
