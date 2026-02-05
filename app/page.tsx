@@ -5,7 +5,10 @@ import { VacationTotal } from "@/components/LandingPage/VacationTotal";
 import { WhyChooseUs } from "@/components/LandingPage/WhyChooseUs";
 import { SchoolLocation } from "./components/LandingPage/SchoolLocation";
 import { RegistrationPathSection } from "@/components/LandingPage/RegistrationPathSection";
-import { RegistrationRequirementsSection } from "@/components/LandingPage/RegistrationRequirementsSection";
+import {
+  BatchData,
+  RegistrationRequirementsSection,
+} from "@/components/LandingPage/RegistrationRequirementsSection";
 import { BrochureSection } from "./components/LandingPage/BrochureSection";
 import { ContactAndSocial } from "./components/LandingPage/ContactAndSocial";
 import { SchoolFacility } from "./components/LandingPage/SchoolFacility";
@@ -17,16 +20,17 @@ import { FaRegMoneyBill1 } from "react-icons/fa6";
 import { FaRegHandshake } from "react-icons/fa";
 import { MdCall, MdEmail, MdLanguage, MdLocationOn } from "react-icons/md";
 import { useEffect, useState } from "react";
-import type { VacationData } from "@/components/LandingPage/VacationTotal";
+import type { MajorData } from "@/components/LandingPage/VacationTotal";
 
 export default function LandingPage() {
-  const [majorsData, setMajorsData] = useState<VacationData[] | null>(null);
+  const [majorsData, setMajorsData] = useState<MajorData[] | null>(null);
+  const [batchData, setBatchData] = useState<BatchData[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchMajors = async () => {
       try {
-        const response = await fetch(`/api/majors`, {
+        const response = await fetch(`/api/landing-data`, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -35,22 +39,28 @@ export default function LandingPage() {
         if (response.ok) {
           const data = await response.json();
 
-          // Normalize backend response into an array of majors
-          let majorsArray: VacationData[] = [];
-          if (Array.isArray(data)) majorsArray = data as VacationData[];
-          else {
+          let majorsArray: MajorData[] = [];
+          let batchArray: BatchData[] = [];
+          if (Array.isArray(data)) majorsArray = data as MajorData[];
+          else if (data && typeof data === "object" && "batches" in data) {
             const obj = data as unknown as Record<string, unknown>;
             if (Array.isArray(obj["majors"]))
-              majorsArray = obj["majors"] as unknown as VacationData[];
+              majorsArray = obj["majors"] as unknown as MajorData[];
+            if (Array.isArray(obj["batches"]))
+              batchArray = obj["batches"] as unknown as BatchData[];
+          } else {
+            const obj = data as unknown as Record<string, unknown>;
+            if (Array.isArray(obj["majors"]))
+              majorsArray = obj["majors"] as unknown as MajorData[];
             else if (Array.isArray(obj["data"]))
-              majorsArray = obj["data"] as unknown as VacationData[];
+              majorsArray = obj["data"] as unknown as MajorData[];
             else if (Array.isArray(obj["items"]))
-              majorsArray = obj["items"] as unknown as VacationData[];
+              majorsArray = obj["items"] as unknown as MajorData[];
             else if (data && typeof data === "object") {
               // try to extract arrays from object values
               for (const val of Object.values(obj)) {
                 if (Array.isArray(val)) {
-                  majorsArray = val as unknown as VacationData[];
+                  majorsArray = val as unknown as MajorData[];
                   break;
                 }
               }
@@ -58,6 +68,7 @@ export default function LandingPage() {
           }
 
           setMajorsData(majorsArray);
+          setBatchData(batchArray);
         }
       } catch (error) {
         console.error("Failed to fetch majors:", error);
@@ -314,7 +325,7 @@ export default function LandingPage() {
       <RegistrationRequirementsSection
         id="syarat-periode-daftar"
         requirements={requirements}
-        periods={registrationPeriods}
+        batches={registrationPeriods}
       />
 
       {/* Fasilitas Sekolah */}

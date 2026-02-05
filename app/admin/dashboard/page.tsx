@@ -411,7 +411,7 @@ export default function AdminDashboardPage() {
       render: (value) => (
         <div className="flex justify-center gap-4">
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <TextButton
                 icon={<LuEye className="text-xl" />}
                 isLoading={loadingDetail}
@@ -424,7 +424,7 @@ export default function AdminDashboardPage() {
             <TooltipContent side="top">Detail Data Murid</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <TextButton
                 icon={<LuPen className="text-xl" />}
                 isLoading={loadingDetail}
@@ -437,7 +437,7 @@ export default function AdminDashboardPage() {
             <TooltipContent side="top">Edit Data Murid</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <TextButton
                 icon={<LuTrash2 className="text-xl" />}
                 isLoading={loadingDetail}

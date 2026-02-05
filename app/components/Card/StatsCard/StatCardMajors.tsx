@@ -5,20 +5,26 @@ import { FiUsers } from "react-icons/fi";
 import { LiaCarSideSolid } from "react-icons/lia";
 import { MdOutlineColorLens } from "react-icons/md";
 
-export interface StatsCardMajorData {
-  title: string;
-  amount: number;
+export type MajorData = {
+  major: string;
+  count: number;
   isFirstUnique?: boolean;
   isLoading?: boolean;
-}
+};
 
 export default function StatsMajorCard({
   data,
   isLoading,
 }: {
-  data: StatsCardMajorData[];
+  data: MajorData[];
   isLoading: boolean;
 }) {
+  const totalCount = data.reduce((sum, item) => sum + item.count, 0);
+  const dataWithTotal = [
+    { major: "Total Pendaftar", count: totalCount, isFirstUnique: true },
+    ...data,
+  ];
+
   const hexToRgb = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -26,15 +32,15 @@ export default function StatsMajorCard({
     return `${r}, ${g}, ${b}`;
   };
 
-  const getCardStyle = (title: string): { color: string; Icon?: IconType } => {
-    switch (title) {
-      case "Jurusan TKR":
+  const getCardStyle = (major: string): { color: string; Icon?: IconType } => {
+    switch (major) {
+      case "TKR":
         return { color: "#FF0000", Icon: LiaCarSideSolid };
-      case "Jurusan DKV":
+      case "DKV":
         return { color: "#2369D1", Icon: MdOutlineColorLens };
-      case "Jurusan TITL":
+      case "TITL":
         return { color: "#4D4FA4", Icon: BsLightningCharge };
-      case "Jurusan TP":
+      case "TP":
         return { color: "#5DB1F6", Icon: FaGear };
       default:
         return { color: "bg-white text-primary", Icon: FiUsers };
@@ -45,13 +51,13 @@ export default function StatsMajorCard({
     <div
       className={`w-full grid grid-cols-5 max-md:grid-cols-2 max-sm:grid-cols-2 gap-3 mb-4`}
     >
-      {data.map((item, idx) => {
-        const { color, Icon } = getCardStyle(item.title);
+      {dataWithTotal.map((item, idx) => {
+        const { color, Icon } = getCardStyle(item.major);
         const isFirst = idx === 0;
         const textColor = isFirst ? "white" : color;
         return (
           <div
-            key={item.title}
+            key={item.major}
             style={{
               backgroundColor: `rgba(${hexToRgb(color)}, 0.05)`,
               border: `2px solid ${color}`,
@@ -62,7 +68,7 @@ export default function StatsMajorCard({
               className="w-full font-semibold text-left"
               style={idx === 0 ? {} : { color: textColor }}
             >
-              {item.title}
+              {item.major}
             </div>
             <div className="w-full flex justify-between items-center">
               <div
@@ -87,7 +93,7 @@ export default function StatsMajorCard({
                 {isLoading ? (
                   <div className="h-8 w-8 bg-gray-200 animate-pulse rounded mt-1"></div>
                 ) : (
-                  item.amount
+                  item.count
                 )}{" "}
                 <span className="text-xs font-semibold">Anak</span>
               </div>

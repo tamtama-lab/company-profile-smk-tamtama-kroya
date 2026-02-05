@@ -1,7 +1,9 @@
 "use client";
 
 import { TextButton } from "@/components/Buttons/TextButton";
-import StatsMajorCard from "@/components/Card/StatsCard/StatCardMajors";
+import StatsMajorCard, {
+  MajorData,
+} from "@/components/Card/StatsCard/StatCardMajors";
 import { PaginationMeta } from "@/components/Dashboard/Pagination";
 import { Student } from "@/components/Dashboard/StudentsTable";
 import SelectInput from "@/components/InputForm/SelectInput";
@@ -29,6 +31,9 @@ import { LuEye, LuPen, LuTrash2 } from "react-icons/lu";
 export default function AdminStatisticPage() {
   const { showAlert } = useAlert();
 
+  const [majorDistribution, setMajorDistribution] = useState<MajorData[]>([]);
+
+  console.log("Major Distribution Data:", majorDistribution);
   const [students, setStudents] = useState<Student[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,6 +57,35 @@ export default function AdminStatisticPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const fetchMajorDistribution = async () => {
+      try {
+        const response = await fetch(`/api/admin/stats/major-distribution`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeader(),
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setMajorDistribution(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+        showAlert({
+          title: "Terjadi Kesalahan",
+          description: "Gagal mengambil data distribusi jurusan",
+          variant: "error",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMajorDistribution();
+  }, [showAlert]);
 
   // Debounce search term
   useEffect(() => {
@@ -169,7 +203,6 @@ export default function AdminStatisticPage() {
         return;
       }
       const transformed = transformRecentRegistrations(data || []);
-      console.log("Transformed students data:", transformed);
       setStudents(transformed);
       setMeta(data.meta);
     } catch (error) {
@@ -188,29 +221,30 @@ export default function AdminStatisticPage() {
     setSearchTerm(value);
     setCurrentPage(1); // Reset to first page when searching
   };
-  const statsData = [
-    {
-      title: "Total Pendaftar",
-      amount: 1120,
-      isFirstUnique: true,
-    },
-    {
-      title: "Jurusan TKR",
-      amount: 120,
-    },
-    {
-      title: "Jurusan DKV",
-      amount: 80,
-    },
-    {
-      title: "Jurusan TITL",
-      amount: 90,
-    },
-    {
-      title: "Jurusan TP",
-      amount: 120,
-    },
-  ];
+
+  // const statsData = [
+  //   {
+  //     title: "Total Pendaftar",
+  //     amount: 1120,
+  //     isFirstUnique: true,
+  //   },
+  //   {
+  //     title: "Jurusan TKR",
+  //     amount: 120,
+  //   },
+  //   {
+  //     title: "Jurusan DKV",
+  //     amount: 80,
+  //   },
+  //   {
+  //     title: "Jurusan TITL",
+  //     amount: 90,
+  //   },
+  //   {
+  //     title: "Jurusan TP",
+  //     amount: 120,
+  //   },
+  // ];
 
   const handleDetailClick = async (registrationId: number) => {
     setLoadingDetail(true);
@@ -328,7 +362,7 @@ export default function AdminStatisticPage() {
       render: (value) => (
         <div className="flex justify-center gap-4">
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <TextButton
                 icon={<LuEye className="text-xl" />}
                 isLoading={loadingStates}
@@ -341,7 +375,7 @@ export default function AdminStatisticPage() {
             <TooltipContent side="top">Detail Data Murid</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <TextButton
                 icon={<LuPen className="text-xl" />}
                 isLoading={loadingStates}
@@ -354,7 +388,7 @@ export default function AdminStatisticPage() {
             <TooltipContent side="top">Edit Data Murid</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <TextButton
                 icon={<LuTrash2 className="text-xl" />}
                 isLoading={loadingStates}
@@ -379,7 +413,7 @@ export default function AdminStatisticPage() {
           title="Data Pendaftar Sekolah"
           subtitle="Menampilkan daftar lengkap calon murid yang telah melakukan <br /> pendaftaran baik secara mandiri maupun melalui guru."
         />
-        <StatsMajorCard data={statsData} isLoading={false} />
+        <StatsMajorCard data={majorDistribution} isLoading={isLoading} />
         <div className="w-full h-fit bg-white rounded-md drop-shadow-sm">
           <div className="p-6 max-sm:p-2 border-b border-gray-200">
             <div className="flex flex-col items-center justify-center md:flex-row md:items-center md:justify-between gap-4">

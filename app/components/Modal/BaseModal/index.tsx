@@ -40,7 +40,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
 
   return (
     <div
-      className={`fixed inset-0${hiddenOverlay ? "" : " bg-black/70"} flex items-center justify-center z-1000 ${className}`}
+      className={`fixed inset-0${hiddenOverlay ? "" : " bg-black/70"} flex items-center justify-center z-9000 ${className}`}
       onClick={onClose}
     >
       <div

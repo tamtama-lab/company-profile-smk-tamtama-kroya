@@ -10,7 +10,7 @@ interface Requirement {
   text: string;
 }
 
-interface RegistrationPeriod {
+export interface BatchData {
   id: number;
   period: string;
   startMonth: string;
@@ -22,7 +22,7 @@ interface RegistrationPeriod {
 interface RegistrationRequirementsSectionProps {
   id?: string;
   requirements: Requirement[];
-  periods: RegistrationPeriod[];
+  batches: BatchData[];
 }
 
 export const PathCard = ({
@@ -63,7 +63,7 @@ export const PathCard = ({
 
 export const RegistrationRequirementsSection: React.FC<
   RegistrationRequirementsSectionProps
-> = ({ requirements, periods, id }) => {
+> = ({ requirements, batches, id }) => {
   return (
     <section
       id={id || "syarat-periode-daftar"}

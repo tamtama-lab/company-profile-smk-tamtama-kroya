@@ -253,7 +253,6 @@ export function StudentDataTable() {
         return;
       }
       const transformed = transformRecentRegistrations(data || []);
-      console.log("Transformed students data:", transformed);
       setStudents(transformed);
       setMeta(data.meta);
     } catch (error) {

@@ -6,7 +6,7 @@ import { SectionTitle } from "@/components/SectionTitle";
 import VacationCard from "@/components/Card/VacationCard";
 import { ScrollAnimationWrapper } from "@/components/ScrollAnimationWrapper";
 
-export type VacationData = {
+export type MajorData = {
   name: string; // full name
   abbreviation: string;
   capacity: number;
@@ -15,7 +15,7 @@ export type VacationData = {
 
 export const VacationTotal: React.FC<{
   id?: string;
-  data?: VacationData[];
+  data?: MajorData[];
   loading?: boolean;
 }> = ({ id, data = [], loading = false }) => {
   const wrapperClass = loading ? "opacity-60" : "";
