@@ -503,9 +503,6 @@ export default function AdminStatisticPage() {
             <div className="flex flex-col items-stretch sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full sm:w-auto">
                 <div className="w-full sm:w-auto flex flex-row gap-3 items-center">
-                  <h3 className="font-semibold text-gray-800 mb-2 text-nowrap">
-                    Tahun Ajaran
-                  </h3>
                   <SelectInput
                     value={selectedYearId}
                     onChange={(e) => {

@@ -66,10 +66,13 @@ export default function EditDataCalonMuridPage() {
               nisn: result.studentDetail?.nisn || "",
               tempatLahir: result.studentDetail?.placeOfBirth || "",
               tanggalLahir: result.studentDetail?.dateOfBirth || "",
-              asalSekolah: result.studentDetail?.schoolOriginNpsn || "",
+              asalSekolah:
+                result.studentDetail?.schoolOriginNpsn ||
+                result.studentDetail?.schoolOriginName ||
+                "",
               alamat: result.studentDetail?.address || "",
               jenisKelamin:
-                result.studentDetail?.gender === 0 ? "Laki-laki" : "Perempuan",
+                result.studentDetail?.gender === 1 ? "Laki-laki" : "Perempuan",
               agama: result.studentDetail?.religion || "",
               adaKip: result.studentDetail?.isKipRecipient || false,
               nomorKip: result.studentDetail?.kipNumber || "",

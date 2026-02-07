@@ -35,7 +35,7 @@ export async function GET(req: Request) {
     // Provide a simple list of academic years (current and previous 2)
     const currentYear = new Date().getFullYear();
     const years = [
-      { value: `${currentYear - 1}/${currentYear}`, label: `${currentYear - 1}/${currentYear}` },
+      { value: 1, label: `${currentYear - 1}/${currentYear}` },
     //   { value: `${currentYear - 2}/${currentYear - 1}`, label: `${currentYear - 2}/${currentYear - 1}` },
     //   { value: `${currentYear - 3}/${currentYear - 2}`, label: `${currentYear - 3}/${currentYear - 2}` },
     ];
