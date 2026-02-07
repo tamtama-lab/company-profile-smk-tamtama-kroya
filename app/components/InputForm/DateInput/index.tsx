@@ -22,6 +22,9 @@ interface DateInputProps {
   isMandatory?: boolean;
   placeholder?: string;
   max?: string;
+  min?: string;
+  startYear?: number;
+  endYear?: number;
 }
 
 export const DateInput: React.FC<DateInputProps> = ({
@@ -32,10 +35,20 @@ export const DateInput: React.FC<DateInputProps> = ({
   isMandatory = false,
   placeholder,
   max,
+  min,
+  startYear = 2000,
+  endYear = 2040,
 }) => {
   const [open, setOpen] = React.useState(false);
 
   const selectedDate = value ? dayjs(value, "YYYY-MM-DD").toDate() : undefined;
+
+  const minDate = min
+    ? dayjs(min, "YYYY-MM-DD").startOf("day").toDate()
+    : undefined;
+  const maxDate = max
+    ? dayjs(max, "YYYY-MM-DD").endOf("day").toDate()
+    : undefined;
 
   return (
     <div className="w-full rounded-md">
@@ -82,11 +95,18 @@ export const DateInput: React.FC<DateInputProps> = ({
             selected={selectedDate}
             defaultMonth={selectedDate}
             captionLayout="dropdown"
-            fromYear={2000}
-            toYear={2020}
-            toDate={max ? dayjs(max).toDate() : undefined}
+            fromYear={startYear}
+            toYear={endYear}
+            toDate={max ? dayjs(max, "YYYY-MM-DD").toDate() : undefined}
+            disabled={(date) => {
+              if (minDate && date < minDate) return true;
+              if (maxDate && date > maxDate) return true;
+              return false;
+            }}
             onSelect={(date) => {
               if (!date) return;
+              if (minDate && date < minDate) return;
+              if (maxDate && date > maxDate) return;
 
               const fixedDate = new Date(
                 date.getFullYear(),

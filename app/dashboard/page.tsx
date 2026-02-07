@@ -180,19 +180,20 @@ export function StudentDataTable() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fetch registration batches for filter select
+  // Fetch filter options from cached server endpoint (batches etc.)
   useEffect(() => {
-    const fetchBatches = async () => {
+    let cancelled = false;
+    const loadOptions = async () => {
       try {
-        const res = await fetch(`/api/registrations/batches`, {
+        const res = await fetch(`/api/filters/options`, {
           headers: {
             "Content-Type": "application/json",
             ...getAuthHeader(),
           },
         });
-        if (!res.ok) return;
+        if (!res.ok) throw new Error("failed");
         const data = await res.json();
-        const opts = (data || []).map(
+        const opts = (data.batches || []).map(
           (b: {
             id: number;
             name: string;
@@ -204,12 +205,23 @@ export function StudentDataTable() {
             disabled: Number(b.isActive) === 0,
           }),
         );
+        if (cancelled) return;
         setBatches(opts);
+        try {
+          localStorage.setItem("filterOptions.batches", JSON.stringify(opts));
+        } catch (e) {}
       } catch (err) {
-        console.error("Failed to fetch batches:", err);
+        console.error("Failed to fetch filter options, fallback cache", err);
+        try {
+          const cached = localStorage.getItem("filterOptions.batches");
+          if (cached) setBatches(JSON.parse(cached));
+        } catch (e) {}
       }
     };
-    fetchBatches();
+    loadOptions();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const fetchStudents = async (
@@ -431,39 +443,40 @@ export function StudentDataTable() {
         </div>
       </div>
 
-      {error ? (
+      {/* {error ? (
         <div className="p-6">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
             <p className="text-red-600">{error}</p>
           </div>
         </div>
-      ) : (
-        <ReusableTable
-          columns={columns}
-          dataSource={students}
-          loading={isLoading}
-          emptyText="Data Tidak Ada"
-          pagination={{
-            current: currentPage,
-            pageSize: limit,
-            total: meta?.total || 0,
-            showSizeChanger: true,
-            pageSizeOptions: [5, 10, 25, 50, 100],
-            onChange: (page, pageSize) => {
-              setCurrentPage(page);
-              setLimit(pageSize);
-            },
-            onShowSizeChange: (current, size) => {
-              setCurrentPage(1);
-              setLimit(size);
-            },
-          }}
-          rowKey="id"
-          serverSidePagination={true}
-          tableLayout="fixed"
-          scroll={{ y: 400 }}
-        />
-      )}
+      ) : ( */}
+      <ReusableTable
+        columns={columns}
+        dataSource={students}
+        loading={isLoading}
+        error={error || undefined}
+        emptyText="Data Tidak Ada"
+        pagination={{
+          current: currentPage,
+          pageSize: limit,
+          total: meta?.total || 0,
+          showSizeChanger: true,
+          pageSizeOptions: [5, 10, 25, 50, 100],
+          onChange: (page, pageSize) => {
+            setCurrentPage(page);
+            setLimit(pageSize);
+          },
+          onShowSizeChange: (current, size) => {
+            setCurrentPage(1);
+            setLimit(size);
+          },
+        }}
+        rowKey="id"
+        serverSidePagination={true}
+        tableLayout="fixed"
+        scroll={{ y: 400 }}
+      />
+      {/* )} */}
       <ModalPreviewData
         title="Detail Data Pendaftaran Murid"
         footer={null}

@@ -24,6 +24,9 @@ const sizeClasses = {
   full: "max-w-screen md:w-[70vw] lg:w-[60vw]",
 };
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
 export const BaseModal: React.FC<BaseModalProps> = ({
   isOpen,
   onClose,
@@ -36,9 +39,16 @@ export const BaseModal: React.FC<BaseModalProps> = ({
   size = "lg",
   footer = null,
 }) => {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
+
+  const modal = (
     <div
       className={`fixed inset-0${hiddenOverlay ? "" : " bg-black/70"} flex items-center justify-center z-9000 ${className}`}
       onClick={onClose}
@@ -75,4 +85,6 @@ export const BaseModal: React.FC<BaseModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 };

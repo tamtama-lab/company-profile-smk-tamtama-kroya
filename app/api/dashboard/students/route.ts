@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get("limit") || "10";
     const authored = searchParams.get("authored") || "";
     const batch_id = searchParams.get("batch_id") || "";
+    const academic_year_id = searchParams.get("academic_year_id") || "";
 
     const queryParams = new URLSearchParams({ page, limit });
     if (search) {
@@ -33,6 +34,10 @@ export async function GET(request: NextRequest) {
 
     if (batch_id !== "") {
       queryParams.append("batch_id", batch_id);
+    }
+
+    if (academic_year_id !== "") {
+      queryParams.append("academic_year_id", academic_year_id);
     }
 
     const backendResponse = await fetch(

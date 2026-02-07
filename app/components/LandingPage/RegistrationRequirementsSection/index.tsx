@@ -12,10 +12,10 @@ interface Requirement {
 
 export interface BatchData {
   id: number;
-  period: string;
-  startMonth: string;
-  endMonth: string;
-  status: string;
+  name: string;
+  dateStart?: string;
+  dateEnd?: string;
+  isActive: boolean;
   icon: string;
 }
 
@@ -26,19 +26,19 @@ interface RegistrationRequirementsSectionProps {
 }
 
 export const PathCard = ({
-  grade,
+  name,
   description,
-  isLocked,
+  isActive,
 }: {
-  grade: string;
+  name: string;
   description: string;
-  isLocked: boolean;
+  isActive: boolean;
 }) => {
   return (
     <div className="flex flex-col justify-between p-2 border border-gray-300 min-h-28 h-fit rounded-lg">
-      <p className="text-lg max-sm:text-sm font-bold text-primary">{grade}</p>
+      <p className="text-lg max-sm:text-sm font-bold text-primary">{name}</p>
       <p className="text-base max-sm:text-xs">{description}</p>
-      {isLocked ? (
+      {!isActive ? (
         <div className="w-full h-fit flex justify-between items-center">
           <p className="text-sm max-sm:text-xs">
             Status : <span className="text-red-500 font-semibold">TUTUP</span>
@@ -113,16 +113,20 @@ export const RegistrationRequirementsSection: React.FC<
               <div className="w-[43%] max-sm:w-[9/10] h-100 flex flex-col justify-between">
                 <ScrollAnimationWrapper>
                   <PathCard
-                    grade={"Gelombang 1"}
-                    description={"November - Februari"}
-                    isLocked={false}
+                    name={batches[0].name}
+                    description={
+                      batches[0].dateStart + " - " + batches[0].dateEnd
+                    }
+                    isActive={batches[0].isActive}
                   />
                 </ScrollAnimationWrapper>
                 <ScrollAnimationWrapper>
                   <PathCard
-                    grade={"Gelombang 3"}
-                    description={"Juni - Juli"}
-                    isLocked={true}
+                    name={batches[2].name}
+                    description={
+                      batches[2].dateStart + " - " + batches[2].dateEnd
+                    }
+                    isActive={batches[2].isActive}
                   />
                 </ScrollAnimationWrapper>
               </div>
@@ -143,9 +147,11 @@ export const RegistrationRequirementsSection: React.FC<
               <div className="w-[43%] max-sm:w-[9/10] h-100 flex flex-col justify-center">
                 <ScrollAnimationWrapper>
                   <PathCard
-                    grade={"Gelombang 2"}
-                    description={"Maret - Mei"}
-                    isLocked={true}
+                    name={batches[1].name}
+                    description={
+                      batches[1].dateStart + " - " + batches[1].dateEnd
+                    }
+                    isActive={batches[1].isActive}
                   />
                 </ScrollAnimationWrapper>
               </div>

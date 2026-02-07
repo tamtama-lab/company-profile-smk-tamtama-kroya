@@ -21,10 +21,12 @@ import { FaRegHandshake } from "react-icons/fa";
 import { MdCall, MdEmail, MdLanguage, MdLocationOn } from "react-icons/md";
 import { useEffect, useState } from "react";
 import type { MajorData } from "@/components/LandingPage/VacationTotal";
+import { formatMonth } from "@/lib/formatMonth";
 
 export default function LandingPage() {
   const [majorsData, setMajorsData] = useState<MajorData[] | null>(null);
   const [batchData, setBatchData] = useState<BatchData[] | null>(null);
+  console.log(batchData);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -42,12 +44,16 @@ export default function LandingPage() {
           let majorsArray: MajorData[] = [];
           let batchArray: BatchData[] = [];
           if (Array.isArray(data)) majorsArray = data as MajorData[];
-          else if (data && typeof data === "object" && "batches" in data) {
+          else if (
+            data &&
+            typeof data === "object" &&
+            "registrationBatches" in data
+          ) {
             const obj = data as unknown as Record<string, unknown>;
             if (Array.isArray(obj["majors"]))
               majorsArray = obj["majors"] as unknown as MajorData[];
-            if (Array.isArray(obj["batches"]))
-              batchArray = obj["batches"] as unknown as BatchData[];
+            if (Array.isArray(obj["registrationBatches"]))
+              batchArray = obj["registrationBatches"] as unknown as BatchData[];
           } else {
             const obj = data as unknown as Record<string, unknown>;
             if (Array.isArray(obj["majors"]))
@@ -162,26 +168,26 @@ export default function LandingPage() {
   const registrationPeriods = [
     {
       id: 1,
-      period: "1",
-      startMonth: "November",
-      endMonth: "Februari",
-      status: "BUKA",
+      name: batchData?.[0]?.name || "Gelombang 99",
+      dateStart: formatMonth(batchData?.[0]?.dateStart),
+      dateEnd: formatMonth(batchData?.[0]?.dateEnd),
+      isActive: batchData?.[0]?.isActive || false,
       icon: "01",
     },
     {
       id: 2,
-      period: "2",
-      startMonth: "Maret",
-      endMonth: "Mei",
-      status: "Tutup",
+      name: batchData?.[1]?.name || "Gelombang 2",
+      dateStart: formatMonth(batchData?.[1]?.dateStart),
+      dateEnd: formatMonth(batchData?.[1]?.dateEnd),
+      isActive: batchData?.[1]?.isActive || false,
       icon: "02",
     },
     {
       id: 3,
-      period: "3",
-      startMonth: "Juni",
-      endMonth: "Juli",
-      status: "Tutup",
+      name: batchData?.[2]?.name || "Gelombang 3",
+      dateStart: formatMonth(batchData?.[2]?.dateStart),
+      dateEnd: formatMonth(batchData?.[2]?.dateEnd),
+      isActive: batchData?.[2]?.isActive || false,
       icon: "03",
     },
   ];

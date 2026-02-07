@@ -447,6 +447,9 @@ export default function SyaratPeriodePendaftaranPage() {
                   <DateInput
                     value={dateStart}
                     placeholder="Tanggal Awal"
+                    startYear={2023}
+                    endYear={2099}
+                    max={dateEnd || undefined}
                     onChange={(date) => {
                       setDateStart(
                         date ? date.toISOString().split("T")[0] : "",
@@ -459,6 +462,9 @@ export default function SyaratPeriodePendaftaranPage() {
                   <DateInput
                     value={dateEnd}
                     placeholder="Tanggal Akhir"
+                    startYear={2023}
+                    endYear={2099}
+                    min={dateStart || undefined}
                     onChange={(date) => {
                       setDateEnd(date ? date.toISOString().split("T")[0] : "");
                     }}

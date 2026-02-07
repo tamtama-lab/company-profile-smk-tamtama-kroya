@@ -36,6 +36,7 @@ export interface ReusableTableProps<T = unknown> {
   scroll?: { x?: number | string; y?: number | string };
   emptyText?: string;
   className?: string;
+  error?: string;
   serverSidePagination?: boolean; // New prop
   /** Table layout mode — 'auto' (default) or 'fixed' to respect column widths */
   tableLayout?: "auto" | "fixed";
@@ -49,6 +50,7 @@ export default function ReusableTable<T extends object = any>({
   rowKey = "key",
   size = "middle",
   bordered = false,
+  error,
   scroll,
   emptyText = "Tidak ada data",
   className = "",
@@ -137,6 +139,19 @@ export default function ReusableTable<T extends object = any>({
   };
 
   const borderClasses = bordered ? "border border-gray-300" : "";
+
+  if (error) {
+    if (error === "An internal server error occurred")
+      error = "Gelombang Belum Dibuka";
+
+    return (
+      <div className="py-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

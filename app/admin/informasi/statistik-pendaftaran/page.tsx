@@ -38,7 +38,6 @@ export default function AdminStatisticPage() {
     { major: "TP", count: 0 },
   ]);
 
-  console.log("Major Distribution Data:", majorDistribution);
   const [students, setStudents] = useState<Student[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,13 +53,26 @@ export default function AdminStatisticPage() {
   const [selectAuthored, setSelectedAuthor] = useState<"" | "true" | "false">(
     "",
   );
+  // Selected academic year filter
+  const [selectedYearId, setSelectedYearId] = useState<string | number | "">(
+    "",
+  );
   const [batches, setBatches] = useState<
     Array<{ value: string | number; label: string; disabled?: boolean }>
   >([]);
+  console.log(batches);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState<RegistrationData | null>(
     null,
   );
+
+  // Filter options loaded from server (cached endpoint)
+  const [yearsOptions, setYearsOptions] = useState<
+    Array<{ value: string | number; label: string }>
+  >([]);
+  const [registrationTypeOptions, setRegistrationTypeOptions] = useState<
+    Array<{ value: string | number; label: string }>
+  >([]);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -187,6 +199,10 @@ export default function AdminStatisticPage() {
         if (selectedBatchId) {
           params.append("batch_id", String(selectedBatchId));
         }
+        // Append selected academic year filter if set
+        if (selectedYearId) {
+          params.append("academic_year_id", String(selectedYearId));
+        }
         // Only append `authored` when a specific type is selected
         if (selectAuthored !== "") {
           params.append("authored", selectAuthored);
@@ -222,7 +238,7 @@ export default function AdminStatisticPage() {
         setIsLoading(false);
       }
     },
-    [selectedBatchId, selectAuthored],
+    [selectedBatchId, selectAuthored, selectedYearId],
   );
 
   useEffect(() => {
@@ -234,19 +250,25 @@ export default function AdminStatisticPage() {
     setCurrentPage(1); // Reset to first page when searching
   };
 
-  // Fetch registration batches for filter select
+  // Fetch filter options (years, batches, registration types) from server endpoint with caching
   useEffect(() => {
-    const fetchBatches = async () => {
+    let cancelled = false;
+
+    const loadOptions = async () => {
       try {
-        const res = await fetch(`/api/registrations/batches`, {
+        const res = await fetch(`/api/filters/options`, {
           headers: {
             "Content-Type": "application/json",
             ...getAuthHeader(),
           },
         });
-        if (!res.ok) return;
+
+        if (!res.ok) throw new Error("Failed to fetch options");
+
         const data = await res.json();
-        const opts = (data || []).map(
+
+        // Normalize batches to option shape
+        const batchOpts = (data.batches || []).map(
           (b: {
             id: number;
             name: string;
@@ -258,12 +280,54 @@ export default function AdminStatisticPage() {
             disabled: Number(b.isActive) === 0,
           }),
         );
-        setBatches(opts);
+
+        if (cancelled) return;
+
+        setBatches(batchOpts);
+        setYearsOptions(data.years || []);
+        setRegistrationTypeOptions(data.registrationTypes || []);
+
+        // Cache to localStorage as fallback when network fails
+        try {
+          localStorage.setItem(
+            "filterOptions.batches",
+            JSON.stringify(batchOpts),
+          );
+          localStorage.setItem(
+            "filterOptions.years",
+            JSON.stringify(data.years || []),
+          );
+          localStorage.setItem(
+            "filterOptions.regTypes",
+            JSON.stringify(data.registrationTypes || []),
+          );
+        } catch (e) {
+          /* ignore localStorage errors */
+        }
       } catch (err) {
-        console.error("Failed to fetch batches:", err);
+        console.error(
+          "Failed to load filter options, falling back to cache",
+          err,
+        );
+        // fallback to cached options
+        try {
+          const cachedBatches = localStorage.getItem("filterOptions.batches");
+          const cachedYears = localStorage.getItem("filterOptions.years");
+          const cachedReg = localStorage.getItem("filterOptions.regTypes");
+          if (cachedBatches) setBatches(JSON.parse(cachedBatches));
+          if (cachedYears) setYearsOptions(JSON.parse(cachedYears));
+          if (cachedReg) setRegistrationTypeOptions(JSON.parse(cachedReg));
+        } catch (e) {
+          console.error("Failed to load cached filter options", e);
+        }
       }
     };
-    fetchBatches();
+
+    loadOptions();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleDetailClick = async (registrationId: number) => {
@@ -443,7 +507,15 @@ export default function AdminStatisticPage() {
                     Tahun Ajaran
                   </h3>
                   <SelectInput
-                    options={[{ value: 1, label: "2025/2026" }]}
+                    value={selectedYearId}
+                    onChange={(e) => {
+                      setSelectedYearId(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    options={[
+                      { value: "", label: "Seluruh Tahun Ajaran" },
+                      ...yearsOptions,
+                    ]}
                     placeholder={"Pilih Tahun Ajaran "}
                     isMandatory
                     className="w-full sm:w-56"
@@ -456,11 +528,15 @@ export default function AdminStatisticPage() {
                     setSelectedAuthor(e.target.value as "" | "true" | "false");
                     setCurrentPage(1);
                   }}
-                  options={[
-                    { value: "", label: "Semua Jenis Pendaftaran" },
-                    { value: "true", label: "Oleh Guru" },
-                    { value: "false", label: "Mandiri" },
-                  ]}
+                  options={
+                    registrationTypeOptions.length > 0
+                      ? registrationTypeOptions
+                      : [
+                          { value: "", label: "Semua Jenis Pendaftaran" },
+                          { value: "true", label: "Oleh Guru" },
+                          { value: "false", label: "Mandiri" },
+                        ]
+                  }
                   placeholder={"Pilih Jenis Pendaftaran "}
                   isMandatory
                 />
@@ -501,6 +577,7 @@ export default function AdminStatisticPage() {
               columns={columns}
               dataSource={students}
               loading={isLoading}
+              error={error || undefined}
               emptyText="Data Tidak Ada"
               rowKey="id"
               serverSidePagination={true}

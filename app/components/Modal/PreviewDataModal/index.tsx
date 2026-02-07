@@ -25,6 +25,7 @@ const labelMap: Record<string, string> = {
   agama: "Agama",
   asalSekolah: "Asal SMP/MTs",
   adaKip: "Memiliki KIP",
+  nomorKip: "Nomor KIP",
   alamat: "Alamat",
   nomorWhatsapp: "Nomor WhatsApp",
   // Biodata Orang Tua
