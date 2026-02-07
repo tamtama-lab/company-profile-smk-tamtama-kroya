@@ -411,12 +411,10 @@ export default function SyaratPeriodePendaftaranPage() {
           className="w-full"
           title="Data Gelombang"
           isLoading={loadingBatch || savingBatch}
-          // onClick={handleSaveBatch}
-          // disabled={!selectedBatchId || savingBatch}
           handleSaveChanges={handleSaveBatch}
           leftButton={
-            <div>
-              <p className="text-sm mb-1">Urutan Gelombang</p>
+            <div className="mt-1.5 flex flex-row items-center gap-2">
+              <p className="text-sm mb-1.5">Urutan Gelombang</p>
               <SelectInput
                 value={selectedBatchId}
                 onChange={(e) => {
@@ -424,7 +422,7 @@ export default function SyaratPeriodePendaftaranPage() {
                 }}
                 options={[...batches]}
                 placeholder="Pilih Gelombang"
-                className="w-48"
+                className="w-48 mb-0!"
               />
             </div>
           }

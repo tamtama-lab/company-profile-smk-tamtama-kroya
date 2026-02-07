@@ -51,7 +51,9 @@ export default function AdminStatisticPage() {
   const [selectedBatchId, setSelectedBatchId] = useState<string | number | "">(
     "",
   );
-  const [selectAuthored, setSelectedAuthor] = useState<string | "">("");
+  const [selectAuthored, setSelectedAuthor] = useState<"" | "true" | "false">(
+    "",
+  );
   const [batches, setBatches] = useState<
     Array<{ value: string | number; label: string; disabled?: boolean }>
   >([]);
@@ -185,7 +187,8 @@ export default function AdminStatisticPage() {
         if (selectedBatchId) {
           params.append("batch_id", String(selectedBatchId));
         }
-        if (selectAuthored) {
+        // Only append `authored` when a specific type is selected
+        if (selectAuthored !== "") {
           params.append("authored", selectAuthored);
         }
 
@@ -230,6 +233,38 @@ export default function AdminStatisticPage() {
     setSearchTerm(value);
     setCurrentPage(1); // Reset to first page when searching
   };
+
+  // Fetch registration batches for filter select
+  useEffect(() => {
+    const fetchBatches = async () => {
+      try {
+        const res = await fetch(`/api/registrations/batches`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeader(),
+          },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const opts = (data || []).map(
+          (b: {
+            id: number;
+            name: string;
+            title: string;
+            isActive: number;
+          }) => ({
+            value: b.id,
+            label: b.name || b.title || `Gelombang ${b.id}`,
+            disabled: Number(b.isActive) === 0,
+          }),
+        );
+        setBatches(opts);
+      } catch (err) {
+        console.error("Failed to fetch batches:", err);
+      }
+    };
+    fetchBatches();
+  }, []);
 
   const handleDetailClick = async (registrationId: number) => {
     setLoadingDetail(true);
@@ -392,7 +427,7 @@ export default function AdminStatisticPage() {
   ];
 
   return (
-    <div className="w-full h-[calc(100vh-4px)] bg-gray-100 p-4">
+    <div className="w-full min-h-[calc(100vh-4px)] bg-gray-100 p-4">
       <div className="h-full">
         <TitleSection
           title="Data Pendaftar Sekolah"
@@ -401,23 +436,24 @@ export default function AdminStatisticPage() {
         <StatsMajorCard data={majorDistribution} isLoading={isLoading} />
         <div className="w-full h-fit bg-white rounded-md drop-shadow-sm">
           <div className="p-6 max-sm:p-2 border-b border-gray-200">
-            <div className="flex flex-col items-center justify-center md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex flex-row gap-3 justify-center items-center">
-                <h3 className="font-semibold text-gray-800 mb-2">
-                  Tahun Ajaran
-                </h3>
+            <div className="flex flex-col items-stretch sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full sm:w-auto">
+                <div className="w-full sm:w-auto flex flex-row gap-3 items-center">
+                  <h3 className="font-semibold text-gray-800 mb-2 text-nowrap">
+                    Tahun Ajaran
+                  </h3>
+                  <SelectInput
+                    options={[{ value: 1, label: "2025/2026" }]}
+                    placeholder={"Pilih Tahun Ajaran "}
+                    isMandatory
+                    className="w-full sm:w-56"
+                  />
+                </div>
                 <SelectInput
-                  options={[
-                    { value: "1", label: "2026/2027" },
-                    { value: "2", label: "2027/2028" },
-                  ]}
-                  placeholder={"Pilih Tahun Ajaran "}
-                  isMandatory
-                />
-                <SelectInput
+                  className="w-full sm:w-56"
                   value={selectAuthored}
                   onChange={(e) => {
-                    setSelectedAuthor(e.target.value);
+                    setSelectedAuthor(e.target.value as "" | "true" | "false");
                     setCurrentPage(1);
                   }}
                   options={[
@@ -430,8 +466,8 @@ export default function AdminStatisticPage() {
                 />
               </div>
               {/* Search Filter */}
-              <div className="w-fit flex flex-row gap-3">
-                <div className="w-48">
+              <div className="w-full flex flex-col sm:flex-row gap-3">
+                <div className="w-full sm:w-48">
                   <SelectInput
                     value={selectedBatchId}
                     onChange={(e) => {
@@ -443,19 +479,20 @@ export default function AdminStatisticPage() {
                       ...batches,
                     ]}
                     placeholder="Pilih Gelombang"
-                    className="w-48"
+                    className="w-full sm:w-48"
                   />
                 </div>
-                <div className="relative w-full sm:w-100">
-                  <div className="absolute inset-y-0 left-0 pl-3 pb-2 flex items-center pointer-events-none">
+                <div className="relative w-7/10 max-sm:w-full max-sm:pb-2">
+                  <div className="absolute inset-y-0 left-0 pl-3 pb-2 max-sm:pb-1 flex items-center pointer-events-none">
                     <FaMagnifyingGlass className="text-lg text-gray-400" />
                   </div>
                   <input
                     type="text"
+                    aria-label="Cari pendaftar"
                     placeholder="Cari Nama / nomor pendaftaran / atau asal sekolah..."
                     value={searchTerm}
                     onChange={(e) => handleSearchChange(e.target.value)}
-                    className="block max-sm:placeholder:text-xs w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="block max-sm:placeholder:text-xs w-full pl-10 pr-3 py-2.5 max-sm:py-1 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
               </div>

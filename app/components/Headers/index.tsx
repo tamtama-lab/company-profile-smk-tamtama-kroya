@@ -11,8 +11,9 @@ import { PiPathBold } from "react-icons/pi";
 import { FaCheckCircle } from "react-icons/fa";
 import { IoMdPin } from "react-icons/io";
 import { VideoTutorialModal } from "../Modal/VideoTutorialModal";
+import { getAcademicYear } from "@/lib/getAcademicYear";
 
-const currentYear = new Date().getFullYear();
+
 
 export const NavItems = [
   { label: "Beranda", href: "/" },
@@ -121,7 +122,7 @@ export const Header: React.FC = () => {
                   SMK Tamtama Kroya
                 </h1>
                 <p className="text-xs sm:text-sm">
-                  PPDB {currentYear}/{currentYear + 1}
+                  PPDB {getAcademicYear()}
                 </p>
               </div>
             )}

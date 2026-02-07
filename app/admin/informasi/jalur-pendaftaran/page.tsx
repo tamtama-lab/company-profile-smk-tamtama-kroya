@@ -8,6 +8,7 @@ import { useAlert } from "@/components/ui/alert";
 import { getAuthHeader } from "@/utils/auth";
 import { useEffect, useRef, useState } from "react";
 import { LuTrash2, LuUpload } from "react-icons/lu";
+import Image from "next/image";
 
 interface PathTabProps {
   id: string;
@@ -521,14 +522,16 @@ export default function AdminRegistrationPathPage() {
           handleSaveChanges={handleUploadPhoto}
           isLoading={isLoadingPaths || isUploadingPhoto}
           saveButtonDisabled={!activePhotoDraft?.file}
-          // leftButton={
-          //   <TextButton
-          //     variant="outline-danger"
-          //     icon={<LuTrash2 />}
-          //     text="Hapus Gambar"
-          //     onClick={handleDeletePhoto}
-          //   />
-          // }
+          leftButton={
+            <TextButton
+              variant="outline-danger"
+              icon={<LuTrash2 />}
+              className={` ${activePhotoDraft?.previewUrl ? "opacity-100" : "opacity-0"}`}
+              isLoading={isUploadingPhoto}
+              text="Hapus Gambar"
+              onClick={() => setDraftFile(null)}
+            />
+          }
         >
           <div className="w-full h-100 p-4">
             <div className="h-full grid gap-6 grid-cols-2">
@@ -558,17 +561,17 @@ export default function AdminRegistrationPathPage() {
                   <div className="h-fit w-fit justify-center items-center flex flex-col gap-3">
                     {activePhotoDraft?.previewUrl ? (
                       <>
-                        <img
+                        <Image
                           src={activePhotoDraft.previewUrl}
                           alt="Preview"
                           className="w-48 h-32 object-cover rounded-md shadow-sm"
                         />
                         <div className="flex gap-2 mt-2">
-                          <TextButton
+                          {/* <TextButton
                             variant="outline"
                             text="Hapus Preview"
                             onClick={() => setDraftFile(null)}
-                          />
+                          /> */}
                           <TextButton
                             variant="primary"
                             text="Pilih Foto Lain"
@@ -615,7 +618,7 @@ export default function AdminRegistrationPathPage() {
                   digunakan di halaman Landing Page
                 </div>
               </div>
-              <div className="w-full h-full shadow-md rounded-md overflow-hidden bg-gray-50 flex items-center justify-center">
+              <div className="relative w-full h-full shadow-md rounded-md overflow-hidden bg-gray-50 flex items-center justify-center">
                 {activePhotoUrl ? (
                   <img
                     src={activePhotoUrl}
@@ -627,6 +630,9 @@ export default function AdminRegistrationPathPage() {
                     {activePath?.name || activeTabData?.label}
                   </div>
                 )}
+                <div className="w-fit h-fit py-1 px-3 absolute bottom-1 left-1 text-xs bg-primary rounded-full text-white">
+                  Foto {activeTabData?.label}
+                </div>
               </div>
             </div>
           </div>

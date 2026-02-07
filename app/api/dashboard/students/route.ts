@@ -19,10 +19,20 @@ export async function GET(request: NextRequest) {
     const page = searchParams.get("page") || "1";
     const search = searchParams.get("search") || "";
     const limit = searchParams.get("limit") || "10";
+    const authored = searchParams.get("authored") || "";
+    const batch_id = searchParams.get("batch_id") || "";
 
     const queryParams = new URLSearchParams({ page, limit });
     if (search) {
       queryParams.append("search", search);
+    }
+    
+    if (authored !== "") {
+      queryParams.append("authored", authored);
+    }
+
+    if (batch_id !== "") {
+      queryParams.append("batch_id", batch_id);
     }
 
     const backendResponse = await fetch(
@@ -40,7 +50,7 @@ export async function GET(request: NextRequest) {
     if (!backendResponse.ok) {
       return NextResponse.json(data, { status: backendResponse.status });
     }
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(data, { status: backendResponse.status });
   } catch (error) {
     console.error("Students fetch error:", error);
     return NextResponse.json(

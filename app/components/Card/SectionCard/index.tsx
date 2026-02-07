@@ -44,7 +44,7 @@ export const SectionCard = ({
           children
         )}
       </div>
-      <div className="p-4 border-t border-gray-200 flex justify-end gap-6 items-center">
+      <div className="p-4 h-fit border-t border-gray-300 flex justify-end items-center gap-6">
         {isCancelButton ? (
           <TextButton
             variant="primary"

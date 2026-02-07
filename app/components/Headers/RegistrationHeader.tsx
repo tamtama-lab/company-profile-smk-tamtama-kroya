@@ -1,9 +1,8 @@
+import { getAcademicYear } from "@/lib/getAcademicYear";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
-
-const currentYear = new Date().getFullYear();
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
@@ -30,9 +29,7 @@ export const Header: React.FC = () => {
               <h1 className="text-sm sm:text-base font-bold">
                 SMK Tamtama Kroya
               </h1>
-              <p className="text-xs sm:text-sm">
-                PPDB {currentYear}/{currentYear + 1}
-              </p>
+              <p className="text-xs sm:text-sm">PPDB {getAcademicYear()}</p>
             </div>
           )}
         </div>

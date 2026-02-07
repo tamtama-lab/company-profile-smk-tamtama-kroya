@@ -9,8 +9,7 @@ import { useAlert } from "../ui/alert";
 import { TextButton } from "../Buttons/TextButton";
 import { useAuth } from "../AuthGuard";
 import { ConfirmationAlert } from "@/components/Modal/ConfirmationAlert";
-
-const currentYear = new Date().getFullYear();
+import { getAcademicYear } from "@/lib/getAcademicYear";
 
 export const NavItems = [
   { label: "DASHBOARD", href: "/dashboard" },
@@ -82,9 +81,7 @@ export const Header: React.FC = () => {
                 <h1 className="text-sm  text-primary sm:text-base font-bold">
                   SMK TAMTAMA KROYA
                 </h1>
-                <p className="text-xs sm:text-sm">
-                  PPDB {currentYear}/{currentYear + 1}
-                </p>
+                <p className="text-xs sm:text-sm">PPDB {getAcademicYear()}</p>
               </div>
             </div>
           </div>

@@ -1,8 +1,8 @@
 import { TextButton } from "@/components/Buttons/TextButton";
 import ScrollAnimationWrapper from "@/components/ScrollAnimationWrapper";
+import { getAcademicYear } from "@/lib/getAcademicYear";
 import Image from "next/image";
 import { GiGraduateCap } from "react-icons/gi";
-const currentYear = new Date().getFullYear();
 
 export const HeroSection: React.FC = () => {
   const handleRegistrationRoute = () => {
@@ -28,7 +28,7 @@ export const HeroSection: React.FC = () => {
             <ScrollAnimationWrapper>
               <h1 className="text-3xl max-sm:text-2xl text-left text-[#2D2D2D] font-semibold">
                 Portal Penerimaan Peserta Didik Baru (PPDB) SMK Tamtama Kroya{" "}
-                {currentYear} / {currentYear + 1}
+                {getAcademicYear()}
               </h1>
             </ScrollAnimationWrapper>
             <ScrollAnimationWrapper>
