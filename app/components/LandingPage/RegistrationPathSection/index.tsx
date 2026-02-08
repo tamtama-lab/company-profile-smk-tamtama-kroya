@@ -6,6 +6,24 @@ import { ScrollAnimationWrapper } from "@/components/ScrollAnimationWrapper";
 import React from "react";
 import Image from "next/image";
 
+export interface RegistrationPathItem {
+  id: number;
+  name: string;
+  benefit: string;
+  order: number;
+  isActive: number;
+  registrationPathId: number;
+}
+
+export interface RegistrationPath {
+  id: number;
+  name: string;
+  photoUrl: string;
+  requiresTerms: number;
+  order: number;
+  registrationPathItems: RegistrationPathItem[];
+}
+
 interface PathTabProps {
   id: string;
   label: string;
@@ -24,9 +42,7 @@ interface RegistrationPathSectionProps {
 export const RegistrationPathSection: React.FC<
   RegistrationPathSectionProps & { id?: string }
 > = ({ tabs, id }) => {
-  const [activeTab, setActiveTab] = useState(tabs[0]?.id || "");
-
-  const activeTabData = tabs.find((tab) => tab.id === activeTab);
+  const [activeTab, setActiveTab] = useState(0);
 
   return (
     <section
@@ -48,9 +64,9 @@ export const RegistrationPathSection: React.FC<
           {tabs.map((tab, index) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setActiveTab(index)}
               className={`w-full px-4 sm:px-8 py-2 sm:py-3 rounded-full ${index === 0 ? "rounded-l-full rounded-r-none " : "rounded-l-none rounded-r-full"} font-semibold transition-all duration-300 text-sm sm:text-base ${
-                activeTab === tab.id
+                activeTab === index
                   ? "bg-[#1B5E20] text-white shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
@@ -61,63 +77,75 @@ export const RegistrationPathSection: React.FC<
         </div>
 
         {/* Tab Content */}
-        {activeTabData && (
-          <div className="w-full h-full overflow-hidden">
-            <div
-              className={`w-full h-full flex flex-row gap-6 max-sm:gap-2 lg:gap-0 ${activeTabData.id === "non-akademik" ? "flex-row-reverse" : "flex-row"}`}
-            >
-              {/* Image Section */}
-              <div className="w-full lg:w-1/2 h-fit max-sm:h-fit lg:h-full flex items-center justify-center">
-                {activeTabData.image ? (
-                  <ScrollAnimationWrapper className="w-full aspect-h-3 aspect-w-4 bg-gray-300 rounded-2xl max-sm:rounded-lg overflow-hidden">
-                    <Image
-                      src={activeTabData.image}
-                      alt={activeTabData.label}
-                      width={500}
-                      height={300}
-                      className="object-cover w-full h-full"
-                    />
-                  </ScrollAnimationWrapper>
-                ) : (
-                  <div className="w-full h-full bg-linear-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
-                    <span className="text-gray-500 text-sm sm:text-base">
-                      Foto pendaftaran
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Content Section */}
-              <div className="flex w-full lg:w-1/2 h-auto lg:h-full flex-col items-center justify-center sm:p-3 lg:p-10">
-                <div className="w-full h-fit space-y-8 max-sm:space-y-8 max-lg:space-y-5">
-                  {activeTabData.items.map((item, index) => (
+        <div className="w-full h-full overflow-hidden">
+          <div
+            className="w-full h-full flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${activeTab * 100}%)` }}
+          >
+            {tabs.map((tab, index) => (
+              <div
+                key={tab.id}
+                className={`w-full h-full shrink-0 flex flex-row gap-6 max-sm:gap-2 lg:gap-0 ${
+                  index === 1 ? "flex-row-reverse" : "flex-row"
+                }`}
+              >
+                {/* Image Section */}
+                <div className="w-full lg:w-1/2 h-fit max-sm:h-fit lg:h-full flex items-center justify-center">
+                  {tab.image ? (
                     <ScrollAnimationWrapper
-                      key={index}
-                      className="flex items-start gap-3 sm:gap-1"
+                      direction="left"
+                      className="w-full aspect-h-3 aspect-w-4 bg-gray-300 rounded-2xl max-sm:rounded-lg overflow-hidden"
                     >
-                      <div className="text-2xl max-sm:text-xl shrink-0">
-                        {item.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-800 text-base max-sm:text-xs">
-                          {item.grade}
-                        </h4>
-                        <p className="text-gray-600 text-sm max-sm:text-xs mt-1 wrap-break-word">
-                          {item.description}
-                        </p>
-                      </div>
+                      <img
+                        src={tab.image}
+                        alt={tab.label}
+                        className="object-cover w-full h-full"
+                      />
                     </ScrollAnimationWrapper>
-                  ))}
+                  ) : (
+                    <div className="w-full h-full bg-linear-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
+                      <span className="text-gray-500 text-sm sm:text-base">
+                        Foto pendaftaran
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <span
-                  className={`w-full mt-4 sm:mt-6 flex justify-end ${activeTabData.id === "non-akademik" ? "block" : "hidden"} text-red-500 text-xs max-sm:text-[10px]`}
-                >
-                  *Syarat dan Ketentuan Berlaku
-                </span>
+
+                {/* Content Section */}
+                <div className="flex w-full lg:w-1/2 h-auto lg:h-full flex-col items-center justify-center sm:p-3 lg:p-10">
+                  <div className="w-full h-fit space-y-8 max-sm:space-y-8 max-lg:space-y-5">
+                    {tab.items.map((item, itemIndex) => (
+                      <ScrollAnimationWrapper
+                        key={itemIndex}
+                        direction="left"
+                        className="flex items-start gap-3 sm:gap-1"
+                      >
+                        <div className="text-2xl max-sm:text-xl shrink-0">
+                          {item.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-800 text-base max-sm:text-xs">
+                            {item.grade}
+                          </h4>
+                          <p className="text-gray-600 text-sm max-sm:text-xs mt-1 wrap-break-word">
+                            {item.description}
+                          </p>
+                        </div>
+                      </ScrollAnimationWrapper>
+                    ))}
+                  </div>
+                  <span
+                    className={`w-full mt-4 sm:mt-6 flex justify-end ${
+                      index === 1 ? "block" : "hidden"
+                    } text-red-500 text-xs max-sm:text-[10px]`}
+                  >
+                    *Syarat dan Ketentuan Berlaku
+                  </span>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        )}
+        </div>
       </ScrollAnimationWrapper>
     </section>
   );

@@ -4,7 +4,10 @@ import { HeroSection } from "@/components/LandingPage/HeroSection";
 import { VacationTotal } from "@/components/LandingPage/VacationTotal";
 import { WhyChooseUs } from "@/components/LandingPage/WhyChooseUs";
 import { SchoolLocation } from "./components/LandingPage/SchoolLocation";
-import { RegistrationPathSection } from "@/components/LandingPage/RegistrationPathSection";
+import {
+  RegistrationPath,
+  RegistrationPathSection,
+} from "@/components/LandingPage/RegistrationPathSection";
 import {
   BatchData,
   RequirementData,
@@ -23,7 +26,7 @@ import { HiOutlineComputerDesktop } from "react-icons/hi2";
 import { FaRegMoneyBill1 } from "react-icons/fa6";
 import { FaRegHandshake } from "react-icons/fa";
 import { MdCall, MdEmail, MdLanguage, MdLocationOn } from "react-icons/md";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { MajorData } from "@/components/LandingPage/VacationTotal";
 import { formatMonth } from "@/lib/formatMonth";
 import React from "react";
@@ -37,6 +40,9 @@ export default function LandingPage() {
   );
   const [requirementsData, setRequirementsData] = useState<
     RequirementData[] | null
+  >(null);
+  const [registrationPaths, setRegistrationPaths] = useState<
+    RegistrationPath[] | null
   >(null);
   console.log(requirementsData);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,6 +78,10 @@ export default function LandingPage() {
               requirementsArray = obj[
                 "registrationRequirements"
               ] as unknown as RequirementData[];
+            if (Array.isArray(obj["registrationPaths"]))
+              setRegistrationPaths(
+                obj["registrationPaths"] as unknown as RegistrationPath[],
+              );
             if (
               obj["schoolSettings"] &&
               typeof obj["schoolSettings"] === "object"
@@ -119,52 +129,26 @@ export default function LandingPage() {
     fetchMajors();
   }, []);
 
-  const registrationPathTabs = [
-    {
-      id: "prestasi",
-      label: "Jalur Prestasi",
-      image: "/ppdb/akademik.jpg",
-      items: [
-        {
-          grade: "Peringkat 1 Kelas (Gratis SPP 9 Bulan)",
-          description: "Untuk siswa dengan prestasi akademik terbaik",
-          icon: "🥇",
-        },
-        {
-          grade: "Peringkat 2 Kelas (Gratis SPP 6 Bulan)",
-          description: "Untuk siswa dengan prestasi akademik sangat baik",
-          icon: "🥈",
-        },
-        {
-          grade: "Peringkat 3 Kelas (Gratis SPP 3 Bulan)",
-          description: "Untuk siswa dengan prestasi akademik baik",
-          icon: "🥉",
-        },
-      ],
-    },
-    {
-      id: "non-akademik",
-      label: "Jalur Non-Akademik",
-      image: "/ppdb/non-akademik.jpg",
-      items: [
-        {
-          grade: "Juara Nasional (Gratis SPP 1 Tahun)",
-          description: "Untuk siswa dengan prestasi non-akademik terbaik",
-          icon: "🏆",
-        },
-        {
-          grade: "Juara Provinsi (Gratis SPP 9 Bulan)",
-          description: "Untuk siswa dengan prestasi non-akademik sangat baik",
-          icon: "🏆",
-        },
-        {
-          grade: "Juara Kabupaten (Gratis SPP 6 Bulan)",
-          description: "Untuk siswa dengan prestasi non-akademik baik",
-          icon: "🏆",
-        },
-      ],
-    },
-  ];
+  const registrationPathTabs = useMemo(() => {
+    if (!registrationPaths) return [];
+    return registrationPaths
+      .sort((a, b) => a.order - b.order)
+      .map((path) => {
+        const icons = path.id === 1 ? ["🥇", "🥈", "🥉"] : ["🏆", "🏆", "🏆"];
+        return {
+          id: path.id.toString(),
+          label: path.name,
+          image: path.photoUrl,
+          items: path.registrationPathItems
+            .sort((a, b) => a.order - b.order)
+            .map((item, index) => ({
+              grade: item.name,
+              description: item.benefit,
+              icon: icons[index] || "🏆",
+            })),
+        };
+      });
+  }, [registrationPaths]);
 
   // Data untuk Registration Requirements Section
   const requirements = [
