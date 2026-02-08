@@ -7,8 +7,7 @@ import { BenefitList, BenefitItem } from "@/components/Card/BenefitCard";
 import { useAlert } from "@/components/ui/alert";
 import { getAuthHeader } from "@/utils/auth";
 import { useEffect, useRef, useState } from "react";
-import { LuTrash2, LuUpload } from "react-icons/lu";
-import Image from "next/image";
+import { LuPlus, LuTrash2, LuUpload } from "react-icons/lu";
 
 interface PathTabProps {
   id: string;
@@ -428,12 +427,12 @@ export default function AdminRegistrationPathPage() {
           handleSaveChanges={handleSaveChanges}
           isLoading={isLoadingPaths || isSavingPaths}
           leftButton={
-            <TextButton
-              variant="outline"
-              // icon={<LuPlus size={18} />}
-              text="Batalkan"
-              onClick={handleCancelChanges}
-            />
+            null
+            // <TextButton
+            //   variant="outline"
+            //   text="Batalkan"
+            //   onClick={handleCancelChanges}
+            // />
           }
         >
           <div className="space-y-6">
@@ -442,6 +441,7 @@ export default function AdminRegistrationPathPage() {
                 title="Prestasi Akademik"
                 items={akademik}
                 onChange={setAkademik}
+                
               />
             </div>
 
@@ -481,7 +481,7 @@ export default function AdminRegistrationPathPage() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`w-full px-4 sm:px-8 py-2  rounded-full ${index === 0 ? "rounded-l-full rounded-r-none " : "rounded-l-none rounded-r-full"} font-semibold transition-all duration-300 text-sm sm:text-base ${
+                      className={`w-full px-4 sm:px-8 py-2 text-sm rounded-full ${index === 0 ? "rounded-l-full rounded-r-none " : "rounded-l-none rounded-r-full"} font-semibold transition-all duration-300 text-sm ${
                         activeTab === tab.id
                           ? "bg-[#1B5E20] text-white shadow-lg"
                           : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -553,20 +553,23 @@ export default function AdminRegistrationPathPage() {
                   digunakan di halaman Landing Page
                 </div>
               </div>
-              <div className="relative w-full h-full shadow-md rounded-md overflow-hidden bg-gray-50 flex items-center justify-center">
-                {activePhotoUrl ? (
-                  <img
-                    src={activePhotoUrl}
-                    alt={`Foto ${activePath?.name || activeTabData?.label || ""}`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-sm text-gray-500">
-                    {activePath?.name || activeTabData?.label}
-                  </div>
-                )}
-                <div className="w-fit h-fit py-1 px-3 absolute bottom-1 left-1 text-xs bg-primary rounded-full text-white">
-                  Foto {activeTabData?.label}
+              <div className="w-full h-full flex flex-col items-center justify-center">
+                <div className="w-full h-full rounded-md overflow-hidden bg-gray-50">
+                  {activePhotoUrl ? (
+                    <img
+                      src={activePhotoUrl}
+                      alt={`Foto ${activePath?.name || activeTabData?.label || ""}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-sm text-gray-500">
+                      {activePath?.name || activeTabData?.label}
+                    </div>
+                  )}
+                </div>
+                <div className="w-full h-fit py-1 px-3 text-xs text-left rounded-full ">
+                  <span className="text-red-500">*</span> Foto{" "}
+                  {activeTabData?.label}
                 </div>
               </div>
             </div>

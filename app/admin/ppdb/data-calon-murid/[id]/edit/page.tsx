@@ -72,7 +72,9 @@ export default function EditDataCalonMuridPage() {
                 "",
               alamat: result.studentDetail?.address || "",
               jenisKelamin:
-                result.studentDetail?.gender === 1 ? "Laki-laki" : "Perempuan",
+                result.studentDetail?.gender === "1"
+                  ? "Laki-laki"
+                  : "Perempuan",
               agama: result.studentDetail?.religion || "",
               adaKip: result.studentDetail?.isKipRecipient || false,
               nomorKip: result.studentDetail?.kipNumber || "",
@@ -202,7 +204,7 @@ export default function EditDataCalonMuridPage() {
           description: "Data berhasil diperbarui",
           variant: "success",
         });
-        router.push("/admin/dashboard");
+        router.push("/admin/informasi/statistik-pendaftaran");
       } else {
         const errorData = await response.json();
         showAlert({

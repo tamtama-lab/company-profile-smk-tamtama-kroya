@@ -502,22 +502,20 @@ export default function AdminStatisticPage() {
           <div className="p-6 max-sm:p-2 border-b border-gray-200">
             <div className="flex flex-col items-stretch sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full sm:w-auto">
-                <div className="w-full sm:w-auto flex flex-row gap-3 items-center">
-                  <SelectInput
-                    value={selectedYearId}
-                    onChange={(e) => {
-                      setSelectedYearId(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    options={[
-                      { value: "", label: "Seluruh Tahun Ajaran" },
-                      ...yearsOptions,
-                    ]}
-                    placeholder={"Pilih Tahun Ajaran "}
-                    isMandatory
-                    className="w-full sm:w-56"
-                  />
-                </div>
+                <SelectInput
+                  value={selectedYearId}
+                  onChange={(e) => {
+                    setSelectedYearId(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  options={[
+                    { value: "", label: "Seluruh Tahun Ajaran" },
+                    ...yearsOptions,
+                  ]}
+                  placeholder={"Pilih Tahun Ajaran "}
+                  isMandatory
+                  className="w-full sm:w-48"
+                />
                 <SelectInput
                   className="w-full sm:w-56"
                   value={selectAuthored}
@@ -539,7 +537,7 @@ export default function AdminStatisticPage() {
                 />
               </div>
               {/* Search Filter */}
-              <div className="w-full flex flex-col sm:flex-row gap-3">
+              <div className="w-full flex flex-col justify-between sm:flex-row gap-3">
                 <div className="w-full sm:w-48">
                   <SelectInput
                     value={selectedBatchId}
@@ -555,7 +553,7 @@ export default function AdminStatisticPage() {
                     className="w-full sm:w-48"
                   />
                 </div>
-                <div className="relative w-7/10 max-sm:w-full max-sm:pb-2">
+                <div className="relative w-6/10 max-sm:w-full max-sm:pb-2">
                   <div className="absolute inset-y-0 left-0 pl-3 pb-2 max-sm:pb-1 flex items-center pointer-events-none">
                     <FaMagnifyingGlass className="text-lg text-gray-400" />
                   </div>

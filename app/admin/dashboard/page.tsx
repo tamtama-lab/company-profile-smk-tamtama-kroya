@@ -341,9 +341,9 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleRouteDetail = (registrationId: number) => {
-    window.location.href = `/admin/ppdb/data-calon-murid/${registrationId}/edit`;
-  };
+  // const handleRouteDetail = (registrationId: number) => {
+  //   window.location.href = `/admin/ppdb/data-calon-murid/${registrationId}/edit`;
+  // };
 
   useEffect(() => {
     fetchStudents(currentPage, "", limit);
@@ -363,7 +363,7 @@ export default function AdminDashboardPage() {
       dataIndex: "fullName",
       key: "fullName",
       sorter: true,
-      width: 200,
+      width: 280,
     },
     {
       title: "No. Pendaftaran",
@@ -381,7 +381,7 @@ export default function AdminDashboardPage() {
       dataIndex: "schoolOriginName",
       key: "schoolOriginName",
       // sorter: true,
-      width: 200,
+      width: 240,
     },
     {
       title: "Waktu Pendaftaran",
@@ -407,7 +407,7 @@ export default function AdminDashboardPage() {
       dataIndex: "registrationId",
       key: "actions",
       align: "center",
-      width: 240,
+      width: 100,
       render: (value) => (
         <div className="flex justify-center gap-4">
           <Tooltip>
@@ -423,7 +423,7 @@ export default function AdminDashboardPage() {
             </TooltipTrigger>
             <TooltipContent side="top">Detail Data Murid</TooltipContent>
           </Tooltip>
-          <Tooltip>
+          {/* <Tooltip>
             <TooltipTrigger>
               <TextButton
                 icon={<LuPen className="text-xl" />}
@@ -448,7 +448,7 @@ export default function AdminDashboardPage() {
               />
             </TooltipTrigger>
             <TooltipContent side="top">Hapus Data Murid</TooltipContent>
-          </Tooltip>
+          </Tooltip> */}
         </div>
       ),
       // width: 120,

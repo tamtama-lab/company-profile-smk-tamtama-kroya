@@ -1,6 +1,8 @@
 "use client";
 
+import Toggle from "@/components/ui/toggle";
 import React, { useState } from "react";
+import { LuTrash2 } from "react-icons/lu";
 
 export interface BenefitItem {
   id: string;
@@ -23,9 +25,9 @@ interface BenefitCardProps {
 
 export const BenefitCard: React.FC<BenefitCardProps> = ({
   item,
-  // isEditable = true,
+  isEditable = true,
   onChange,
-  // onDelete,
+  onDelete,
   onDragStart,
   onDragOver,
   onDrop,
@@ -80,23 +82,24 @@ export const BenefitCard: React.FC<BenefitCardProps> = ({
       </div>
 
       {/* Toggle */}
-      <div className="flex items-center gap-4 w-36 justify-end">
-        <div className="text-black text-sm">
+      <div className="flex items-center w-32 flex-row justify-end">
+        <Toggle
+          enabled={local.isActive}
+          onChange={(enabled) => handleUpdate({ isActive: enabled })}
+        />
+        <div className="text-black text-xs text-center w-20">
           {local.isActive ? "Aktif" : "Tidak Aktif"}
         </div>
-        <button
-          onClick={() => handleUpdate({ isActive: !local.isActive })}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-            local.isActive ? "bg-primary" : "bg-gray-300"
+        {/* <button
+          onClick={() => onDelete?.(item.id)}
+          disabled={!canEdit}
+          className={`text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 rounded ${
+            !canEdit ? "opacity-50 cursor-not-allowed" : ""
           }`}
-          aria-label={`Toggle aktif ${item.id}`}
+          aria-label={`Hapus ${item.title}`}
         >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              local.isActive ? "translate-x-6" : "translate-x-1"
-            }`}
-          />
-        </button>
+          <LuTrash2 size={20} />
+        </button> */}
       </div>
     </div>
   );
@@ -167,7 +170,7 @@ export const BenefitList: React.FC<BenefitListProps> = ({
         </div>
       )}
 
-      <div className="flex items-center gap-3 py-2 px-2 bg-gray-50 rounded-md">
+      <div className="flex items-center justify-between gap-3 py-2 px-2 bg-gray-50 rounded-md">
         <div className="w-3/12 text-gray-600 font-medium">Jalur / Nama</div>
         <div className="flex-1 text-gray-600 font-medium">Benefit</div>
         <div className="w-36 text-gray-600 font-medium text-right">Status</div>

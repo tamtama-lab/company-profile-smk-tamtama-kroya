@@ -5,9 +5,10 @@ import { SectionTitle } from "@/components/SectionTitle";
 import { FaCheck } from "react-icons/fa6";
 import { MdLockOpen, MdLockOutline } from "react-icons/md";
 
-interface Requirement {
-  id: number;
-  text: string;
+export interface RequirementData {
+  order: number;
+  name: string;
+  isActive?: boolean;
 }
 
 export interface BatchData {
@@ -21,7 +22,7 @@ export interface BatchData {
 
 interface RegistrationRequirementsSectionProps {
   id?: string;
-  requirements: Requirement[];
+  requirements: RequirementData[];
   batches: BatchData[];
 }
 
@@ -87,14 +88,14 @@ export const RegistrationRequirementsSection: React.FC<
           <div className="w-full h-full flex flex-col justify-center items-start p-10 max-sm:p-7 border-gray-200">
             {requirements.map((requirement) => (
               <ScrollAnimationWrapper
-                key={requirement.id}
-                className="flex h-full items-start gap-3"
+                key={requirement.order}
+                className={`h-full items-start gap-3 ${requirement.isActive ? "flex" : "hidden"}`}
               >
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                   <FaCheck className="text-green-600 text-base max-sm:text-sm" />
                 </div>
                 <p className="text-gray-700 leading-relaxed max-sm:text-xs">
-                  {requirement.text}
+                  {requirement.name}
                 </p>
               </ScrollAnimationWrapper>
             ))}

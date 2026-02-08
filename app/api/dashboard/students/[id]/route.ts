@@ -1,3 +1,4 @@
+import { error } from "console";
 import { NextRequest, NextResponse } from "next/server";
 
 interface StudentDetail {
@@ -21,7 +22,6 @@ interface ParentDetail {
   fatherLivingStatus: string;
   motherName: string;
   motherLivingStatus: string;
-  parentPhoneNumber: string;
   parentAddress: string;
   guardianName: string;
   guardianPhoneNumber: string;
@@ -103,7 +103,7 @@ export async function PUT(
         fullName: body.studentDetail?.fullName || "",
         placeOfBirth: body.studentDetail?.placeOfBirth || "",
         dateOfBirth: body.studentDetail?.dateOfBirth || "",
-        gender: body.studentDetail?.gender ?? 0,
+        gender: body.studentDetail?.gender ?? 1,
         religion: body.studentDetail?.religion || "",
         schoolOriginNpsn: body.studentDetail?.schoolOriginNpsn || "",
         address: body.studentDetail?.address || "",
@@ -117,7 +117,6 @@ export async function PUT(
         fatherLivingStatus: body.parentDetail?.fatherLivingStatus || "",
         motherName: body.parentDetail?.motherName || "",
         motherLivingStatus: body.parentDetail?.motherLivingStatus || "",
-        parentPhoneNumber: body.parentDetail?.parentPhoneNumber || "",
         parentAddress: body.parentDetail?.parentAddress || "",
         guardianName: body.parentDetail?.guardianName || "",
         guardianPhoneNumber: body.parentDetail?.guardianPhoneNumber || "",
@@ -142,7 +141,7 @@ export async function PUT(
         { status: response.status }
       );
     }
-
+    
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {

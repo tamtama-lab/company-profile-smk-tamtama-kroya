@@ -3,6 +3,7 @@
 import { LuTrash2 } from "react-icons/lu";
 import { useState } from "react";
 import { InputText } from "@/components/InputForm/TextInput";
+import Toggle from "@/components/ui/toggle";
 
 interface RequirementCardProps {
   id: string;
@@ -39,7 +40,11 @@ export const RequirementCard = ({
       />
 
       {/* Toggle Active */}
-      <button
+      <Toggle
+        enabled={isActive}
+        onChange={(enabled) => onToggle?.(id, enabled)}
+      />
+      {/* <button
         onClick={() => onToggle?.(id, !isActive)}
         className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
           isActive ? "bg-primary" : "bg-gray-300"
@@ -50,7 +55,7 @@ export const RequirementCard = ({
             isActive ? "translate-x-6" : "translate-x-1"
           }`}
         />
-      </button>
+      </button> */}
 
       {/* Label Input */}
 

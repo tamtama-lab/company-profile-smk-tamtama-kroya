@@ -7,6 +7,36 @@ import React from "react";
 import Dropdown from "@/components/Dropdown";
 import { BsWhatsapp } from "react-icons/bs";
 
+export type SchoolSettings = {
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  whatsappNumbers?: { name: string; label: string; number: string }[];
+  socialMedia?: {
+    tiktok?: { url?: string; isActive?: boolean };
+    youtube?: { url?: string; isActive?: boolean };
+    facebook?: { url?: string; isActive?: boolean };
+    instagram?: { url?: string; isActive?: boolean }[];
+  };
+  brochureFrontUrl?: string | null;
+  brochureBackUrl?: string | null;
+};
+
+interface whatsappNumber {
+  name: string;
+  label: string;
+  number: string;
+}
+
+export interface schoolSettingData {
+  email: string;
+  phoneNumber: string;
+  website: string;
+  address: string;
+  whatsappNumber: Array<whatsappNumber>;
+}
+
 interface contactList {
   name: string;
   contact: string;

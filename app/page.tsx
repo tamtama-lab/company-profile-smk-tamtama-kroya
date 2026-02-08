@@ -7,10 +7,14 @@ import { SchoolLocation } from "./components/LandingPage/SchoolLocation";
 import { RegistrationPathSection } from "@/components/LandingPage/RegistrationPathSection";
 import {
   BatchData,
+  RequirementData,
   RegistrationRequirementsSection,
 } from "@/components/LandingPage/RegistrationRequirementsSection";
 import { BrochureSection } from "./components/LandingPage/BrochureSection";
-import { ContactAndSocial } from "./components/LandingPage/ContactAndSocial";
+import {
+  ContactAndSocial,
+  SchoolSettings,
+} from "./components/LandingPage/ContactAndSocial";
 import { SchoolFacility } from "./components/LandingPage/SchoolFacility";
 import { HiOutlineAcademicCap } from "react-icons/hi";
 import { LiaIndustrySolid } from "react-icons/lia";
@@ -22,11 +26,19 @@ import { MdCall, MdEmail, MdLanguage, MdLocationOn } from "react-icons/md";
 import { useEffect, useState } from "react";
 import type { MajorData } from "@/components/LandingPage/VacationTotal";
 import { formatMonth } from "@/lib/formatMonth";
+import React from "react";
+import { formatWhatsappNumber, getHandleFromUrl } from "@/lib/stringFormat";
 
 export default function LandingPage() {
   const [majorsData, setMajorsData] = useState<MajorData[] | null>(null);
   const [batchData, setBatchData] = useState<BatchData[] | null>(null);
-  console.log(batchData);
+  const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(
+    null,
+  );
+  const [requirementsData, setRequirementsData] = useState<
+    RequirementData[] | null
+  >(null);
+  console.log(requirementsData);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -43,17 +55,30 @@ export default function LandingPage() {
 
           let majorsArray: MajorData[] = [];
           let batchArray: BatchData[] = [];
+          let requirementsArray: RequirementData[] = [];
           if (Array.isArray(data)) majorsArray = data as MajorData[];
           else if (
             data &&
             typeof data === "object" &&
-            "registrationBatches" in data
+            "registrationBatches" in data &&
+            "registrationRequirements" in data
           ) {
             const obj = data as unknown as Record<string, unknown>;
             if (Array.isArray(obj["majors"]))
               majorsArray = obj["majors"] as unknown as MajorData[];
             if (Array.isArray(obj["registrationBatches"]))
               batchArray = obj["registrationBatches"] as unknown as BatchData[];
+            if (Array.isArray(obj["registrationRequirements"]))
+              requirementsArray = obj[
+                "registrationRequirements"
+              ] as unknown as RequirementData[];
+            if (
+              obj["schoolSettings"] &&
+              typeof obj["schoolSettings"] === "object"
+            )
+              setSchoolSettings(
+                obj["schoolSettings"] as unknown as SchoolSettings,
+              );
           } else {
             const obj = data as unknown as Record<string, unknown>;
             if (Array.isArray(obj["majors"]))
@@ -63,6 +88,13 @@ export default function LandingPage() {
             else if (Array.isArray(obj["items"]))
               majorsArray = obj["items"] as unknown as MajorData[];
             else if (data && typeof data === "object") {
+              if (
+                obj["schoolSettings"] &&
+                typeof obj["schoolSettings"] === "object"
+              )
+                setSchoolSettings(
+                  obj["schoolSettings"] as unknown as SchoolSettings,
+                );
               // try to extract arrays from object values
               for (const val of Object.values(obj)) {
                 if (Array.isArray(val)) {
@@ -75,6 +107,7 @@ export default function LandingPage() {
 
           setMajorsData(majorsArray);
           setBatchData(batchArray);
+          setRequirementsData(requirementsArray);
         }
       } catch (error) {
         console.error("Failed to fetch majors:", error);
@@ -136,32 +169,41 @@ export default function LandingPage() {
   // Data untuk Registration Requirements Section
   const requirements = [
     {
-      id: 1,
-      text: "Mengisi formulir pendaftaran",
+      order: 1,
+      name: requirementsData?.[0]?.name || "Foto Copy Akte Kelahiran",
+      isActive: requirementsData?.[0]?.isActive || false,
     },
     {
-      id: 2,
-      text: "Foto Copy Ijazah",
+      order: 2,
+      name: requirementsData?.[1]?.name || "Foto Copy Ijazah",
+      isActive: requirementsData?.[1]?.isActive || false,
     },
     {
-      id: 3,
-      text: "Foto Copy KK dan Akta Kelahiran",
+      order: 3,
+      name: requirementsData?.[2]?.name || "Foto Copy KK dan Akta Kelahiran",
+      isActive: requirementsData?.[2]?.isActive || false,
     },
     {
-      id: 4,
-      text: "Foto Copy KTP Orang Tua",
+      order: 4,
+      name: requirementsData?.[3]?.name || "Foto Copy KTP Orang Tua",
+      isActive: requirementsData?.[3]?.isActive || false,
     },
     {
-      id: 5,
-      text: "Pas foto 3x4 Berwarna (3 lembar)",
+      order: 5,
+      name: requirementsData?.[4]?.name || "Pas foto 3x4 Berwarna (3 lembar)",
+      isActive: requirementsData?.[4]?.isActive || false,
     },
     {
-      id: 6,
-      text: "Sertifikat TKA (Tes Kemampuan Akademik)",
+      order: 6,
+      name:
+        requirementsData?.[5]?.name ||
+        "Sertifikat TKA (Tes Kemampuan Akademik)",
+      isActive: requirementsData?.[5]?.isActive || false,
     },
     {
-      id: 7,
-      text: "Foto Copy Kartu PIP (Jika Ada)",
+      order: 7,
+      name: requirementsData?.[6]?.name || "Foto Copy Kartu PIP (Jika Ada)",
+      isActive: requirementsData?.[6]?.isActive || false,
     },
   ];
 
@@ -232,79 +274,122 @@ export default function LandingPage() {
   ];
 
   const brochureList = [
-    { image: "/brochure/brosur-depan.png", alt: "Brosur Depan" },
-    { image: "/brochure/brosur-belakang.png", alt: "Brosur Belakang" },
+    {
+      image: schoolSettings?.brochureFrontUrl || "/brochure/brosur-depan.png",
+      alt: "Brosur Depan",
+    },
+    {
+      image: schoolSettings?.brochureBackUrl || "/brochure/brosur-belakang.png",
+      alt: "Brosur Belakang",
+    },
   ];
 
   const contactList = [
     {
       name: "Telepon",
-      contact: "0282-494-126",
+      contact: schoolSettings?.phone || "0282-494-126",
       icon: <MdCall />,
     },
     {
       name: "Email",
-      contact: "smktamtamakroya.clp@yahoo.com",
+      contact: schoolSettings?.email || "smktamtamakroya.clp@yahoo.com",
       icon: <MdEmail />,
     },
     {
       name: "Website Sekolah",
-      contact: "www.smktamtamakroya.sch.id",
+      contact: schoolSettings?.website || "www.smktamtamakroya.sch.id",
       icon: <MdLanguage />,
     },
     {
       name: "Alamat Sekolah",
       contact:
+        schoolSettings?.address?.replace(/\n/g, "<br/>") ||
         "Jl. Semangka, Kedawung, Kroya, <br/> Cilacap, Jawa Tengah, 53282",
       icon: <MdLocationOn />,
     },
   ];
 
-  const socialList = [
-    {
+  const socialList: {
+    name: string;
+    contact: string | string[];
+    icon: React.ReactNode | string;
+    hyperlink?: string | string[];
+  }[] = [];
+  if (
+    schoolSettings?.socialMedia?.instagram &&
+    Array.isArray(schoolSettings.socialMedia.instagram) &&
+    schoolSettings.socialMedia.instagram.length > 0
+  ) {
+    const hyperlinks = schoolSettings.socialMedia.instagram
+      .filter((i) => i.isActive)
+      .map((i) => i.url as string);
+    const contacts = hyperlinks.map((h) => getHandleFromUrl(h));
+    socialList.push({
       name: "Instagram",
-      contact: ["@smk_tamtama_kroya", "@autotama_garage"],
+      contact: contacts,
       icon: "/sosmed/instagram.svg",
-      hyperlink: [
-        "https://www.instagram.com/smk_tamtama_kroya",
-        "https://www.instagram.com/autotama_garage",
-      ],
-    },
-    {
+      hyperlink: hyperlinks,
+    });
+  }
+  if (
+    schoolSettings?.socialMedia?.tiktok?.isActive &&
+    schoolSettings.socialMedia.tiktok.url
+  ) {
+    socialList.push({
       name: "Tiktok",
-      contact: ["@smk.tamtama.kroya.clp"],
+      contact: getHandleFromUrl(
+        schoolSettings.socialMedia.tiktok.url as string,
+      ),
       icon: "/sosmed/tiktok.svg",
-      hyperlink: ["https://www.tiktok.com/@smk.tamtama.kroya.clp"],
-    },
-    {
+      hyperlink: schoolSettings.socialMedia.tiktok.url,
+    });
+  }
+  if (
+    schoolSettings?.socialMedia?.youtube?.isActive &&
+    schoolSettings.socialMedia.youtube.url
+  ) {
+    socialList.push({
       name: "Youtube",
-      contact: ["@smktamtamakroya4678"],
+      contact: getHandleFromUrl(
+        schoolSettings.socialMedia.youtube.url as string,
+      ),
       icon: "/sosmed/youtube.svg",
-      hyperlink: ["https://www.youtube.com/@smktamtamakroya4678"],
-    },
-    {
+      hyperlink: schoolSettings.socialMedia.youtube.url,
+    });
+  }
+  if (
+    schoolSettings?.socialMedia?.facebook?.isActive &&
+    schoolSettings.socialMedia.facebook.url
+  ) {
+    socialList.push({
       name: "Facebook",
-      contact: ["SMK Tamtama KROYA"],
+      contact: getHandleFromUrl(
+        schoolSettings.socialMedia.facebook.url as string,
+      ),
       icon: "/sosmed/facebook.svg",
-      hyperlink: [
-        "https://www.facebook.com/people/SMK-Tamtama-KROYA/100067793231479/#",
-      ],
-    },
-  ];
+      hyperlink: schoolSettings.socialMedia.facebook.url,
+    });
+  }
 
-  const adminList = [
-    {
-      number: "6281325767718",
-      label: "Admin 1 : 0813-2576-7718",
-      adminName: "(WR)",
-    },
-
-    {
-      number: "6288215261410",
-      label: "Admin 2 : 0882-1526-1410",
-      adminName: "(Anas)",
-    },
-  ];
+  const adminList =
+    schoolSettings?.whatsappNumbers && schoolSettings.whatsappNumbers.length > 0
+      ? schoolSettings.whatsappNumbers.map((w) => ({
+          number: formatWhatsappNumber(w.number),
+          label: `${w.label} : ${w.number}`,
+          adminName: `(${w.name})`,
+        }))
+      : [
+          {
+            number: "6281325767718",
+            label: "Admin 1 : 0813-2576-7718",
+            adminName: "(WR)",
+          },
+          {
+            number: "6288215261410",
+            label: "Admin 2 : 0882-1526-1410",
+            adminName: "(Anas)",
+          },
+        ];
 
   return (
     <main className="h-fit bg-linear-to-b from-[#fafafa] to-gray-50 pt-16 sm:pt-20">
