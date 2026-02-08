@@ -441,7 +441,6 @@ export default function AdminRegistrationPathPage() {
                 title="Prestasi Akademik"
                 items={akademik}
                 onChange={setAkademik}
-                
               />
             </div>
 
@@ -473,7 +472,7 @@ export default function AdminRegistrationPathPage() {
             />
           }
         >
-          <div className="w-full h-100 p-4">
+          <div className="w-full h-fit p-4">
             <div className="h-full grid gap-6 grid-cols-2">
               <div className="w-full h-full flex flex-col gap-2 rounded-md">
                 <div className="flex flex-row bg-gray-200 w-full rounded-full justify-center gap-1 sm:gap-0">
