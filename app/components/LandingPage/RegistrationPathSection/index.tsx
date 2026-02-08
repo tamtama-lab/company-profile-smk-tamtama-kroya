@@ -4,7 +4,6 @@ import { useState } from "react";
 import { SectionTitle } from "@/components/SectionTitle";
 import { ScrollAnimationWrapper } from "@/components/ScrollAnimationWrapper";
 import React from "react";
-import Image from "next/image";
 
 export interface RegistrationPathItem {
   id: number;
@@ -29,9 +28,10 @@ interface PathTabProps {
   label: string;
   image?: string;
   items: Array<{
-    grade: string;
-    description: string;
+    name: string;
+    benefit: string;
     icon: string;
+    isActive: number;
   }>;
 }
 
@@ -118,17 +118,17 @@ export const RegistrationPathSection: React.FC<
                       <ScrollAnimationWrapper
                         key={itemIndex}
                         direction="left"
-                        className="flex items-start gap-3 sm:gap-1"
+                        className={`flex ${item.isActive === 1 ? "flex" : "hidden"} items-start gap-3 sm:gap-1`}
                       >
                         <div className="text-2xl max-sm:text-xl shrink-0">
                           {item.icon}
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-gray-800 text-base max-sm:text-xs">
-                            {item.grade}
+                            {item.name}
                           </h4>
                           <p className="text-gray-600 text-sm max-sm:text-xs mt-1 wrap-break-word">
-                            {item.description}
+                            {item.benefit}
                           </p>
                         </div>
                       </ScrollAnimationWrapper>

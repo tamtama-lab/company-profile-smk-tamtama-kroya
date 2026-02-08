@@ -142,9 +142,10 @@ export default function LandingPage() {
           items: path.registrationPathItems
             .sort((a, b) => a.order - b.order)
             .map((item, index) => ({
-              grade: item.name,
-              description: item.benefit,
+              name: item.name,
+              benefit: item.benefit,
               icon: icons[index] || "🏆",
+              isActive: item.isActive,
             })),
         };
       });
