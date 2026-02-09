@@ -25,7 +25,7 @@ export const SectionCard = ({
   isCancelButton = false,
   handleSaveChanges,
   isLoading = false,
-  maxRow = 60,
+  maxRow = 6,
   className = "w-1/2",
 }: SectionCardProps) => {
   const containerRef = useRef<HTMLDivElement>(null);

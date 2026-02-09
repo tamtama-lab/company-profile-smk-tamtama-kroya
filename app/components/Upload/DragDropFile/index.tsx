@@ -123,11 +123,8 @@ export default function DragDropFile({
       return;
     }
 
-    // If previewUrl is a remote url (http/https), show it as well
-    if (
-      typeof previewUrl === "string" &&
-      (previewUrl.startsWith("http://") || previewUrl.startsWith("https://"))
-    ) {
+    // If previewUrl is a remote or relative url, show it as well
+    if (typeof previewUrl === "string" && previewUrl.trim().length > 0) {
       setSelectedFile(null);
       setSelectedPreviewUrl(previewUrl);
       setError(null);
@@ -193,7 +190,7 @@ export default function DragDropFile({
         onDragOver={onDragOver}
         onDragEnter={onDragOver}
         onDragLeave={onDragLeave}
-        className={`w-full h-full flex flex-col border-2 border-dashed rounded-xl justify-center items-center bg-gray-100 p-6 cursor-pointer transition-all duration-150 ${
+        className={`w-full h-full flex flex-col border-2 border-dashed rounded-xl justify-center items-center bg-gray-100 p-2 cursor-pointer transition-all duration-150 ${
           dragging ? "bg-green-50 border-green-300" : ""
         } ${disabled ? "opacity-60 pointer-events-none" : ""}`}
       >
@@ -211,7 +208,7 @@ export default function DragDropFile({
             <img
               src={selectedPreviewUrl}
               alt={selectedFile?.name ?? "preview"}
-              className="max-h-60 w-full object-contain rounded-md"
+              className="h-full w-full object-contain rounded-md"
             />
             <div className="flex gap-2">
               <TextButton

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DragDropFile from "@/components/Upload/DragDropFile";
 import { TitleSection } from "@/components/TitleSection/index";
 import { SectionCard } from "@/components/Card/SectionCard";
@@ -22,6 +22,7 @@ import {
   isValidPhoneNumber,
   isValidUrl,
 } from "@/lib/stringFormat";
+import { TextButton } from "@/components/Buttons/TextButton";
 
 export default function KontakMediaPage() {
   const { showAlert } = useAlert();
@@ -29,6 +30,7 @@ export default function KontakMediaPage() {
   const [savingContact, setSavingContact] = useState(false);
   const [savingBrochure, setSavingBrochure] = useState(false);
   const [savingSocial, setSavingSocial] = useState(false);
+  const [deletingBrochure, setDeletingBrochure] = useState(false);
 
   const [original, setOriginal] = useState<any>(null);
   const [form, setForm] = useState<any>(null);
@@ -38,61 +40,61 @@ export default function KontakMediaPage() {
 
   const MAX_WHATSAPP = 5;
 
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/backoffice/school-settings`, {
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      });
+      if (!res.ok) throw new Error("Gagal memuat data");
+      const data = await res.json();
+      setOriginal(data);
+      // normalize shape for form
+      setForm({
+        email: data.email || "",
+        phone: data.phone || "",
+        website: data.website || "",
+        address: data.address || "",
+        whatsappNumbers: (data.whatsappNumbers || []).map((w: any) => ({
+          ...w,
+          isActive: typeof w.isActive === "boolean" ? w.isActive : true,
+        })),
+        socialMedia: {
+          tiktok: {
+            ...(data.socialMedia?.tiktok || { url: "", isActive: false }),
+          },
+          youtube: {
+            ...(data.socialMedia?.youtube || { url: "", isActive: false }),
+          },
+          facebook: {
+            ...(data.socialMedia?.facebook || { url: "", isActive: false }),
+          },
+          instagram: Array.isArray(data.socialMedia?.instagram)
+            ? data.socialMedia.instagram.map((i: any) => ({
+                ...(i || {}),
+                isActive: typeof i.isActive === "boolean" ? i.isActive : true,
+              }))
+            : [],
+        },
+        brochureFrontUrl: data.brochureFrontUrl || null,
+        brochureBackUrl: data.brochureBackUrl || null,
+      });
+    } catch (err) {
+      console.error(err);
+      showAlert({
+        title: "Gagal",
+        description: "Gagal memuat data",
+        variant: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [showAlert]);
+
   // Load data
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/backoffice/school-settings`, {
-          headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        });
-        if (!res.ok) throw new Error("Gagal memuat data");
-        const data = await res.json();
-        setOriginal(data);
-        // normalize shape for form
-        setForm({
-          email: data.email || "",
-          phone: data.phone || "",
-          website: data.website || "",
-          address: data.address || "",
-          whatsappNumbers: (data.whatsappNumbers || []).map((w: any) => ({
-            ...w,
-            isActive: typeof w.isActive === "boolean" ? w.isActive : true,
-          })),
-          socialMedia: {
-            tiktok: {
-              ...(data.socialMedia?.tiktok || { url: "", isActive: false }),
-            },
-            youtube: {
-              ...(data.socialMedia?.youtube || { url: "", isActive: false }),
-            },
-            facebook: {
-              ...(data.socialMedia?.facebook || { url: "", isActive: false }),
-            },
-            instagram: Array.isArray(data.socialMedia?.instagram)
-              ? data.socialMedia.instagram.map((i: any) => ({
-                  ...(i || {}),
-                  isActive: typeof i.isActive === "boolean" ? i.isActive : true,
-                }))
-              : [],
-          },
-          brochureFrontUrl: data.brochureFrontUrl || null,
-          brochureBackUrl: data.brochureBackUrl || null,
-        });
-      } catch (err) {
-        console.error(err);
-        showAlert({
-          title: "Gagal",
-          description: "Gagal memuat data",
-          variant: "error",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, [showAlert]);
+  }, [fetchData]);
 
   const resetToOriginal = () => {
     if (!original) return;
@@ -379,6 +381,15 @@ export default function KontakMediaPage() {
   };
 
   const handleSaveBrochure = async () => {
+    if (!frontFile && !backFile) {
+      showAlert({
+        title: "Info",
+        description: "Tidak ada file brosur baru untuk diunggah",
+        variant: "warning",
+      });
+      return;
+    }
+
     setSavingBrochure(true);
     try {
       const fd = new FormData();
@@ -428,6 +439,51 @@ export default function KontakMediaPage() {
     } finally {
       setSavingBrochure(false);
       setLoading(false);
+    }
+  };
+
+  const handleDeleteBrochure = async (field: "front" | "back") => {
+    setDeletingBrochure(true);
+    if (!form) return;
+
+    const hasLocalFile = field === "front" ? !!frontFile : !!backFile;
+    if (hasLocalFile) {
+      if (field === "front") setFrontFile(null);
+      if (field === "back") setBackFile(null);
+    }
+
+    const currentUrl =
+      field === "front" ? form.brochureFrontUrl : form.brochureBackUrl;
+    if (!currentUrl) return;
+
+    try {
+      const res = await fetch(
+        `/api/backoffice/school-settings/brochure?field=${field}`,
+        {
+          method: "DELETE",
+          headers: { ...getAuthHeader() },
+        },
+      );
+      if (!res.ok) throw new Error("Gagal menghapus brosur");
+      await res.json();
+      showAlert({
+        title: "Berhasil",
+        description:
+          field === "front"
+            ? "Brosur depan berhasil dihapus"
+            : "Brosur belakang berhasil dihapus",
+        variant: "success",
+      });
+      await fetchData();
+    } catch (err: any) {
+      console.error(err);
+      showAlert({
+        title: "Gagal",
+        description: err?.message || "Gagal menghapus brosur",
+        variant: "error",
+      });
+    } finally {
+      setDeletingBrochure(false);
     }
   };
 
@@ -684,11 +740,19 @@ export default function KontakMediaPage() {
                             });
                           }
                         }
-                        setLoading(false);
                       }}
                       label="Brosur Depan"
                       description="PDF / Image"
                     />
+                    <div className="mt-3 flex justify-end">
+                      <TextButton
+                        disabled={!form.brochureFrontUrl && !frontFile}
+                        isLoading={deletingBrochure}
+                        variant="outline-danger"
+                        text="Hapus Brosur"
+                        onClick={() => handleDeleteBrochure("front")}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -700,6 +764,22 @@ export default function KontakMediaPage() {
                       previewUrl={form.brochureBackUrl}
                       initialFile={backFile}
                       onFile={(file) => setBackFile(file)}
+                      onValidate={(file) => {
+                        if (
+                          !file.type.startsWith("image/") &&
+                          file.type !== "application/pdf"
+                        ) {
+                          showAlert({
+                            title: "Format tidak didukung",
+                            description:
+                              "Hanya file PDF atau gambar (PNG/JPG) yang diterima",
+                            variant: "warning",
+                          });
+                          return "Format tidak didukung";
+                        }
+
+                        return null;
+                      }}
                       onRemove={async () => {
                         if (backFile) return setBackFile(null);
 
@@ -738,6 +818,15 @@ export default function KontakMediaPage() {
                       label="Brosur Belakang"
                       description="PDF / Image"
                     />
+                    <div className="mt-3 flex justify-end">
+                      <TextButton
+                        variant="outline-danger"
+                        isLoading={deletingBrochure}
+                        text="Hapus Brosur"
+                        disabled={!form.brochureBackUrl && !backFile}
+                        onClick={() => handleDeleteBrochure("back")}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>{" "}

@@ -12,15 +12,17 @@ export async function POST(request: NextRequest) {
 
     // If proxying to real backend
     if (process.env.BACKEND_URL && authHeader) {
-      // Forward the multipart form to backend - keep body as stream
-      const backendResponse = await fetch(`${API_BASE_URL}/backoffice/school-settings/brochure`, {
-        method: "POST",
-        headers: {
-          Authorization: authHeader,
-        },
-        // forward raw body
-        body: await request.arrayBuffer(),
-      });
+      const formData = await request.formData();
+      const backendResponse = await fetch(
+        `${API_BASE_URL}/backoffice/school-settings/brochure`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+          },
+          body: formData,
+        }
+      );
 
       const data = await backendResponse.json();
       if (!backendResponse.ok) {
