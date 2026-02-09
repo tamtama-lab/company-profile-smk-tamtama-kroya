@@ -10,20 +10,26 @@ import Toggle from "@/components/ui/toggle";
 import { TextButton } from "@/components/Buttons/TextButton";
 import { useAlert } from "@/components/ui/alert";
 import { getAuthHeader } from "@/utils/auth";
-import { LuTrash2 } from "react-icons/lu";
-import { se } from "date-fns/locale";
-import { set } from "zod";
+import {
+  SocialMediaListField,
+  SocialMediaSingleField,
+} from "@/components/Admin/SocialMediaFields";
 
 export default function KontakMediaPage() {
   const { showAlert } = useAlert();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
+  const [savingBrochure, setSavingBrochure] = useState(false);
 
   const [original, setOriginal] = useState<any>(null);
   const [form, setForm] = useState<any>(null);
 
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
+
+  const MAX_WHATSAPP = 5;
+  const MAX_INSTAGRAM = 5;
 
   // Load data
   useEffect(() => {
@@ -131,10 +137,10 @@ export default function KontakMediaPage() {
   // Whatsapp helpers
   const addWhatsapp = () => {
     if (!form) return;
-    if ((form.whatsappNumbers || []).length >= 5) {
+    if ((form.whatsappNumbers || []).length >= MAX_WHATSAPP) {
       showAlert({
         title: "Batas",
-        description: "Maksimal 5 nomor Whatsapp",
+        description: `Maksimal ${MAX_WHATSAPP} nomor Whatsapp`,
         variant: "error",
       });
       return;
@@ -159,6 +165,15 @@ export default function KontakMediaPage() {
 
   // Instagram helpers
   const addInstagram = () => {
+    if (!form) return;
+    if ((form.socialMedia.instagram || []).length >= MAX_INSTAGRAM) {
+      showAlert({
+        title: "Batas",
+        description: `Maksimal ${MAX_INSTAGRAM} akun Instagram`,
+        variant: "error",
+      });
+      return;
+    }
     setForm((prev: any) => ({
       ...prev,
       socialMedia: {
@@ -295,8 +310,7 @@ export default function KontakMediaPage() {
   };
 
   const handleSaveBrochure = async () => {
-    setSaving(true);
-    setLoading(true);
+    setSavingBrochure(true);
     try {
       const fd = new FormData();
       if (frontFile) fd.append("brochureFront", frontFile);
@@ -350,7 +364,6 @@ export default function KontakMediaPage() {
 
   // Save only contact info (email, phone, website, address)
   const handleSaveContact = async () => {
-    setLoading(true);
     if (!form) return;
 
     // Basic validation
@@ -371,7 +384,7 @@ export default function KontakMediaPage() {
       return;
     }
 
-    setSaving(true);
+    setSavingContact(true);
 
     try {
       const payload = {
@@ -411,8 +424,7 @@ export default function KontakMediaPage() {
         variant: "error",
       });
     } finally {
-      setSaving(false);
-      setLoading(false);
+      setSavingContact(false);
     }
   };
 
@@ -437,12 +449,12 @@ export default function KontakMediaPage() {
           title="Kontak & Media Sosial"
           subtitle="Halaman untuk mengedit isian dari kontak & sosial media yang perlu ditambahkan di landing page"
         />
-        <div className="w-full grid grid-cols-2 gap-6">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="w-full h-fit">
             {/* Kontak Resmi Sekolah */}
             <SectionCard
               handleSaveChanges={handleSaveContact}
-              isLoading={loading || saving || !form}
+              isLoading={savingContact || !form}
               title="Kontak Resmi Sekolah"
               className="w-full border border-gray-400"
             >
@@ -498,7 +510,7 @@ export default function KontakMediaPage() {
               title="Unggah Brosur Promosi"
               className="mt-6 border border-gray-400"
               handleSaveChanges={handleSaveBrochure}
-              isLoading={loading || saving || !form}
+              isLoading={savingBrochure || !form}
               leftButton={null}
             >
               <div className="grid grid-cols-1 gap-6 p-3">
@@ -621,7 +633,7 @@ export default function KontakMediaPage() {
               </div>{" "}
             </SectionCard>
           </div>
-          <div className="w-full h-fit">
+          <div className="w-full h-fit border rounded-lg border-gray-400">
             {/* Media Sosial Resmi */}
             <SectionCard
               title="Media Sosial Resmi"
@@ -629,259 +641,207 @@ export default function KontakMediaPage() {
               isLoading={loading}
             >
               <div className="grid grid-cols-1 gap-6 p-3">
+                <SocialMediaListField
+                  label="Instagram"
+                  iconSrc="/sosmed/instagram.svg"
+                  iconAlt="instagram"
+                  items={form.socialMedia.instagram || []}
+                  addLabel="+ Tambah Akun"
+                  maxItems={MAX_INSTAGRAM}
+                  onAdd={addInstagram}
+                  onRemove={removeInstagram}
+                  onToggle={(idx, val) =>
+                    setForm((p: any) => ({
+                      ...p,
+                      socialMedia: {
+                        ...p.socialMedia,
+                        instagram: p.socialMedia.instagram.map(
+                          (it: any, i: number) =>
+                            i === idx ? { ...it, isActive: val } : it,
+                        ),
+                      },
+                    }))
+                  }
+                  renderInputs={(inst: any, idx: number, disabled) => (
+                    <input
+                      className="flex-1 border border-gray-400 rounded p-2"
+                      value={inst.url || ""}
+                      onChange={(e) =>
+                        setForm((p: any) => ({
+                          ...p,
+                          socialMedia: {
+                            ...p.socialMedia,
+                            instagram: p.socialMedia.instagram.map(
+                              (it: any, i: number) =>
+                                i === idx ? { ...it, url: e.target.value } : it,
+                            ),
+                          },
+                        }))
+                      }
+                      disabled={disabled}
+                    />
+                  )}
+                  hideDeleteWhenSingle
+                />
+
                 <div>
-                  <label className="font-medium">Instagram :</label>
-                  <div className="mt-2 space-y-2">
-                    {(form.socialMedia.instagram || []).map(
-                      (inst: any, idx: number) => (
-                        <div key={idx} className="flex items-center gap-2">
-                          <input
-                            className="flex-1 border rounded p-2"
-                            value={inst.url || ""}
-                            onChange={(e) =>
-                              setForm((p: any) => ({
-                                ...p,
-                                socialMedia: {
-                                  ...p.socialMedia,
-                                  instagram: p.socialMedia.instagram.map(
+                  <div className="space-y-6 mt-8">
+                    <SocialMediaSingleField
+                      label="TikTok"
+                      iconSrc="/sosmed/tiktok.svg"
+                      iconAlt="tiktok"
+                      iconSize={24}
+                      value={form.socialMedia.tiktok.url || ""}
+                      isActive={!!form.socialMedia.tiktok.isActive}
+                      onChange={(value) =>
+                        setForm((p: any) => ({
+                          ...p,
+                          socialMedia: {
+                            ...p.socialMedia,
+                            tiktok: {
+                              ...p.socialMedia.tiktok,
+                              url: value,
+                            },
+                          },
+                        }))
+                      }
+                      onToggle={(val) =>
+                        setForm((p: any) => ({
+                          ...p,
+                          socialMedia: {
+                            ...p.socialMedia,
+                            tiktok: {
+                              ...p.socialMedia.tiktok,
+                              isActive: val,
+                            },
+                          },
+                        }))
+                      }
+                    />
+
+                    <SocialMediaSingleField
+                      label="Youtube"
+                      iconSrc="/sosmed/youtube.svg"
+                      iconAlt="youtube"
+                      value={form.socialMedia.youtube.url || ""}
+                      isActive={!!form.socialMedia.youtube.isActive}
+                      onChange={(value) =>
+                        setForm((p: any) => ({
+                          ...p,
+                          socialMedia: {
+                            ...p.socialMedia,
+                            youtube: {
+                              ...p.socialMedia.youtube,
+                              url: value,
+                            },
+                          },
+                        }))
+                      }
+                      onToggle={(val) =>
+                        setForm((p: any) => ({
+                          ...p,
+                          socialMedia: {
+                            ...p.socialMedia,
+                            youtube: {
+                              ...p.socialMedia.youtube,
+                              isActive: val,
+                            },
+                          },
+                        }))
+                      }
+                    />
+
+                    <SocialMediaSingleField
+                      label="Facebook"
+                      iconSrc="/sosmed/facebook.svg"
+                      iconAlt="Facebook"
+                      value={form.socialMedia.facebook.url || ""}
+                      isActive={!!form.socialMedia.facebook.isActive}
+                      onChange={(value) =>
+                        setForm((p: any) => ({
+                          ...p,
+                          socialMedia: {
+                            ...p.socialMedia,
+                            facebook: {
+                              ...p.socialMedia.facebook,
+                              url: value,
+                            },
+                          },
+                        }))
+                      }
+                      onToggle={(val) =>
+                        setForm((p: any) => ({
+                          ...p,
+                          socialMedia: {
+                            ...p.socialMedia,
+                            facebook: {
+                              ...p.socialMedia.facebook,
+                              isActive: val,
+                            },
+                          },
+                        }))
+                      }
+                    />
+
+                    <div className="mt-6">
+                      <SocialMediaListField
+                        label="Whatsapp"
+                        iconSrc="/sosmed/whatsapp.svg"
+                        iconAlt="Whatsapp"
+                        items={form.whatsappNumbers || []}
+                        addLabel="+ Tambah Nomor"
+                        maxItems={MAX_WHATSAPP}
+                        onAdd={addWhatsapp}
+                        onRemove={removeWhatsapp}
+                        onToggle={(idx, val) =>
+                          setForm((p: any) => ({
+                            ...p,
+                            whatsappNumbers: p.whatsappNumbers.map(
+                              (it: any, i: number) =>
+                                i === idx ? { ...it, isActive: val } : it,
+                            ),
+                          }))
+                        }
+                        renderInputs={(w: any, idx: number, disabled) => (
+                          <>
+                            <input
+                              placeholder="Nama admin"
+                              className="w-40 border rounded p-2"
+                              disabled={disabled}
+                              value={w.label || ""}
+                              onChange={(e) =>
+                                setForm((p: any) => ({
+                                  ...p,
+                                  whatsappNumbers: p.whatsappNumbers.map(
                                     (it: any, i: number) =>
                                       i === idx
-                                        ? { ...it, url: e.target.value }
+                                        ? { ...it, label: e.target.value }
                                         : it,
                                   ),
-                                },
-                              }))
-                            }
-                            disabled={!!inst.isActive}
-                          />
-                          <Toggle
-                            enabled={!!inst.isActive}
-                            onChange={(val) =>
-                              setForm((p: any) => ({
-                                ...p,
-                                socialMedia: {
-                                  ...p.socialMedia,
-                                  instagram: p.socialMedia.instagram.map(
+                                }))
+                              }
+                            />
+                            <input
+                              placeholder="Nomor Whatsapp"
+                              className="flex-1 border border-gray-400 rounded p-2"
+                              value={w.number || ""}
+                              onChange={(e) =>
+                                setForm((p: any) => ({
+                                  ...p,
+                                  whatsappNumbers: p.whatsappNumbers.map(
                                     (it: any, i: number) =>
-                                      i === idx ? { ...it, isActive: val } : it,
+                                      i === idx
+                                        ? { ...it, number: e.target.value }
+                                        : it,
                                   ),
-                                },
-                              }))
-                            }
-                          />
-                          <TextButton
-                            variant="icon"
-                            icon={<LuTrash2 className="text-xl" />}
-                            onClick={() => removeInstagram(idx)}
-                            className="text-red-600"
-                          />
-                        </div>
-                      ),
-                    )}
-                    <div>
-                      <TextButton
-                        variant="primary"
-                        text="+ Tambah Akun"
-                        onClick={addInstagram}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="space-y-4">
-                    {/* TikTok */}
-                    <div>
-                      <label className="font-medium">TikTok :</label>
-                      <div className="flex items-center gap-2 mt-2">
-                        <input
-                          className="flex-1 border rounded p-2"
-                          value={form.socialMedia.tiktok.url || ""}
-                          onChange={(e) =>
-                            setForm((p: any) => ({
-                              ...p,
-                              socialMedia: {
-                                ...p.socialMedia,
-                                tiktok: {
-                                  ...p.socialMedia.tiktok,
-                                  url: e.target.value,
-                                },
-                              },
-                            }))
-                          }
-                          disabled={!!form.socialMedia.tiktok.isActive}
-                        />
-                        <Toggle
-                          enabled={!!form.socialMedia.tiktok.isActive}
-                          onChange={(val) =>
-                            setForm((p: any) => ({
-                              ...p,
-                              socialMedia: {
-                                ...p.socialMedia,
-                                tiktok: {
-                                  ...p.socialMedia.tiktok,
-                                  isActive: val,
-                                },
-                              },
-                            }))
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    {/* YouTube */}
-                    <div>
-                      <label className="font-medium">YouTube :</label>
-                      <div className="flex items-center gap-2 mt-2">
-                        <input
-                          className="flex-1 border rounded p-2"
-                          value={form.socialMedia.youtube.url || ""}
-                          onChange={(e) =>
-                            setForm((p: any) => ({
-                              ...p,
-                              socialMedia: {
-                                ...p.socialMedia,
-                                youtube: {
-                                  ...p.socialMedia.youtube,
-                                  url: e.target.value,
-                                },
-                              },
-                            }))
-                          }
-                          disabled={!!form.socialMedia.youtube.isActive}
-                        />
-                        <Toggle
-                          enabled={!!form.socialMedia.youtube.isActive}
-                          onChange={(val) =>
-                            setForm((p: any) => ({
-                              ...p,
-                              socialMedia: {
-                                ...p.socialMedia,
-                                youtube: {
-                                  ...p.socialMedia.youtube,
-                                  isActive: val,
-                                },
-                              },
-                            }))
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    {/* Facebook */}
-                    <div>
-                      <label className="font-medium">Facebook :</label>
-                      <div className="flex items-center gap-2 mt-2">
-                        <input
-                          className="flex-1 border rounded p-2"
-                          value={form.socialMedia.facebook.url || ""}
-                          onChange={(e) =>
-                            setForm((p: any) => ({
-                              ...p,
-                              socialMedia: {
-                                ...p.socialMedia,
-                                facebook: {
-                                  ...p.socialMedia.facebook,
-                                  url: e.target.value,
-                                },
-                              },
-                            }))
-                          }
-                          disabled={!!form.socialMedia.facebook.isActive}
-                        />
-                        <Toggle
-                          enabled={!!form.socialMedia.facebook.isActive}
-                          onChange={(val) =>
-                            setForm((p: any) => ({
-                              ...p,
-                              socialMedia: {
-                                ...p.socialMedia,
-                                facebook: {
-                                  ...p.socialMedia.facebook,
-                                  isActive: val,
-                                },
-                              },
-                            }))
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    {/* Whatsapp list */}
-                    <div>
-                      <label className="font-medium">
-                        Whatsapp (Narahubung) :
-                      </label>
-                      <div className="mt-2 space-y-2">
-                        {(form.whatsappNumbers || []).map(
-                          (w: any, idx: number) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <input
-                                placeholder="Label (contoh: Admin 1)"
-                                className="w-40 border rounded p-2"
-                                value={w.label || ""}
-                                onChange={(e) =>
-                                  setForm((p: any) => ({
-                                    ...p,
-                                    whatsappNumbers: p.whatsappNumbers.map(
-                                      (it: any, i: number) =>
-                                        i === idx
-                                          ? { ...it, label: e.target.value }
-                                          : it,
-                                    ),
-                                  }))
-                                }
-                              />
-                              <input
-                                placeholder="Nomor Whatsapp"
-                                className="flex-1 border rounded p-2"
-                                value={w.number || ""}
-                                onChange={(e) =>
-                                  setForm((p: any) => ({
-                                    ...p,
-                                    whatsappNumbers: p.whatsappNumbers.map(
-                                      (it: any, i: number) =>
-                                        i === idx
-                                          ? { ...it, number: e.target.value }
-                                          : it,
-                                    ),
-                                  }))
-                                }
-                                disabled={!!w.isActive}
-                              />
-                              <Toggle
-                                enabled={!!w.isActive}
-                                onChange={(val) =>
-                                  setForm((p: any) => ({
-                                    ...p,
-                                    whatsappNumbers: p.whatsappNumbers.map(
-                                      (it: any, i: number) =>
-                                        i === idx
-                                          ? { ...it, isActive: val }
-                                          : it,
-                                    ),
-                                  }))
-                                }
-                              />
-                              <TextButton
-                                onClick={() => removeWhatsapp(idx)}
-                                variant="icon"
-                                icon={<LuTrash2 className="text-xl" />}
-                                className="text-red-600"
-                              >
-                                Hapus
-                              </TextButton>
-                            </div>
-                          ),
+                                }))
+                              }
+                              disabled={disabled}
+                            />
+                          </>
                         )}
-                        <div>
-                          <TextButton
-                            variant="primary"
-                            text="+ Tambah Nomor"
-                            onClick={addWhatsapp}
-                          />
-                        </div>
-                      </div>
+                        hideDeleteWhenSingle
+                      />
                     </div>
                   </div>
                 </div>

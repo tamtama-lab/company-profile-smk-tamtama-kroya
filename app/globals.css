@@ -215,6 +215,12 @@ input::-ms-clear {
     display: none;
 }
 
+input:disabled,
+select:disabled {
+    @apply bg-gray-100;
+    cursor: not-allowed;
+}
+
 option:disabled {
     @apply text-gray-400;
     /* cursor: not-allowed; */

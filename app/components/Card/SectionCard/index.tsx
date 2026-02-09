@@ -27,7 +27,7 @@ export const SectionCard = ({
   className = "w-1/2",
 }: SectionCardProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [lastHeight, setLastHeight] = useState(200); // default height
+  const [lastHeight, setLastHeight] = useState(120); // default height
 
   useEffect(() => {
     if (!isLoading && containerRef.current) {
@@ -35,7 +35,7 @@ export const SectionCard = ({
     }
   }, [isLoading, children]);
 
-  const rowHeight = 50; // estimated height per row
+  const rowHeight = 20; // estimated height per row
   const numRows = Math.ceil(lastHeight / rowHeight);
 
   const skeletonRows = Array.from({ length: numRows }, (_, i) => (

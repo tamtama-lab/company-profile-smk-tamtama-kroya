@@ -19,6 +19,7 @@ export type TextButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   isSubmit?: boolean;
   isLoading?: boolean;
   hoverEffect?: boolean;
+  disabled?: boolean;
 };
 
 export const TextButton = React.forwardRef<HTMLButtonElement, TextButtonProps>(
