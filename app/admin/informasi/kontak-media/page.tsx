@@ -736,8 +736,9 @@ export default function KontakMediaPage() {
             >
               <div className="w-full p-3">
                 <div>
-                  <InputText
+                  <InputNumber
                     name="phone"
+                    limit={15}
                     label="Telephone"
                     placeholder="Masukkan Nomor Telephone Sekolah"
                     value={form.phone}
