@@ -27,6 +27,7 @@ export const InputText: React.FC<{
   isCapitalize?: boolean;
   isUppercase?: boolean;
   viewOnly?: boolean;
+  disabled?: boolean;
 }> = ({
   label,
   name,
@@ -38,6 +39,7 @@ export const InputText: React.FC<{
   limit,
   isCapitalize,
   isUppercase,
+  disabled = false,
   viewOnly = false,
 }) => {
   const [touched, setTouched] = useState(false);
@@ -108,6 +110,7 @@ export const InputText: React.FC<{
         type={isEmail ? "email" : "text"}
         name={name}
         value={value}
+        disabled={disabled}
         onChange={viewOnly ? undefined : handleChange}
         onBlur={handleBlur}
         onFocus={handleFocus}
@@ -142,6 +145,8 @@ export const InputNumber: React.FC<{
   placeholder?: string;
   isMandatory?: boolean;
   viewOnly?: boolean;
+  disabled?: boolean;
+  className?: string;
 }> = ({
   label,
   name,
@@ -151,7 +156,9 @@ export const InputNumber: React.FC<{
   isMandatory,
   limit,
   minLength,
+  disabled = false,
   viewOnly = false,
+  className,
 }) => {
   const isAboveLimit = limit ? value.length > limit : false;
 
@@ -180,9 +187,10 @@ export const InputNumber: React.FC<{
           type="number"
           name={name}
           value={value}
+          disabled={disabled}
           onChange={viewOnly ? undefined : handleChange}
           required={isMandatory}
-          className={`w-full max-sm:text-xs px-4 max-sm:px-2 py-2 border rounded-sm
+          className={`w-full max-sm:text-xs px-4 max-sm:px-2 py-2 border rounded-sm ${className}
             placeholder-gray-400 max-sm:placeholder:text-xs
             focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white focus:border-transparent transition-colors ${
               isAboveLimit

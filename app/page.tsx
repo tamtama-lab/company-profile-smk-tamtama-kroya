@@ -305,10 +305,18 @@ export default function LandingPage() {
     Array.isArray(schoolSettings.socialMedia.instagram) &&
     schoolSettings.socialMedia.instagram.length > 0
   ) {
-    const hyperlinks = schoolSettings.socialMedia.instagram
-      .filter((i) => i.isActive)
-      .map((i) => i.url as string);
+    const activeInstagram = schoolSettings.socialMedia.instagram.filter(
+      (i) => i.isActive,
+    );
+    const maxInstagram = 3;
+    const limitedInstagram = activeInstagram.slice(0, maxInstagram);
+    const extraCount = activeInstagram.length - maxInstagram;
+    const hyperlinks = limitedInstagram.map((i) => i.url as string);
     const contacts = hyperlinks.map((h) => getHandleFromUrl(h));
+    if (extraCount > 0) {
+      contacts.push(`+${extraCount} akun lainnya`);
+      hyperlinks.push("");
+    }
     socialList.push({
       name: "Instagram",
       contact: contacts,

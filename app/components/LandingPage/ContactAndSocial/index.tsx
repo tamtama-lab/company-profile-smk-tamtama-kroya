@@ -156,20 +156,33 @@ export const ContactAndSocial: React.FC<{
                     Array.isArray(contact.hyperlink) &&
                     contact.name === "Instagram" ? (
                       <div className="flex flex-col gap-1">
-                        {contact.contact.map((item, idx) => (
-                          <a
-                            key={idx}
-                            href={
-                              (contact.hyperlink && contact.hyperlink[idx]) ||
-                              "#"
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-base max-md:text-sm text-gray-600 hover:underline hover:underline-offset-2"
-                          >
-                            {item}
-                          </a>
-                        ))}
+                        {contact.contact.map((item, idx) => {
+                          const link =
+                            (contact.hyperlink && contact.hyperlink[idx]) || "";
+
+                          if (!link) {
+                            return (
+                              <span
+                                key={idx}
+                                className="text-base max-md:text-sm text-gray-600"
+                              >
+                                {item}
+                              </span>
+                            );
+                          }
+
+                          return (
+                            <a
+                              key={idx}
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-base max-md:text-sm text-gray-600 hover:underline hover:underline-offset-2"
+                            >
+                              {item}
+                            </a>
+                          );
+                        })}
                       </div>
                     ) : (
                       <a

@@ -12,6 +12,7 @@ interface SectionCardProps {
   handleSaveChanges?: () => void;
   isLoading?: boolean;
   className?: string;
+  maxRow?: number;
 }
 
 export const SectionCard = ({
@@ -24,10 +25,11 @@ export const SectionCard = ({
   isCancelButton = false,
   handleSaveChanges,
   isLoading = false,
+  maxRow = 60,
   className = "w-1/2",
 }: SectionCardProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [lastHeight, setLastHeight] = useState(120); // default height
+  const [lastHeight, setLastHeight] = useState(360); // default height
 
   useEffect(() => {
     if (!isLoading && containerRef.current) {
@@ -35,8 +37,12 @@ export const SectionCard = ({
     }
   }, [isLoading, children]);
 
-  const rowHeight = 20; // estimated height per row
-  const numRows = Math.ceil(lastHeight / rowHeight);
+  const maxRows = maxRow;
+  const rowHeight = 12; // estimated height per row
+  const numRows = Math.min(
+    maxRows,
+    Math.max(3, Math.ceil(lastHeight / rowHeight)),
+  );
 
   const skeletonRows = Array.from({ length: numRows }, (_, i) => (
     <div

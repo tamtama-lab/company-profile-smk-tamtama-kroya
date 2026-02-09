@@ -5,22 +5,30 @@ import { useEffect, useState } from "react";
 import DragDropFile from "@/components/Upload/DragDropFile";
 import { TitleSection } from "@/components/TitleSection/index";
 import { SectionCard } from "@/components/Card/SectionCard";
-import { InputText, InputTextArea } from "@/components/InputForm/TextInput";
-import Toggle from "@/components/ui/toggle";
-import { TextButton } from "@/components/Buttons/TextButton";
+import {
+  InputNumber,
+  InputText,
+  InputTextArea,
+} from "@/components/InputForm/TextInput";
 import { useAlert } from "@/components/ui/alert";
 import { getAuthHeader } from "@/utils/auth";
 import {
   SocialMediaListField,
   SocialMediaSingleField,
 } from "@/components/Admin/SocialMediaFields";
+import {
+  isNonEmpty,
+  isValidEmail,
+  isValidPhoneNumber,
+  isValidUrl,
+} from "@/lib/stringFormat";
 
 export default function KontakMediaPage() {
   const { showAlert } = useAlert();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [savingContact, setSavingContact] = useState(false);
   const [savingBrochure, setSavingBrochure] = useState(false);
+  const [savingSocial, setSavingSocial] = useState(false);
 
   const [original, setOriginal] = useState<any>(null);
   const [form, setForm] = useState<any>(null);
@@ -29,7 +37,6 @@ export default function KontakMediaPage() {
   const [backFile, setBackFile] = useState<File | null>(null);
 
   const MAX_WHATSAPP = 5;
-  const MAX_INSTAGRAM = 5;
 
   // Load data
   useEffect(() => {
@@ -122,18 +129,6 @@ export default function KontakMediaPage() {
     setBackFile(null);
   };
 
-  // Helpers
-  const isValidEmail = (s: string) => /\S+@\S+\.\S+/.test(s);
-  const isValidUrl = (s: string) => {
-    try {
-      if (!s) return true; // allow empty
-      new URL(s);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
   // Whatsapp helpers
   const addWhatsapp = () => {
     if (!form) return;
@@ -166,14 +161,6 @@ export default function KontakMediaPage() {
   // Instagram helpers
   const addInstagram = () => {
     if (!form) return;
-    if ((form.socialMedia.instagram || []).length >= MAX_INSTAGRAM) {
-      showAlert({
-        title: "Batas",
-        description: `Maksimal ${MAX_INSTAGRAM} akun Instagram`,
-        variant: "error",
-      });
-      return;
-    }
     setForm((prev: any) => ({
       ...prev,
       socialMedia: {
@@ -197,115 +184,197 @@ export default function KontakMediaPage() {
     }));
   };
 
-  const handleSave = async () => {
+  const handleSaveSocial = async () => {
     if (!form) return;
 
-    // Basic validation
-    if (form.email && !isValidEmail(form.email)) {
+    for (const [idx, w] of (form.whatsappNumbers || []).entries()) {
+      if (!isNonEmpty(w.label)) {
+        showAlert({
+          title: "Gagal",
+          description: `Label Whatsapp #${idx + 1} wajib diisi`,
+          variant: "error",
+        });
+        return;
+      }
+      if (!isNonEmpty(w.number)) {
+        showAlert({
+          title: "Gagal",
+          description: `Nomor Whatsapp #${idx + 1} wajib diisi`,
+          variant: "error",
+        });
+        return;
+      }
+      if (!isValidPhoneNumber(w.number)) {
+        showAlert({
+          title: "Gagal",
+          description: `Nomor Whatsapp #${idx + 1} tidak valid`,
+          variant: "error",
+        });
+        return;
+      }
+    }
+
+    for (const [idx, inst] of (form.socialMedia.instagram || []).entries()) {
+      if (!isNonEmpty(inst.url)) {
+        showAlert({
+          title: "Gagal",
+          description: `URL Instagram #${idx + 1} wajib diisi`,
+          variant: "error",
+        });
+        return;
+      }
+      if (!isValidUrl(inst.url)) {
+        showAlert({
+          title: "Gagal",
+          description: `Format URL Instagram #${idx + 1} tidak valid`,
+          variant: "error",
+        });
+        return;
+      }
+    }
+
+    const tiktokUrl = form.socialMedia.tiktok.url || "";
+    if (
+      (form.socialMedia.tiktok.isActive || isNonEmpty(tiktokUrl)) &&
+      !isNonEmpty(tiktokUrl)
+    ) {
       showAlert({
         title: "Gagal",
-        description: "Format email tidak valid",
+        description: "URL TikTok wajib diisi",
         variant: "error",
       });
       return;
     }
-    if (form.website && !isValidUrl(form.website)) {
+    if (isNonEmpty(tiktokUrl) && !isValidUrl(tiktokUrl)) {
       showAlert({
         title: "Gagal",
-        description: "Format website tidak valid",
+        description: "Format URL TikTok tidak valid",
         variant: "error",
       });
       return;
     }
 
-    setSaving(true);
+    const youtubeUrl = form.socialMedia.youtube.url || "";
+    if (
+      (form.socialMedia.youtube.isActive || isNonEmpty(youtubeUrl)) &&
+      !isNonEmpty(youtubeUrl)
+    ) {
+      showAlert({
+        title: "Gagal",
+        description: "URL Youtube wajib diisi",
+        variant: "error",
+      });
+      return;
+    }
+    if (isNonEmpty(youtubeUrl) && !isValidUrl(youtubeUrl)) {
+      showAlert({
+        title: "Gagal",
+        description: "Format URL Youtube tidak valid",
+        variant: "error",
+      });
+      return;
+    }
+
+    const facebookUrl = form.socialMedia.facebook.url || "";
+    if (
+      (form.socialMedia.facebook.isActive || isNonEmpty(facebookUrl)) &&
+      !isNonEmpty(facebookUrl)
+    ) {
+      showAlert({
+        title: "Gagal",
+        description: "URL Facebook wajib diisi",
+        variant: "error",
+      });
+      return;
+    }
+    if (isNonEmpty(facebookUrl) && !isValidUrl(facebookUrl)) {
+      showAlert({
+        title: "Gagal",
+        description: "Format URL Facebook tidak valid",
+        variant: "error",
+      });
+      return;
+    }
+
+    setSavingSocial(true);
 
     try {
-      let brochureRes: any = {};
-
-      // If files selected, upload first
-      if (frontFile || backFile) {
-        const fd = new FormData();
-        if (frontFile) fd.append("brochureFront", frontFile);
-        if (backFile) fd.append("brochureBack", backFile);
-
-        const uploadRes = await fetch(
-          `/api/backoffice/school-settings/brochure`,
-          {
-            method: "POST",
-            headers: {
-              ...getAuthHeader(),
-            },
-            body: fd as any,
-          },
-        );
-        if (!uploadRes.ok) throw new Error("Gagal mengunggah brosur");
-        brochureRes = await uploadRes.json();
-      }
-
-      const payload = {
-        email: form.email || "",
-        phone: form.phone || "",
-        website: form.website || "",
-        address: form.address || "",
+      const whatsappPayload = {
         whatsappNumbers: (form.whatsappNumbers || []).map((w: any) => ({
           name: w.name || "",
           label: w.label || "",
           number: String((w.number || "").replace(/\D/g, "")),
           isActive: !!w.isActive,
         })),
-        socialMedia: {
-          tiktok: {
-            url: form.socialMedia.tiktok.url || "",
-            isActive: !!form.socialMedia.tiktok.isActive,
-          },
-          youtube: {
-            url: form.socialMedia.youtube.url || "",
-            isActive: !!form.socialMedia.youtube.isActive,
-          },
-          facebook: {
-            url: form.socialMedia.facebook.url || "",
-            isActive: !!form.socialMedia.facebook.isActive,
-          },
-          instagram: (form.socialMedia.instagram || []).map((i: any) => ({
-            url: i.url || "",
-            isActive: !!i.isActive,
-          })),
-        },
-        brochureFrontUrl:
-          brochureRes.brochureFrontUrl ?? form.brochureFrontUrl ?? null,
-        brochureBackUrl:
-          brochureRes.brochureBackUrl ?? form.brochureBackUrl ?? null,
       };
 
-      const res = await fetch(`/api/backoffice/school-settings`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify(payload),
-      });
+      const socialPayload = {
+        facebook: {
+          url: form.socialMedia.facebook.url || "",
+          isActive: !!form.socialMedia.facebook.isActive,
+        },
+        instagram: (form.socialMedia.instagram || []).map((i: any) => ({
+          url: i.url || "",
+          isActive: !!i.isActive,
+        })),
+        tiktok: {
+          url: form.socialMedia.tiktok.url || "",
+          isActive: !!form.socialMedia.tiktok.isActive,
+        },
+        youtube: {
+          url: form.socialMedia.youtube.url || "",
+          isActive: !!form.socialMedia.youtube.isActive,
+        },
+      };
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.message || "Gagal menyimpan perubahan");
+      const [whatsappRes, socialRes] = await Promise.all([
+        fetch(`/api/backoffice/school-settings/whatsapp`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", ...getAuthHeader() },
+          body: JSON.stringify(whatsappPayload),
+        }),
+        fetch(`/api/backoffice/school-settings/social-media`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", ...getAuthHeader() },
+          body: JSON.stringify(socialPayload),
+        }),
+      ]);
+
+      if (!whatsappRes.ok || !socialRes.ok) {
+        const err = !whatsappRes.ok
+          ? await whatsappRes.json()
+          : await socialRes.json();
+        throw new Error(err?.message || "Gagal menyimpan media sosial");
       }
 
-      const saved = await res.json();
-      setOriginal(saved);
-      resetToOriginal();
+      const whatsappData = await whatsappRes.json();
+      const socialData = await socialRes.json();
+
+      setForm((p: any) => ({
+        ...p,
+        whatsappNumbers: whatsappData.whatsappNumbers ?? p.whatsappNumbers,
+        socialMedia: socialData.socialMedia ?? p.socialMedia,
+      }));
+      setOriginal((o: any) => ({
+        ...o,
+        whatsappNumbers: whatsappData.whatsappNumbers ?? o.whatsappNumbers,
+        socialMedia: socialData.socialMedia ?? o.socialMedia,
+      }));
+
       showAlert({
         title: "Berhasil",
-        description: "Perubahan berhasil disimpan",
+        description: "Media sosial berhasil disimpan",
         variant: "success",
       });
     } catch (err: any) {
       console.error(err);
       showAlert({
         title: "Gagal",
-        description: err?.message || "Gagal menyimpan perubahan",
+        description: err?.message || "Gagal menyimpan media sosial",
         variant: "error",
       });
     } finally {
-      setSaving(false);
+      setSavingSocial(false);
     }
   };
 
@@ -357,7 +426,7 @@ export default function KontakMediaPage() {
         variant: "error",
       });
     } finally {
-      setSaving(false);
+      setSavingBrochure(false);
       setLoading(false);
     }
   };
@@ -365,6 +434,47 @@ export default function KontakMediaPage() {
   // Save only contact info (email, phone, website, address)
   const handleSaveContact = async () => {
     if (!form) return;
+
+    if (!isNonEmpty(form.phone)) {
+      showAlert({
+        title: "Gagal",
+        description: "Nomor telepon wajib diisi",
+        variant: "error",
+      });
+      return;
+    }
+    if (!isValidPhoneNumber(form.phone)) {
+      showAlert({
+        title: "Gagal",
+        description: "Nomor telepon tidak valid",
+        variant: "error",
+      });
+      return;
+    }
+    if (!isNonEmpty(form.email)) {
+      showAlert({
+        title: "Gagal",
+        description: "Email wajib diisi",
+        variant: "error",
+      });
+      return;
+    }
+    if (!isNonEmpty(form.website)) {
+      showAlert({
+        title: "Gagal",
+        description: "Website wajib diisi",
+        variant: "error",
+      });
+      return;
+    }
+    if (!isNonEmpty(form.address)) {
+      showAlert({
+        title: "Gagal",
+        description: "Alamat wajib diisi",
+        variant: "error",
+      });
+      return;
+    }
 
     // Basic validation
     if (form.email && !isValidEmail(form.email)) {
@@ -638,7 +748,9 @@ export default function KontakMediaPage() {
             <SectionCard
               title="Media Sosial Resmi"
               className="mt-0"
-              isLoading={loading}
+              maxRow={14}
+              isLoading={savingSocial || loading}
+              handleSaveChanges={handleSaveSocial}
             >
               <div className="grid grid-cols-1 gap-6 p-3">
                 <SocialMediaListField
@@ -647,7 +759,6 @@ export default function KontakMediaPage() {
                   iconAlt="instagram"
                   items={form.socialMedia.instagram || []}
                   addLabel="+ Tambah Akun"
-                  maxItems={MAX_INSTAGRAM}
                   onAdd={addInstagram}
                   onRemove={removeInstagram}
                   onToggle={(idx, val) =>
@@ -681,7 +792,6 @@ export default function KontakMediaPage() {
                       disabled={disabled}
                     />
                   )}
-                  hideDeleteWhenSingle
                 />
 
                 <div>
@@ -793,6 +903,7 @@ export default function KontakMediaPage() {
                         maxItems={MAX_WHATSAPP}
                         onAdd={addWhatsapp}
                         onRemove={removeWhatsapp}
+                        className="flex justify-end items-center"
                         onToggle={(idx, val) =>
                           setForm((p: any) => ({
                             ...p,
@@ -803,10 +914,9 @@ export default function KontakMediaPage() {
                           }))
                         }
                         renderInputs={(w: any, idx: number, disabled) => (
-                          <>
-                            <input
+                          <div className="w-full h-fit justify-start flex flex-row items-end gap-3">
+                            <InputText
                               placeholder="Nama admin"
-                              className="w-40 border rounded p-2"
                               disabled={disabled}
                               value={w.label || ""}
                               onChange={(e) =>
@@ -820,10 +930,13 @@ export default function KontakMediaPage() {
                                   ),
                                 }))
                               }
+                              label={""}
+                              name={""}
                             />
-                            <input
+                            <InputNumber
+                              limit={15}
+                              disabled={disabled}
                               placeholder="Nomor Whatsapp"
-                              className="flex-1 border border-gray-400 rounded p-2"
                               value={w.number || ""}
                               onChange={(e) =>
                                 setForm((p: any) => ({
@@ -836,11 +949,11 @@ export default function KontakMediaPage() {
                                   ),
                                 }))
                               }
-                              disabled={disabled}
+                              label={""}
+                              name={""}
                             />
-                          </>
+                          </div>
                         )}
-                        hideDeleteWhenSingle
                       />
                     </div>
                   </div>

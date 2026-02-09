@@ -40,4 +40,23 @@ export const getHandleFromUrl = (url: string) => {
         return url;
       }
     }
+};
+
+
+    // Helpers
+  export const isValidEmail = (s: string) => /\S+@\S+\.\S+/.test(s);
+  export const isNonEmpty = (s: string) => String(s || "").trim().length > 0;
+  export const toDigits = (s: string) => String(s || "").replace(/\D/g, "");
+  export const isValidPhoneNumber = (s: string) => {
+    const digits = toDigits(s);
+    return digits.length >= 10 && digits.length <= 15;
+  };
+  export const isValidUrl = (s: string) => {
+    try {
+      if (!s) return true; // allow empty
+      new URL(s);
+      return true;
+    } catch {
+      return false;
+    }
   };

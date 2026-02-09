@@ -60,6 +60,7 @@ type SocialMediaListFieldProps<T extends { isActive?: boolean }> = {
   onToggle: (index: number, value: boolean) => void;
   renderInputs: (item: T, index: number, disabled: boolean) => ReactNode;
   hideDeleteWhenSingle?: boolean;
+  className?: string;
 };
 
 export function SocialMediaListField<T extends { isActive?: boolean }>({
@@ -74,6 +75,7 @@ export function SocialMediaListField<T extends { isActive?: boolean }>({
   onRemove,
   onToggle,
   renderInputs,
+  className,
   hideDeleteWhenSingle = false,
 }: SocialMediaListFieldProps<T>) {
   const canAdd = typeof maxItems === "number" ? items.length < maxItems : true;
@@ -91,7 +93,7 @@ export function SocialMediaListField<T extends { isActive?: boolean }>({
           const disabled = !!item.isActive;
 
           return (
-            <div key={idx} className="flex items-center gap-2">
+            <div key={idx} className={`flex items-center gap-2 ${className}`}>
               {renderInputs(item, idx, disabled)}
               <Toggle
                 enabled={!!item.isActive}
