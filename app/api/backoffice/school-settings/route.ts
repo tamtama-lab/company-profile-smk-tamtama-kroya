@@ -42,7 +42,7 @@ const MOCK: any = {
 };
 
 // Mutable mock (keeps state in server process for development)
-const MOCK_DATA = { ...MOCK };
+export const MOCK_DATA = { ...MOCK };
 
 export async function GET(request: NextRequest) {
   try {

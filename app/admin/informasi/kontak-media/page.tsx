@@ -10,8 +10,9 @@ import Toggle from "@/components/ui/toggle";
 import { TextButton } from "@/components/Buttons/TextButton";
 import { useAlert } from "@/components/ui/alert";
 import { getAuthHeader } from "@/utils/auth";
-import { FaInstagram, FaTiktok, FaYoutube, FaFacebook } from "react-icons/fa";
 import { LuTrash2 } from "react-icons/lu";
+import { se } from "date-fns/locale";
+import { set } from "zod";
 
 export default function KontakMediaPage() {
   const { showAlert } = useAlert();
@@ -210,8 +211,8 @@ export default function KontakMediaPage() {
       // If files selected, upload first
       if (frontFile || backFile) {
         const fd = new FormData();
-        if (frontFile) fd.append("front", frontFile);
-        if (backFile) fd.append("back", backFile);
+        if (frontFile) fd.append("brochureFront", frontFile);
+        if (backFile) fd.append("brochureBack", backFile);
 
         const uploadRes = await fetch(
           `/api/backoffice/school-settings/brochure`,
@@ -228,10 +229,10 @@ export default function KontakMediaPage() {
       }
 
       const payload = {
-        email: form.email || null,
-        phone: form.phone || null,
-        website: form.website || null,
-        address: form.address || null,
+        email: form.email || "",
+        phone: form.phone || "",
+        website: form.website || "",
+        address: form.address || "",
         whatsappNumbers: (form.whatsappNumbers || []).map((w: any) => ({
           name: w.name || "",
           label: w.label || "",
@@ -240,19 +241,19 @@ export default function KontakMediaPage() {
         })),
         socialMedia: {
           tiktok: {
-            url: form.socialMedia.tiktok.url || null,
+            url: form.socialMedia.tiktok.url || "",
             isActive: !!form.socialMedia.tiktok.isActive,
           },
           youtube: {
-            url: form.socialMedia.youtube.url || null,
+            url: form.socialMedia.youtube.url || "",
             isActive: !!form.socialMedia.youtube.isActive,
           },
           facebook: {
-            url: form.socialMedia.facebook.url || null,
+            url: form.socialMedia.facebook.url || "",
             isActive: !!form.socialMedia.facebook.isActive,
           },
           instagram: (form.socialMedia.instagram || []).map((i: any) => ({
-            url: i.url || null,
+            url: i.url || "",
             isActive: !!i.isActive,
           })),
         },
@@ -293,12 +294,137 @@ export default function KontakMediaPage() {
     }
   };
 
-  if (loading || !form) {
+  const handleSaveBrochure = async () => {
+    setSaving(true);
+    setLoading(true);
+    try {
+      const fd = new FormData();
+      if (frontFile) fd.append("brochureFront", frontFile);
+      if (backFile) fd.append("brochureBack", backFile);
+
+      const uploadRes = await fetch(
+        `/api/backoffice/school-settings/brochure`,
+        {
+          method: "POST",
+          headers: {
+            ...getAuthHeader(),
+          },
+          body: fd as any,
+        },
+      );
+
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json();
+        throw new Error(err?.message || "Gagal mengunggah brosur");
+      }
+
+      const data = await uploadRes.json();
+
+      setForm((p: any) => ({
+        ...p,
+        brochureFrontUrl: data.brochureFrontUrl ?? p.brochureFrontUrl ?? null,
+        brochureBackUrl: data.brochureBackUrl ?? p.brochureBackUrl ?? null,
+      }));
+
+      // clear local files after successful upload
+      setFrontFile(null);
+      setBackFile(null);
+
+      showAlert({
+        title: "Berhasil",
+        description: "Brosur berhasil diunggah",
+        variant: "success",
+      });
+    } catch (err: any) {
+      console.error(err);
+      showAlert({
+        title: "Gagal",
+        description: err?.message || "Gagal mengunggah brosur",
+        variant: "error",
+      });
+    } finally {
+      setSaving(false);
+      setLoading(false);
+    }
+  };
+
+  // Save only contact info (email, phone, website, address)
+  const handleSaveContact = async () => {
+    setLoading(true);
+    if (!form) return;
+
+    // Basic validation
+    if (form.email && !isValidEmail(form.email)) {
+      showAlert({
+        title: "Gagal",
+        description: "Format email tidak valid",
+        variant: "error",
+      });
+      return;
+    }
+    if (form.website && !isValidUrl(form.website)) {
+      showAlert({
+        title: "Gagal",
+        description: "Format website tidak valid",
+        variant: "error",
+      });
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const payload = {
+        email: form.email || null,
+        phone: form.phone || null,
+        website: form.website || null,
+        address: form.address || null,
+      };
+
+      const res = await fetch(`/api/backoffice/school-settings/contact-info`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err?.message || "Gagal menyimpan kontak");
+      }
+
+      const saved = await res.json();
+
+      // update local state
+      setForm((p: any) => ({ ...p, ...saved }));
+      setOriginal((o: any) => ({ ...o, ...saved }));
+
+      showAlert({
+        title: "Berhasil",
+        description: "Kontak berhasil disimpan",
+        variant: "success",
+      });
+    } catch (err: any) {
+      console.error(err);
+      showAlert({
+        title: "Gagal",
+        description: err?.message || "Gagal menyimpan kontak",
+        variant: "error",
+      });
+    } finally {
+      setSaving(false);
+      setLoading(false);
+    }
+  };
+
+  if (!form) {
     return (
       <div className="w-full min-h-[calc(100vh-4px)] bg-gray-100 p-4">
         <div className="h-full w-full bg-white rounded-md drop-shadow-sm p-6">
-          <TitleSection title="Kontak & Media Sosial" subtitle="Memuat..." />
-          <div className="py-6">Loading...</div>
+          <TitleSection title="Kontak & Media Sosial" subtitle="Memuat Data" />
+          <div className="w-full h-[80vh] flex flex-col gap-6 justify-center items-center">
+            <div className="w-12 h-12 border-4 border-dashed border-gray-400 rounded-full animate-spin" />
+            <div>Memuat Data</div>
+          </div>
         </div>
       </div>
     );
@@ -315,6 +441,8 @@ export default function KontakMediaPage() {
           <div className="w-full h-fit">
             {/* Kontak Resmi Sekolah */}
             <SectionCard
+              handleSaveChanges={handleSaveContact}
+              isLoading={loading || saving || !form}
               title="Kontak Resmi Sekolah"
               className="w-full border border-gray-400"
             >
@@ -323,6 +451,7 @@ export default function KontakMediaPage() {
                   <InputText
                     name="phone"
                     label="Telephone"
+                    placeholder="Masukkan Nomor Telephone Sekolah"
                     value={form.phone}
                     onChange={(e) =>
                       setForm((p: any) => ({ ...p, phone: e.target.value }))
@@ -333,6 +462,7 @@ export default function KontakMediaPage() {
                   <InputText
                     name="email"
                     label="Email"
+                    placeholder="Masukkan Email Sekolah"
                     value={form.email}
                     onChange={(e) =>
                       setForm((p: any) => ({ ...p, email: e.target.value }))
@@ -343,6 +473,7 @@ export default function KontakMediaPage() {
                   <InputText
                     name="website"
                     label="Website"
+                    placeholder="Masukkan Website Sekolah"
                     value={form.website}
                     onChange={(e) =>
                       setForm((p: any) => ({ ...p, website: e.target.value }))
@@ -351,7 +482,7 @@ export default function KontakMediaPage() {
                 </div>
                 <div className="col-span-2">
                   <InputTextArea
-                    placeholder="Alamat sekolah"
+                    placeholder="Masukkan Alamat Lengkap Sekolah"
                     value={form.address}
                     onChange={(e) =>
                       setForm((p: any) => ({ ...p, address: e.target.value }))
@@ -366,6 +497,9 @@ export default function KontakMediaPage() {
             <SectionCard
               title="Unggah Brosur Promosi"
               className="mt-6 border border-gray-400"
+              handleSaveChanges={handleSaveBrochure}
+              isLoading={loading || saving || !form}
+              leftButton={null}
             >
               <div className="grid grid-cols-1 gap-6 p-3">
                 <div>
@@ -392,7 +526,44 @@ export default function KontakMediaPage() {
 
                         return null;
                       }}
-                      onRemove={() => setFrontFile(null)}
+                      onRemove={async () => {
+                        // If a local file was selected, just clear it
+                        if (frontFile) return setFrontFile(null);
+
+                        // Otherwise request delete from server
+                        if (form.brochureFrontUrl) {
+                          try {
+                            const res = await fetch(
+                              `/api/backoffice/school-settings/brochure?field=front`,
+                              {
+                                method: "DELETE",
+                                headers: { ...getAuthHeader() },
+                              },
+                            );
+                            if (!res.ok)
+                              throw new Error("Gagal menghapus brosur");
+                            const data = await res.json();
+                            setForm((p: any) => ({
+                              ...p,
+                              brochureFrontUrl: data.brochureFrontUrl ?? null,
+                            }));
+                            showAlert({
+                              title: "Berhasil",
+                              description: "Brosur depan berhasil dihapus",
+                              variant: "success",
+                            });
+                          } catch (err: any) {
+                            console.error(err);
+                            showAlert({
+                              title: "Gagal",
+                              description:
+                                err?.message || "Gagal menghapus brosur",
+                              variant: "error",
+                            });
+                          }
+                        }
+                        setLoading(false);
+                      }}
                       label="Brosur Depan"
                       description="PDF / Image"
                     />
@@ -407,7 +578,41 @@ export default function KontakMediaPage() {
                       previewUrl={form.brochureBackUrl}
                       initialFile={backFile}
                       onFile={(file) => setBackFile(file)}
-                      onRemove={() => setBackFile(null)}
+                      onRemove={async () => {
+                        if (backFile) return setBackFile(null);
+
+                        if (form.brochureBackUrl) {
+                          try {
+                            const res = await fetch(
+                              `/api/backoffice/school-settings/brochure?field=back`,
+                              {
+                                method: "DELETE",
+                                headers: { ...getAuthHeader() },
+                              },
+                            );
+                            if (!res.ok)
+                              throw new Error("Gagal menghapus brosur");
+                            const data = await res.json();
+                            setForm((p: any) => ({
+                              ...p,
+                              brochureBackUrl: data.brochureBackUrl ?? null,
+                            }));
+                            showAlert({
+                              title: "Berhasil",
+                              description: "Brosur belakang berhasil dihapus",
+                              variant: "success",
+                            });
+                          } catch (err: any) {
+                            console.error(err);
+                            showAlert({
+                              title: "Gagal",
+                              description:
+                                err?.message || "Gagal menghapus brosur",
+                              variant: "error",
+                            });
+                          }
+                        }
+                      }}
                       label="Brosur Belakang"
                       description="PDF / Image"
                     />
@@ -418,7 +623,11 @@ export default function KontakMediaPage() {
           </div>
           <div className="w-full h-fit">
             {/* Media Sosial Resmi */}
-            <SectionCard title="Media Sosial Resmi" className="mt-0">
+            <SectionCard
+              title="Media Sosial Resmi"
+              className="mt-0"
+              isLoading={loading}
+            >
               <div className="grid grid-cols-1 gap-6 p-3">
                 <div>
                   <label className="font-medium">Instagram :</label>

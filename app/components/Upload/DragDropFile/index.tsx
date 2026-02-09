@@ -109,8 +109,11 @@ export default function DragDropFile({
       return;
     }
 
-    // Only consider a previewUrl if it's a blob URL (local file blob)
-    if (typeof previewUrl === "string" && previewUrl.startsWith("blob:")) {
+    // If previewUrl is a blob or local object URL, show it
+    if (
+      typeof previewUrl === "string" &&
+      (previewUrl.startsWith("blob:") || previewUrl.startsWith("data:"))
+    ) {
       if (prevBlobRef.current) {
         URL.revokeObjectURL(prevBlobRef.current);
       }
@@ -120,7 +123,18 @@ export default function DragDropFile({
       return;
     }
 
-    // Otherwise clear internal preview (don't show remote URLs)
+    // If previewUrl is a remote url (http/https), show it as well
+    if (
+      typeof previewUrl === "string" &&
+      (previewUrl.startsWith("http://") || previewUrl.startsWith("https://"))
+    ) {
+      setSelectedFile(null);
+      setSelectedPreviewUrl(previewUrl);
+      setError(null);
+      return;
+    }
+
+    // Otherwise clear internal preview
     if (!initialFile) {
       if (prevBlobRef.current) {
         URL.revokeObjectURL(prevBlobRef.current);
