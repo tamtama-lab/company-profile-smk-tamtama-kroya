@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   FiBarChart2,
-  FiCalendar,
   FiCheckCircle,
   FiChevronRight,
   FiFile,

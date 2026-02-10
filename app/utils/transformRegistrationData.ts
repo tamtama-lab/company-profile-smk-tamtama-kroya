@@ -185,6 +185,7 @@ export function transformRecentRegistrations(items: unknown): Student[] {
     const updatedAt = String(
       item["updatedAt"] ?? sd["updatedAt"] ?? item["createdAt"] ?? new Date().toISOString(),
     );
+    const majorChoice = String(item["majorChoiceCode"] ?? item["majorChoice"] ?? "");
 
     return {
       id: id,
@@ -210,6 +211,7 @@ export function transformRecentRegistrations(items: unknown): Student[] {
       authorName: author ? (author["fullName"] ? String(author["fullName"]) : "-") : "-",
       author: author ?? null,
       // author
+      majorChoice: majorChoice,
     };
   });
   return result;

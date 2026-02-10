@@ -13,7 +13,6 @@ export async function GET(request: NextRequest) {
         "Content-Type": "application/json",
         ...(authHeader ? { Authorization: authHeader } : {}),
       },
-      // cache at server level; frontends should still request cached /api/filters/options
       next: { revalidate: 60 },
     });
 

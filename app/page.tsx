@@ -299,6 +299,7 @@ export default function LandingPage() {
     contact: string | string[];
     icon: React.ReactNode | string;
     hyperlink?: string | string[];
+    extraContacts?: { label: string; href: string }[];
   }[] = [];
   if (
     schoolSettings?.socialMedia?.instagram &&
@@ -310,18 +311,18 @@ export default function LandingPage() {
     );
     const maxInstagram = 3;
     const limitedInstagram = activeInstagram.slice(0, maxInstagram);
-    const extraCount = activeInstagram.length - maxInstagram;
+    const extraInstagram = activeInstagram.slice(maxInstagram).map((item) => ({
+      label: getHandleFromUrl(item.url as string),
+      href: item.url as string,
+    }));
     const hyperlinks = limitedInstagram.map((i) => i.url as string);
     const contacts = hyperlinks.map((h) => getHandleFromUrl(h));
-    if (extraCount > 0) {
-      contacts.push(`+${extraCount} akun lainnya`);
-      hyperlinks.push("");
-    }
     socialList.push({
       name: "Instagram",
       contact: contacts,
       icon: "/sosmed/instagram.svg",
       hyperlink: hyperlinks,
+      extraContacts: extraInstagram.length > 0 ? extraInstagram : undefined,
     });
   }
   if (

@@ -26,6 +26,16 @@ import {
 import { TextButton } from "@/components/Buttons/TextButton";
 import * as z from "zod";
 
+const parseJsonResponse = async (res: Response) => {
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text };
+  }
+};
+
 export default function KontakMediaPage() {
   const { showAlert } = useAlert();
   const [loading, setLoading] = useState(true);
@@ -58,6 +68,7 @@ export default function KontakMediaPage() {
   const [backFile, setBackFile] = useState<File | null>(null);
 
   const MAX_WHATSAPP = 5;
+  const MAX_INSTAGRAM = 5;
 
   const contactSchema = useMemo(
     () =>
@@ -538,12 +549,10 @@ export default function KontakMediaPage() {
         },
       );
 
+      const data = await parseJsonResponse(uploadRes);
       if (!uploadRes.ok) {
-        const err = await uploadRes.json();
-        throw new Error(err?.message || "Gagal mengunggah brosur");
+        throw new Error(data?.message || "Gagal mengunggah brosur");
       }
-
-      const data = await uploadRes.json();
 
       setForm((p: any) => ({
         ...p,
@@ -574,19 +583,20 @@ export default function KontakMediaPage() {
   };
 
   const handleDeleteBrochure = async (field: "front" | "back") => {
-    setDeletingBrochure(true);
     if (!form) return;
 
     const hasLocalFile = field === "front" ? !!frontFile : !!backFile;
     if (hasLocalFile) {
       if (field === "front") setFrontFile(null);
       if (field === "back") setBackFile(null);
+      return;
     }
 
     const currentUrl =
       field === "front" ? form.brochureFrontUrl : form.brochureBackUrl;
     if (!currentUrl) return;
 
+    setDeletingBrochure(true);
     try {
       const res = await fetch(
         `/api/backoffice/school-settings/brochure?field=${field}`,
@@ -595,8 +605,14 @@ export default function KontakMediaPage() {
           headers: { ...getAuthHeader() },
         },
       );
-      if (!res.ok) throw new Error("Gagal menghapus brosur");
-      await res.json();
+      const data = await parseJsonResponse(res);
+      if (!res.ok) throw new Error(data?.message || "Gagal menghapus brosur");
+      const nextPatch =
+        field === "front"
+          ? { brochureFrontUrl: null }
+          : { brochureBackUrl: null };
+      setForm((p: any) => ({ ...p, ...nextPatch }));
+      setOriginal((o: any) => ({ ...o, ...nextPatch }));
       showAlert({
         title: "Berhasil",
         description:
@@ -605,7 +621,6 @@ export default function KontakMediaPage() {
             : "Brosur belakang berhasil dihapus",
         variant: "success",
       });
-      await fetchData();
     } catch (err: any) {
       console.error(err);
       showAlert({
@@ -859,51 +874,17 @@ export default function KontakMediaPage() {
                         return null;
                       }}
                       onRemove={async () => {
-                        // If a local file was selected, just clear it
-                        if (frontFile) return setFrontFile(null);
-
-                        // Otherwise request delete from server
-                        if (form.brochureFrontUrl) {
-                          try {
-                            const res = await fetch(
-                              `/api/backoffice/school-settings/brochure?field=front`,
-                              {
-                                method: "DELETE",
-                                headers: { ...getAuthHeader() },
-                              },
-                            );
-                            if (!res.ok)
-                              throw new Error("Gagal menghapus brosur");
-                            const data = await res.json();
-                            setForm((p: any) => ({
-                              ...p,
-                              brochureFrontUrl: data.brochureFrontUrl ?? null,
-                            }));
-                            showAlert({
-                              title: "Berhasil",
-                              description: "Brosur depan berhasil dihapus",
-                              variant: "success",
-                            });
-                          } catch (err: any) {
-                            console.error(err);
-                            showAlert({
-                              title: "Gagal",
-                              description:
-                                err?.message || "Gagal menghapus brosur",
-                              variant: "error",
-                            });
-                          }
-                        }
+                        await handleDeleteBrochure("front");
                       }}
                       label="Brosur Depan"
                       description="PDF / Image"
                     />
                     <div className="mt-3 flex justify-end">
                       <TextButton
-                        disabled={!form.brochureFrontUrl && !frontFile}
                         isLoading={deletingBrochure}
                         variant="outline-danger"
                         text="Hapus Brosur"
+                        disabled={!form.brochureFrontUrl && !frontFile}
                         onClick={() => handleDeleteBrochure("front")}
                       />
                     </div>
@@ -935,39 +916,7 @@ export default function KontakMediaPage() {
                         return null;
                       }}
                       onRemove={async () => {
-                        if (backFile) return setBackFile(null);
-
-                        if (form.brochureBackUrl) {
-                          try {
-                            const res = await fetch(
-                              `/api/backoffice/school-settings/brochure?field=back`,
-                              {
-                                method: "DELETE",
-                                headers: { ...getAuthHeader() },
-                              },
-                            );
-                            if (!res.ok)
-                              throw new Error("Gagal menghapus brosur");
-                            const data = await res.json();
-                            setForm((p: any) => ({
-                              ...p,
-                              brochureBackUrl: data.brochureBackUrl ?? null,
-                            }));
-                            showAlert({
-                              title: "Berhasil",
-                              description: "Brosur belakang berhasil dihapus",
-                              variant: "success",
-                            });
-                          } catch (err: any) {
-                            console.error(err);
-                            showAlert({
-                              title: "Gagal",
-                              description:
-                                err?.message || "Gagal menghapus brosur",
-                              variant: "error",
-                            });
-                          }
-                        }
+                        await handleDeleteBrochure("back");
                       }}
                       label="Brosur Belakang"
                       description="PDF / Image"
@@ -1008,6 +957,7 @@ export default function KontakMediaPage() {
                   label="Instagram"
                   iconSrc="/sosmed/instagram.svg"
                   iconAlt="instagram"
+                  maxItems={MAX_INSTAGRAM}
                   items={form.socialMedia.instagram || []}
                   addLabel="+ Tambah Akun"
                   onAdd={addInstagram}

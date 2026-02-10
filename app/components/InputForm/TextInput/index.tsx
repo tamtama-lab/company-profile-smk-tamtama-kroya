@@ -147,6 +147,7 @@ export const InputNumber: React.FC<{
   viewOnly?: boolean;
   disabled?: boolean;
   className?: string;
+  limitPosition?: "top" | "bottom" | "none" | "middle";
 }> = ({
   label,
   name,
@@ -159,6 +160,7 @@ export const InputNumber: React.FC<{
   disabled = false,
   viewOnly = false,
   className,
+  limitPosition = "top",
 }) => {
   const isAboveLimit = limit ? value.length > limit : false;
 

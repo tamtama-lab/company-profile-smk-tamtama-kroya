@@ -16,6 +16,7 @@ export interface Student {
   schoolOriginNpsn: string | null;
   address: string;
   phoneNumber: string;
+  majorChoice: string;
   email: string;
   isKipRecipient: number;
   registrationId: number;

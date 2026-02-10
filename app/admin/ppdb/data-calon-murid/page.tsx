@@ -1,9 +1,6 @@
 "use client";
 
 import { TextButton } from "@/components/Buttons/TextButton";
-import StatsMajorCard, {
-  MajorData,
-} from "@/components/Card/StatsCard/StatCardMajors";
 import { PaginationMeta } from "@/components/Dashboard/Pagination";
 import { Student } from "@/components/Dashboard/StudentsTable";
 import Search from "@/components/Filter/Search";
@@ -33,6 +30,7 @@ export default function AdminProspectiveStudentPage() {
   const { showAlert } = useAlert();
 
   const [students, setStudents] = useState<Student[]>([]);
+  console.log("Rendered with students:", students);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -379,13 +377,11 @@ export default function AdminProspectiveStudentPage() {
       width: 200,
     },
     {
-      title: "Jenis Kelamin",
-      dataIndex: "gender",
-      key: "gender",
-      width: 160,
+      title: "Jurusan Pilihan",
+      dataIndex: "majorChoice",
+      key: "majorChoice",
+      width: 120,
       align: "center",
-      render: (value) => (value === "1" ? "Laki-laki" : "Perempuan"),
-      // sorter: true,
     },
 
     {
@@ -414,7 +410,7 @@ export default function AdminProspectiveStudentPage() {
       dataIndex: "registrationId",
       key: "actions",
       align: "center",
-      width: 240,
+      width: 200,
       render: (value) => (
         <div className="flex justify-center gap-4">
           <Tooltip>
@@ -527,6 +523,8 @@ export default function AdminProspectiveStudentPage() {
                 <TextButton
                   variant="outline"
                   text="Reset Filter"
+                  disabled={loadingStates}
+                  isLoading={loadingStates}
                   icon={<IoMdRefresh className="text-lg" />}
                   className="mb-2 font-normal"
                   onClick={handleResetFilters}

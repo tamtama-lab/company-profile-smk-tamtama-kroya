@@ -3,6 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE_URL = process.env.BACKEND_URL || "http://localhost:3333";
 
+async function parseResponseBody(response: Response) {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text };
+  }
+}
+
 // Note: For real backend we expect an endpoint for uploading brochure files.
 // This mock endpoint accepts multipart/form-data and returns mock URLs.
 
@@ -24,12 +34,12 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      const data = await backendResponse.json();
+      const data = await parseResponseBody(backendResponse);
       if (!backendResponse.ok) {
         return NextResponse.json(data, { status: backendResponse.status });
       }
 
-      return NextResponse.json(data, { status: 200 });
+      return NextResponse.json(data ?? {}, { status: 200 });
     }
 
     // Mock behavior: inspect FormData for fields brochureFront / brochureBack
@@ -79,12 +89,12 @@ export async function DELETE(request: NextRequest) {
         },
       });
 
-      const data = await backendResponse.json();
+      const data = await parseResponseBody(backendResponse);
       if (!backendResponse.ok) {
         return NextResponse.json(data, { status: backendResponse.status });
       }
 
-      return NextResponse.json(data, { status: 200 });
+      return NextResponse.json(data ?? {}, { status: 200 });
     }
 
     // Mock behavior: delete based on ?field=front|back|both (default both)

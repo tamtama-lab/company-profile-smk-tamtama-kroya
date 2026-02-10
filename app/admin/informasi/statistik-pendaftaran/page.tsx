@@ -6,6 +6,7 @@ import StatsMajorCard, {
 } from "@/components/Card/StatsCard/StatCardMajors";
 import { PaginationMeta } from "@/components/Dashboard/Pagination";
 import { Student } from "@/components/Dashboard/StudentsTable";
+import Search from "@/components/Filter/Search";
 import SelectInput from "@/components/InputForm/SelectInput";
 import { BaseModal } from "@/components/Modal/BaseModal";
 import { ModalPreviewData } from "@/components/Modal/PreviewDataModal";
@@ -553,19 +554,11 @@ export default function AdminStatisticPage() {
                     className="w-full sm:w-48"
                   />
                 </div>
-                <div className="relative w-6/10 max-sm:w-full max-sm:pb-2">
-                  <div className="absolute inset-y-0 left-0 pl-3 pb-2 max-sm:pb-1 flex items-center pointer-events-none">
-                    <FaMagnifyingGlass className="text-lg text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    aria-label="Cari pendaftar"
-                    placeholder="Cari Nama / nomor pendaftaran / atau asal sekolah..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    className="block max-sm:placeholder:text-xs w-full pl-10 pr-3 py-2.5 max-sm:py-1 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
+                <Search
+                  className="w-6/10"
+                  searchTerm={searchTerm}
+                  handleSearchChange={handleSearchChange}
+                />
               </div>
             </div>
             <ReusableTable

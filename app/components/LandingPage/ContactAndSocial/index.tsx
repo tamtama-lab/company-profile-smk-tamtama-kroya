@@ -6,6 +6,7 @@ import { IoGlobeSharp, IoLocationOutline } from "react-icons/io5";
 import React from "react";
 import Dropdown from "@/components/Dropdown";
 import { BsWhatsapp } from "react-icons/bs";
+import { LuPlus } from "react-icons/lu";
 
 export type SchoolSettings = {
   email?: string;
@@ -48,6 +49,7 @@ interface socialList {
   contact: string | string[];
   icon: React.ReactNode | string;
   hyperlink?: string | string[];
+  extraContacts?: { label: string; href: string }[];
 }
 
 interface adminList {
@@ -63,6 +65,8 @@ export const ContactAndSocial: React.FC<{
   adminList: adminList[];
 }> = ({ id, contactList, socialList, adminList }) => {
   const [modalOpen, setModalOpen] = React.useState(false);
+  const [isInstagramExtraOpen, setIsInstagramExtraOpen] = React.useState(false);
+  const extraInstagramRef = React.useRef<HTMLDivElement | null>(null);
 
   const closeModal = () => setModalOpen(false);
 
@@ -70,12 +74,29 @@ export const ContactAndSocial: React.FC<{
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeModal();
+        setIsInstagramExtraOpen(false);
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  React.useEffect(() => {
+    const onClickOutside = (event: MouseEvent) => {
+      if (!isInstagramExtraOpen) return;
+      const target = event.target as Node;
+      if (
+        extraInstagramRef.current &&
+        !extraInstagramRef.current.contains(target)
+      ) {
+        setIsInstagramExtraOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [isInstagramExtraOpen]);
 
   const message =
     "Halo! Mohon informasikan pendaftaran murid baru di SMK Tamtama Kroya.";
@@ -159,28 +180,109 @@ export const ContactAndSocial: React.FC<{
                         {contact.contact.map((item, idx) => {
                           const link =
                             (contact.hyperlink && contact.hyperlink[idx]) || "";
+                          const isLast = idx === contact.contact.length - 1;
+                          const hasExtra =
+                            (contact.extraContacts?.length || 0) > 0;
+
+                          const extraButton = isLast && hasExtra;
 
                           if (!link) {
                             return (
-                              <span
+                              <div
                                 key={idx}
-                                className="text-base max-md:text-sm text-gray-600"
+                                className="flex items-center justify-start gap-2"
                               >
-                                {item}
-                              </span>
+                                <span className="text-base max-md:text-sm text-gray-600">
+                                  {item}
+                                </span>
+                                {extraButton ? (
+                                  <div
+                                    ref={extraInstagramRef}
+                                    className="relative shrink-0"
+                                  >
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setIsInstagramExtraOpen((prev) => !prev)
+                                      }
+                                      className="text-xs px-2 py-1 rounded-full border border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+                                    >
+                                      +{contact.extraContacts?.length}
+                                    </button>
+                                    {isInstagramExtraOpen ? (
+                                      <div className="absolute right-0 top-full mt-2 w-44 rounded-md border border-gray-200 bg-white shadow-lg p-2 z-10">
+                                        <div className="flex flex-col gap-1">
+                                          {contact.extraContacts?.map(
+                                            (extra, extraIdx) => (
+                                              <a
+                                                key={extraIdx}
+                                                href={extra.href}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs text-gray-700 hover:underline hover:underline-offset-2"
+                                              >
+                                                {extra.label}
+                                              </a>
+                                            ),
+                                          )}
+                                        </div>
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                ) : null}
+                              </div>
                             );
                           }
 
                           return (
-                            <a
+                            <div
                               key={idx}
-                              href={link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-base max-md:text-sm text-gray-600 hover:underline hover:underline-offset-2"
+                              className="flex items-center justify-start gap-2"
                             >
-                              {item}
-                            </a>
+                              <a
+                                href={link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-base max-md:text-sm text-gray-600 hover:underline hover:underline-offset-2"
+                              >
+                                {item}
+                              </a>
+                              {extraButton ? (
+                                <div
+                                  ref={extraInstagramRef}
+                                  className="relative shrink-0"
+                                >
+                                  <TextButton
+                                    variant="outline"
+                                    type="button"
+                                    text={` +${contact.extraContacts?.length}`}
+                                    onClick={() =>
+                                      setIsInstagramExtraOpen((prev) => !prev)
+                                    }
+                                    className="text-sm! px-2! py-1!"
+                                  ></TextButton>
+                                  {isInstagramExtraOpen ? (
+                                    <div className="absolute right-0 top-full mt-2 w-44 rounded-md border border-gray-200 bg-white shadow-lg p-4 z-10">
+                                      <div className="flex flex-col gap-1">
+                                        {contact.extraContacts?.map(
+                                          (extra, extraIdx) => (
+                                            <a
+                                              key={extraIdx}
+                                              href={extra.href}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-base text-gray-700 hover:underline hover:underline-offset-2"
+                                            >
+                                              {extra.label}
+                                            </a>
+                                          ),
+                                        )}
+                                      </div>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ) : null}
+                            </div>
                           );
                         })}
                       </div>
