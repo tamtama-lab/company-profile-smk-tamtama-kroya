@@ -156,10 +156,11 @@ export default function ReusableTable<T extends object = any>({
   if (loading) {
     return (
       <div className={`animate-pulse space-y-4 ${className}`}>
-        <div className="h-12 bg-gray-200 rounded"></div>
-        <div className="h-12 bg-gray-200 rounded"></div>
-        <div className="h-12 bg-gray-200 rounded"></div>
-        <div className="h-12 bg-gray-200 rounded"></div>
+        {Array(5)
+          .fill(null)
+          .map((_, index) => (
+            <div key={index} className="h-12 bg-gray-200 rounded"></div>
+          ))}
       </div>
     );
   }
