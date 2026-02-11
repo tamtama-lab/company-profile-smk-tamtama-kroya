@@ -195,7 +195,7 @@ export default function LandingPage() {
   const registrationPeriods = [
     {
       id: 1,
-      name: batchData?.[0]?.name || "Gelombang 99",
+      name: batchData?.[0]?.name || "Gelombang 1",
       dateStart: formatMonth(batchData?.[0]?.dateStart),
       dateEnd: formatMonth(batchData?.[0]?.dateEnd),
       isActive: batchData?.[0]?.isActive || false,
