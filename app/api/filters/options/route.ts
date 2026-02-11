@@ -7,6 +7,24 @@ export async function GET(req: Request) {
     // Fetch batches options from specialized endpoint (returns mapped batch objects including dates and isActive)
     const authHeader = req.headers.get('authorization') || '';
 
+    const majorsRes = await fetch(`${origin}/api/majors/options`, {
+      cache: 'force-cache',
+      next: { revalidate: 60 },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authHeader ? { Authorization: authHeader } : {}),
+      },
+    });
+
+    const academicYearsRes = await fetch(`${origin}/api/dashboard/academic-year/options`, {
+      cache: 'force-cache',
+      next: { revalidate: 60 },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authHeader ? { Authorization: authHeader } : {}),
+      },
+    });
+
     const batchesRes = await fetch(`${origin}/api/registrations/batches/options`, {
       cache: 'force-cache',
       next: { revalidate: 60 },
@@ -16,9 +34,14 @@ export async function GET(req: Request) {
       },
     });
 
+    let majors = [];
     let batches = [];
-    if (batchesRes.ok) {
+    let academicYears = [];
+
+    if (batchesRes.ok || majorsRes.ok || academicYearsRes.ok) {
       batches = await batchesRes.json();
+      majors = await majorsRes.json();
+      academicYears = await academicYearsRes.json();
     } else {
       // fallback to calling the raw batches endpoint
       const fallback = await fetch(`${origin}/api/registrations/batches`, {
@@ -47,7 +70,7 @@ export async function GET(req: Request) {
     ];
 
     return NextResponse.json(
-      { years, batches, registrationTypes },
+      { years, batches, registrationTypes, majors, academicYears },
       {
         headers: {
           // Cache at CDNs for 60s and allow stale while revalidating for 5 minutes

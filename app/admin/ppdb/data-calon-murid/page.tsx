@@ -30,7 +30,6 @@ export default function AdminProspectiveStudentPage() {
   const { showAlert } = useAlert();
 
   const [students, setStudents] = useState<Student[]>([]);
-  console.log("Rendered with students:", students);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -42,6 +41,7 @@ export default function AdminProspectiveStudentPage() {
   const [selectedBatchId, setSelectedBatchId] = useState<string | number | "">(
     "",
   );
+  const [selectedMajor, setSelectedMajor] = useState<string | number | "">("");
   const [selectAuthored, setSelectedAuthor] = useState<"" | "true" | "false">(
     "",
   );
@@ -52,6 +52,11 @@ export default function AdminProspectiveStudentPage() {
   const [batches, setBatches] = useState<
     Array<{ value: string | number; label: string; disabled?: boolean }>
   >([]);
+
+  const [majors, setMajors] = useState<
+    Array<{ value: string | number; label: string; disabled?: boolean }>
+  >([]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState<RegistrationData | null>(
     null,
@@ -174,6 +179,10 @@ export default function AdminProspectiveStudentPage() {
           params.append("authored", selectAuthored);
         }
 
+        if (selectedMajor !== "") {
+          params.append("major_code", String(selectedMajor));
+        }
+
         const response = await fetch(
           `/api/dashboard/students?${params.toString()}`,
           {
@@ -204,7 +213,7 @@ export default function AdminProspectiveStudentPage() {
         setIsLoading(false);
       }
     },
-    [selectedBatchId, selectAuthored, selectedYearId],
+    [selectedBatchId, selectAuthored, selectedYearId, selectedMajor],
   );
 
   useEffect(() => {
@@ -212,11 +221,12 @@ export default function AdminProspectiveStudentPage() {
   }, [currentPage, debouncedSearchTerm, fetchStudents, limit]);
 
   const handleResetFilters = () => {
+    setSelectedMajor("");
+    setCurrentPage(1);
+    setSearchTerm("");
     setSelectedBatchId("");
     setSelectedAuthor("");
     setSelectedYearId("");
-    setSearchTerm("");
-    setCurrentPage(1);
   };
 
   const handleSearchChange = (value: string) => {
@@ -254,10 +264,17 @@ export default function AdminProspectiveStudentPage() {
             disabled: Number(b.isActive) === 0,
           }),
         );
+        const majorOpts = (data.majors || []).map(
+          (b: { name: string; abbreviation: string }) => ({
+            value: b.abbreviation,
+            label: `Jurusan ${b.abbreviation}`,
+          }),
+        );
 
         if (cancelled) return;
 
         setBatches(batchOpts);
+        setMajors(majorOpts);
         setYearsOptions(data.years || []);
         setRegistrationTypeOptions(data.registrationTypes || []);
 
@@ -471,7 +488,7 @@ export default function AdminProspectiveStudentPage() {
         />
         <div className="w-full h-fit bg-white rounded-md drop-shadow-sm">
           <div className="p-6 max-sm:p-2 border-b border-gray-200">
-            <div className="flex flex-col items-stretch sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col items-stretch lg:flex-row sm:items-center sm:justify-between gap-4">
               <Search
                 className="max-w-md w-md mb-2"
                 searchTerm={searchTerm}
@@ -522,6 +539,16 @@ export default function AdminProspectiveStudentPage() {
                     ...batches,
                   ]}
                   placeholder="Pilih Gelombang"
+                  className="w-full sm:w-48"
+                />
+                <SelectInput
+                  value={selectedMajor}
+                  onChange={(e) => {
+                    setSelectedMajor(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  options={[{ value: "", label: "Semua Jurusan" }, ...majors]}
+                  placeholder="Pilih Jurusan"
                   className="w-full sm:w-48"
                 />
                 <TextButton
