@@ -10,6 +10,19 @@ import { useEffect, useState } from "react";
 import { LuTrash2, LuUpload } from "react-icons/lu";
 import DragDropFile from "@/components/Upload/DragDropFile";
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+
+const parseJsonResponse = async (res: Response) => {
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text };
+  }
+};
+
 interface PathTabProps {
   id: string;
   label: string;
@@ -318,7 +331,7 @@ export default function AdminRegistrationPathPage() {
       uploadFormData.append("photo", activePhotoDraft.file);
 
       const response = await fetch(
-        `/api/backoffice/registration-paths/${activePathId}/photo`,
+        `${BACKEND_URL}/backoffice/registration-paths/${activePathId}/photo`,
         {
           method: "POST",
           headers: {
@@ -328,11 +341,17 @@ export default function AdminRegistrationPathPage() {
         },
       );
 
-      const data = await response.json();
+      const data = await parseJsonResponse(response);
       if (!response.ok) {
+        const rawMessage =
+          data?.error || data?.message || "Terjadi kesalahan saat mengunggah";
+        const safeMessage =
+          typeof rawMessage === "string" && rawMessage.includes("<html")
+            ? "Gagal mengunggah foto. Coba lagi beberapa saat."
+            : rawMessage;
         showAlert({
           title: "Gagal unggah",
-          description: data?.message || "Terjadi kesalahan saat mengunggah",
+          description: safeMessage,
           variant: "error",
         });
         return;

@@ -36,6 +36,9 @@ const parseJsonResponse = async (res: Response) => {
   }
 };
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3333";
+
 export default function KontakMediaPage() {
   const { showAlert } = useAlert();
   const [loading, setLoading] = useState(true);
@@ -566,7 +569,7 @@ export default function KontakMediaPage() {
       if (backFile) fd.append("brochureBack", backFile);
 
       const uploadRes = await fetch(
-        `/api/backoffice/school-settings/brochure`,
+        `${BACKEND_URL}/backoffice/school-settings/brochure`,
         {
           method: "POST",
           headers: {
