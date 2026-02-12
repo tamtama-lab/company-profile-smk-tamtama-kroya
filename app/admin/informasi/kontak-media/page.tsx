@@ -518,7 +518,11 @@ export default function KontakMediaPage() {
   };
 
   const handleSaveBrochure = async () => {
-    if (!frontFile && !backFile) {
+    const uploads: Array<{ type: "front" | "back"; file: File }> = [];
+    if (frontFile) uploads.push({ type: "front", file: frontFile });
+    if (backFile) uploads.push({ type: "back", file: backFile });
+
+    if (!uploads.length) {
       showAlert({
         title: "Info",
         description: "Tidak ada file brosur baru untuk diunggah",
@@ -529,49 +533,63 @@ export default function KontakMediaPage() {
 
     setSavingBrochure(true);
     try {
-      const fd = new FormData();
-      if (frontFile) fd.append("brochureFront", frontFile);
-      if (backFile) fd.append("brochureBack", backFile);
+      const responses = await Promise.all(
+        uploads.map(async ({ type, file }) => {
+          const brochure = new FormData();
+          brochure.append("brochure", file);
 
-      const uploadRes = await fetch(
-        `${BACKEND_URL}/backoffice/school-settings/brochure`,
-        {
-          method: "POST",
-          headers: {
-            ...getAuthHeader(),
-          },
-          body: fd as any,
-        },
+          const uploadRes = await fetch(
+            `${BACKEND_URL}/backoffice/school-settings/brochure/${type}`,
+            {
+              method: "PUT",
+              headers: {
+                ...getAuthHeader(),
+              },
+              body: brochure,
+            },
+          );
+
+          const data = await parseJsonResponse(uploadRes);
+          if (!uploadRes.ok) {
+            const backendErrors = Array.isArray(data?.errors)
+              ? data.errors
+                  .map((err: { message?: string }) => err?.message)
+                  .filter(Boolean)
+              : [];
+            const backendMessage = backendErrors.length
+              ? backendErrors.join("\n")
+              : data?.message;
+            const rawMessage =
+              backendMessage || data?.error || "Gagal mengunggah brosur";
+            const safeMessage =
+              typeof rawMessage === "string" && rawMessage.includes("<html")
+                ? "Gagal mengunggah brosur. Coba lagi beberapa saat."
+                : rawMessage;
+            throw new Error(safeMessage);
+          }
+
+          return data ?? {};
+        }),
       );
 
-      const data = await parseJsonResponse(uploadRes);
-      if (!uploadRes.ok) {
-        const backendErrors = Array.isArray(data?.errors)
-          ? data.errors
-              .map((err: { message?: string }) => err?.message)
-              .filter(Boolean)
-          : [];
-        const backendMessage = backendErrors.length
-          ? backendErrors.join("\n")
-          : data?.message;
-        const rawMessage =
-          backendMessage || data?.error || "Gagal mengunggah brosur";
-        const safeMessage =
-          typeof rawMessage === "string" && rawMessage.includes("<html")
-            ? "Gagal mengunggah brosur. Coba lagi beberapa saat."
-            : rawMessage;
-        throw new Error(safeMessage);
-      }
+      const merged = responses.reduce(
+        (acc: any, item: any) => ({
+          ...acc,
+          ...(item || {}),
+        }),
+        {},
+      );
 
       setForm((p: any) => ({
         ...p,
-        brochureFrontUrl: data.brochureFrontUrl ?? p.brochureFrontUrl ?? null,
-        brochureBackUrl: data.brochureBackUrl ?? p.brochureBackUrl ?? null,
+        brochureFrontUrl: merged.brochureFrontUrl ?? p.brochureFrontUrl ?? null,
+        brochureBackUrl: merged.brochureBackUrl ?? p.brochureBackUrl ?? null,
       }));
       setOriginal((o: any) => ({
         ...o,
-        brochureFrontUrl: data.brochureFrontUrl ?? o?.brochureFrontUrl ?? null,
-        brochureBackUrl: data.brochureBackUrl ?? o?.brochureBackUrl ?? null,
+        brochureFrontUrl:
+          merged.brochureFrontUrl ?? o?.brochureFrontUrl ?? null,
+        brochureBackUrl: merged.brochureBackUrl ?? o?.brochureBackUrl ?? null,
       }));
 
       // clear local files after successful upload
@@ -613,10 +631,10 @@ export default function KontakMediaPage() {
     setDeletingBrochure(true);
     try {
       const res = await fetch(
-        `/api/backoffice/school-settings/brochure?field=${field}`,
+        `${BACKEND_URL}/backoffice/school-settings/brochure/${field}`,
         {
           method: "DELETE",
-          headers: { ...getAuthHeader() },
+          headers: { ...getAuthHeader(), "Access-Control-Allow-Origin": "*" },
         },
       );
       const data = await parseJsonResponse(res);

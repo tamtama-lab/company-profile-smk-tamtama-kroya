@@ -2,7 +2,6 @@
 
 import { SectionTitle } from "@/components/SectionTitle";
 import { ImageZoomModal } from "@/components/Modal/ImageZoomModal";
-import Image from "next/image";
 import { useState } from "react";
 import { PiMagnifyingGlassBold } from "react-icons/pi";
 import { ScrollAnimationWrapper } from "@/components/ScrollAnimationWrapper";
@@ -43,7 +42,7 @@ export const BrochureSection: React.FC<{
               className="h-auto lg:h-full w-full flex flex-col"
             >
               <div className="h-64 sm:h-80 lg:h-9/10 bg-white p-2 rounded-lg">
-                <Image
+                <img
                   className="w-full h-full cursor-zoom-in hover:opacity-80 transition-opacity object-cover"
                   src={item?.image}
                   alt={item?.alt}
