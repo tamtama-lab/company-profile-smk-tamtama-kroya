@@ -634,7 +634,7 @@ export default function KontakMediaPage() {
         `${BACKEND_URL}/backoffice/school-settings/brochure/${field}`,
         {
           method: "DELETE",
-          headers: { ...getAuthHeader(), "Access-Control-Allow-Origin": "*" },
+          headers: { ...getAuthHeader() },
         },
       );
       const data = await parseJsonResponse(res);
