@@ -82,7 +82,6 @@ export default function LoginPage() {
         showAlert({ title: result.error || "Login gagal", variant: "error" });
         return;
       }
-
       // Save auth data based on remember_me preference
       const authData: AuthData = {
         access_token: result.access_token,

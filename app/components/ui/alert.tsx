@@ -157,6 +157,8 @@ const translateErrorMessage = (message: string): string => {
     "The kipNumber field must not be greater than 10 characters":
       "Nomor KIP tidak boleh lebih dari 10 karakter",
 
+    "Invalid credentials provided": "Username atau password salah",
+
     // Generic patterns
     "must be 10 characters long": "harus terdiri dari 10 karakter",
     "must be 16 characters long": "harus terdiri dari 16 karakter",

@@ -10,7 +10,7 @@ import { TextButton } from "../Buttons/TextButton";
 import { useAuth } from "../AuthGuard";
 import { ConfirmationAlert } from "@/components/Modal/ConfirmationAlert";
 import { getAcademicYear } from "@/lib/getAcademicYear";
-import { UserIcon } from "../Icon/UserIcon";
+import { ProfileUser } from "../Icon/UserIcon";
 
 export const NavItems = [
   { label: "DASHBOARD", href: "/dashboard" },
@@ -33,6 +33,8 @@ export const Header: React.FC = () => {
 
   // User info with fallback for SSR
   const displayName = user?.fullName || "Username";
+  const displayPhoto = user?.photoUrl;
+  console.log("User info:", displayPhoto);
   const displayRole =
     user?.role === "teacher"
       ? "Guru"
@@ -128,9 +130,12 @@ export const Header: React.FC = () => {
                   </div>
                 }
                 leftIcon={
-                  <div className="w-10 h-10 bg-gray-300 rounded-full flex justify-center items-center">
-                    <LuUser className="text-2xl" />{" "}
-                  </div>
+                  <ProfileUser
+                    size={50}
+                    source={
+                      typeof displayPhoto === "string" ? displayPhoto : null
+                    }
+                  />
                 }
                 width="max-w-fit"
                 color="bg-white"
@@ -177,6 +182,14 @@ export const Header: React.FC = () => {
                 rounded="rounded-sm"
                 className="px-3.5 py-2"
                 position="top"
+                leftIcon={
+                  <ProfileUser
+                    size={50}
+                    source={
+                      typeof displayPhoto === "string" ? displayPhoto : null
+                    }
+                  />
+                }
                 label={
                   <div className="flex flex-col justify-start items-start">
                     <p className="text-xs" suppressHydrationWarning>
@@ -190,7 +203,6 @@ export const Header: React.FC = () => {
                     </p>
                   </div>
                 }
-                leftIcon={<UserIcon />}
               >
                 <TextButton
                   hoverEffect={false}

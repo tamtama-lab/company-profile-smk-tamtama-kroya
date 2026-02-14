@@ -3,6 +3,7 @@ export interface User {
   fullName: string;
   username: string;
   createdAt: string;
+  photoUrl?: string;
   updatedAt: string;
   role: "teacher" | "admin" | "student";
 }
