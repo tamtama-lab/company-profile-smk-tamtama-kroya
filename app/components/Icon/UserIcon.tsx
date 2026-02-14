@@ -6,21 +6,22 @@ export type UserIconProps = {
   size?: number;
 };
 
-export function ProfileUser({ source, size = 16 }: UserIconProps) {
+export function ProfileUser({ source, size = 64 }: UserIconProps) {
+  const isValidUrl = source?.includes("https://");
+
   return (
-    <div className={`w-${size} h-${size}`}>
-      {source ? (
+    <div style={{ width: size, height: size }}>
+      {source && isValidUrl ? (
         <Image
           src={source}
           alt="User Avatar"
-          width={size}
-          height={size}
+          width={size * 2} // Load at 2x resolution
+          height={size * 2}
+          quality={90}
           className="rounded-full object-cover w-full h-full"
         />
       ) : (
-        <div
-          className={`w-full h-full bg-gray-300 rounded-full flex justify-center items-center`}
-        >
+        <div className="w-full h-full bg-gray-300 rounded-full flex justify-center items-center">
           <LuUser className="text-2xl" />
         </div>
       )}

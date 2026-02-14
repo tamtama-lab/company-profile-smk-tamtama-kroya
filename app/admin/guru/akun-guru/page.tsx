@@ -274,7 +274,7 @@ export default function AdminTeacherAccountPage() {
       render: (value) => (
         <div className="w-full my-2 flex justify-center">
           <ProfileUser
-            size={12}
+            size={40}
             source={typeof value === "string" ? value : null}
           />
         </div>
@@ -442,22 +442,9 @@ export default function AdminTeacherAccountPage() {
         ) : selectedTeacher ? (
           <div className="flex border-t  border-gray-200">
             {/* ===== SIDEBAR PROFIL ===== */}
-            <div className="w-48 flex flex-col items-center gap-4 p-6 rounded-md">
+            <div className="w-1/3 flex flex-col items-center gap-4 p-6 rounded-md">
               <div className="relative w-28 h-28 rounded-full overflow-hidden border bg-gray-200 border-gray-300">
-                {selectedTeacher.photoUrl ? (
-                  <Image
-                    src={selectedTeacher.photoUrl}
-                    alt={selectedTeacher.fullName}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-3xl text-gray-500">
-                      {selectedTeacher.fullName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
+                <ProfileUser source={selectedTeacher.photoUrl} size={112} />
               </div>
 
               <TextButton
