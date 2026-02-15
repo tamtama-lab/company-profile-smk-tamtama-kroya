@@ -565,7 +565,7 @@ export default function AdminProspectiveStudentPage() {
                 variant="outline"
                 text="Reset Filter"
                 disabled={loadingStates}
-                className="w-full font-normal px-2! sm:col-span-2 lg:w-auto mb-2 shrink-0"
+                className="w-full font-normal px-2! py-1.5! rouned-md! sm:col-span-2 lg:w-auto mb-2 shrink-0"
                 isLoading={loadingStates}
                 icon={<IoMdRefresh className="text-lg shrink-0" />}
                 onClick={handleResetFilters}

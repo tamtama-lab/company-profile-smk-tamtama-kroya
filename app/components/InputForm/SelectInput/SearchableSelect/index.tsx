@@ -15,6 +15,8 @@ interface SearchableSelectProps {
   placeholder?: string;
   isMandatory?: boolean;
   error?: string;
+  className?: string;
+  isAddValueActive?: boolean; // Opsi untuk mengaktifkan fitur tambah nilai custom
 }
 
 export const SearchableSelect: React.FC<SearchableSelectProps> = ({
@@ -28,6 +30,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   placeholder = "Pilih atau ketik...",
   isMandatory = false,
   error,
+  className = "",
+  isAddValueActive = true,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -252,12 +256,14 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                 <div className="px-4 py-2 text-gray-500 text-sm">
                   Tidak ada pilihan yang sesuai
                 </div>
-                <div
-                  onClick={() => handleAddCustom(searchValue)}
-                  className="px-4 py-2 bg-blue-50 text-primary font-semibold cursor-pointer hover:bg-blue-100 border-t border-gray-300 transition-colors"
-                >
-                  + Tambah &quot;{searchValue}&quot; sebagai pilihan baru
-                </div>
+                {isAddValueActive && (
+                  <div
+                    onClick={() => handleAddCustom(searchValue)}
+                    className="px-4 py-2 bg-blue-50 text-primary font-semibold cursor-pointer hover:bg-blue-100 border-t border-gray-300 transition-colors"
+                  >
+                    + Tambah &quot;{searchValue}&quot; sebagai pilihan baru
+                  </div>
+                )}
               </div>
             )}
         </>
@@ -299,12 +305,14 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           <div className="px-4 py-2 text-gray-500 text-sm">
             Tidak ada pilihan yang sesuai
           </div>
-          <div
-            onClick={() => handleAddCustom(searchValue)}
-            className="px-4 py-2 bg-blue-50 text-primary font-semibold cursor-pointer hover:bg-blue-100 border-t border-gray-300 transition-colors"
-          >
-            + Tambah &quot;{searchValue}&quot; sebagai pilihan baru
-          </div>
+          {isAddValueActive && (
+            <div
+              onClick={() => handleAddCustom(searchValue)}
+              className="px-4 py-2 bg-blue-50 text-primary font-semibold cursor-pointer hover:bg-blue-100 border-t border-gray-300 transition-colors"
+            >
+              + Tambah &quot;{searchValue}&quot; sebagai pilihan baru
+            </div>
+          )}
         </div>
       );
     }
@@ -328,21 +336,21 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   };
 
   return (
-    <div className="mb-2 max-sm:mb-1" ref={dropdownRef}>
+    <div className={`mb-2 max-sm:mb-1 ${className}`} ref={dropdownRef}>
       <label className="block text-sm max-sm:text-xs font-semibold text-gray-700 mb-2">
         {label} {isMandatory && <span className="text-red-500">*</span>}
       </label>
 
       {useTextInput && !isValueInOptions ? (
         // Text input untuk custom value
-        <div className="relative">
+        <div className={`relative `}>
           <input
             type="text"
             name={name}
             value={value}
             onChange={handleCustomInputChange}
             onBlur={handleBlur}
-            className={`w-full max-sm:text-xs px-4 py-2 border rounded-sm focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${
+            className={`w-full max-sm:text-xs px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${
               hasError
                 ? "border-red-500 focus:ring-red-500"
                 : "border-gray-300 focus:ring-primary"
@@ -369,8 +377,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
             onChange={handleSearchChange}
             onFocus={() => setIsOpen(true)}
             onBlur={handleBlur}
-            className={`w-full px-4 py-2 border rounded-sm focus:outline-none focus:ring-2 focus:border-transparent transition-colors
-            max-sm:px-2 max-sm:text-xs ${
+            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent transition-colors
+            max-sm:px-2 max-sm:text-xs text-sm ${
               hasError
                 ? "border-red-500 focus:ring-red-500"
                 : "border-gray-300 focus:ring-primary"

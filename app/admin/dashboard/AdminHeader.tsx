@@ -100,7 +100,7 @@ export default function AdminHeader({
                   </p>
                 </div>
               }
-              leftIcon={<UserIcon />}
+              leftIcon={<UserIcon isAdmin />}
               width="max-w-fit"
               color="bg-white"
               textColor="text-gray-900"

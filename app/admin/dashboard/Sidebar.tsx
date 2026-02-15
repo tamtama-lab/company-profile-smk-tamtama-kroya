@@ -4,14 +4,12 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   FiBarChart2,
-  FiCheckCircle,
   FiChevronRight,
   FiFile,
   FiFileText,
   FiHome,
   FiMap,
   FiPhone,
-  FiRepeat,
   FiSettings,
   FiUsers,
 } from "react-icons/fi";
@@ -21,6 +19,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { LuListChecks, LuUserCheck } from "react-icons/lu";
 
 const sidebarItems = [
   {
@@ -77,12 +76,12 @@ const sidebarItems = [
     group: "manajemen guru",
     items: [
       {
-        icon: FiCheckCircle,
+        icon: LuUserCheck,
         label: "Akun Guru",
         href: "/admin/guru/akun-guru",
       },
       {
-        icon: FiRepeat,
+        icon: LuListChecks,
         label: "Pendaftaran Oleh Guru",
         href: "/admin/guru/pendaftaran-oleh-guru",
       },
