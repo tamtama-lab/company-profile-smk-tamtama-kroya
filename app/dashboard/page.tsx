@@ -9,7 +9,6 @@ import { HiUserGroup } from "react-icons/hi";
 import {
   FaCalendarDay,
   FaCalendarWeek,
-  FaMagnifyingGlass,
 } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import { ModalPreviewData } from "@/components/Modal/PreviewDataModal";

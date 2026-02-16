@@ -2,7 +2,7 @@
 
 import Toggle from "@/components/ui/toggle";
 import React, { useState } from "react";
-import { LuGripVertical, LuTrash2 } from "react-icons/lu";
+import { LuGripVertical } from "react-icons/lu";
 
 export interface BenefitItem {
   id: string;

@@ -21,7 +21,7 @@ import ReusableTable, { Column } from "@/components/Table/ReusableTable";
 import { ModalPreviewData } from "@/components/Modal/PreviewDataModal";
 import { BaseModal } from "@/components/Modal/BaseModal";
 import Skeleton from "@/components/Skeleton";
-import { LuEye, LuPen, LuTrash2 } from "react-icons/lu";
+import { LuEye } from "react-icons/lu";
 import Link from "next/link";
 import {
   Tooltip,

@@ -69,11 +69,11 @@ export async function GET(request: NextRequest) {
     } else if (data.data && Array.isArray(data.data)) {
       teachers = data.data
         .map(normalizeTeacher)
-        .filter((item) => item.fullName);
+        .filter((item: { fullName: string; }) => item.fullName);
     } else if (data.teachers && Array.isArray(data.teachers)) {
       teachers = data.teachers
         .map(normalizeTeacher)
-        .filter((item) => item.fullName);
+        .filter((item: { fullName: string; }) => item.fullName);
     }
     teachers = teachers.slice(0, 10);
 

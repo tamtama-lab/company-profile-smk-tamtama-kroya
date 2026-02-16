@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import DragDropFile from "@/components/Upload/DragDropFile";
-import { LuX } from "react-icons/lu";
 
 export interface PhotoUploadProps {
   previewUrl: string;
