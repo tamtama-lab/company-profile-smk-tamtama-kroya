@@ -4,6 +4,7 @@ import "./globals.css";
 import LayoutWrapper from "./Layout/LayoutWrapper";
 import { AlertProvider } from "./components/ui/alert";
 import { TooltipProvider } from "./components/ui/tooltip";
+import { ThemeProvider } from "./providers/ThemeProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -25,13 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
-        <AlertProvider>
-          <TooltipProvider>
-            <LayoutWrapper>{children}</LayoutWrapper>
-          </TooltipProvider>
-        </AlertProvider>
+        <ThemeProvider>
+          <AlertProvider>
+            <TooltipProvider>
+              <LayoutWrapper>{children}</LayoutWrapper>
+            </TooltipProvider>
+          </AlertProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

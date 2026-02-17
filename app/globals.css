@@ -13,6 +13,17 @@
     --major-dkv-color: #0000FF;
     --major-titl-color: #4D4FA4;
     --major-tp-color: #5DB1F5;
+    --background-color: #ffffff;
+    --background-primary-color: #014921;
+    --background-secondary-color: #e9e9e9;
+    --text-color: #282828;
+}
+
+.dark {
+    --background-color: #282828;
+    --background-secondary-color: #2d2d2d;
+    --text-color: #e2e2e2;
+    --backgrond-color: #25d366;
 }
 
 @layer components {
@@ -20,6 +31,14 @@
     /* declare background color variables */
     .bg-primary {
         background-color: var(--primary-color);
+    }
+
+    .bg-background {
+        background-color: var(--background-color);
+    }
+
+    .bg-background-secondary {
+        background-color: var(--background-secondary-color);
     }
 
     .fill-primary {

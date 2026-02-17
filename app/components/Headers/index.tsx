@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { MdOutlineArrowDropDown, MdMenu, MdClose } from "react-icons/md";
 import { TextButton } from "../Buttons/TextButton";
 import Link from "next/link";
-import { LuSchool, LuTrophy } from "react-icons/lu";
+import { LuMoon, LuSchool, LuSun, LuTrophy } from "react-icons/lu";
 import { FaGraduationCap, FaHandHoldingHeart, FaPhone } from "react-icons/fa6";
 import { AiOutlineRise } from "react-icons/ai";
 import { PiPathBold } from "react-icons/pi";
@@ -12,8 +12,7 @@ import { FaCheckCircle } from "react-icons/fa";
 import { IoMdPin } from "react-icons/io";
 import { VideoTutorialModal } from "../Modal/VideoTutorialModal";
 import { getAcademicYear } from "@/lib/getAcademicYear";
-
-
+import { useTheme } from "next-themes";
 
 export const NavItems = [
   { label: "Beranda", href: "/" },
@@ -84,10 +83,20 @@ export const NavItems = [
 ];
 
 export const Header: React.FC = () => {
+  const { setTheme, theme } = useTheme();
+  console.log("Current theme:", theme);
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [isVideoTutorialOpen, setIsVideoTutorialOpen] = useState(false);
+
+  const onChangeTheme = () => {
+    if (theme === "light") {
+      setTheme("dark");
+    } else {
+      setTheme("light");
+    }
+  };
 
   const toggleExpandItem = (label: string) => {
     setExpandedItem(expandedItem === label ? null : label);
@@ -104,7 +113,7 @@ export const Header: React.FC = () => {
   return (
     <>
       <header
-        className={`fixed bg-white text-black shadow-lg w-full px-4 sm:px-6 lg:px-10 py-3 sm:py-4 z-[1000] top-0 `}
+        className={`fixed bg-background text-text black shadow-lg w-full px-4 sm:px-6 lg:px-10 py-3 sm:py-4 z-1000 top-0 `}
       >
         <div className="w-full flex flex-row justify-between items-center">
           <div className="w-fit flex flex-row items-center justify-start">
@@ -121,9 +130,7 @@ export const Header: React.FC = () => {
                 <h1 className="text-sm sm:text-base font-bold">
                   SMK Tamtama Kroya
                 </h1>
-                <p className="text-xs sm:text-sm">
-                  PPDB {getAcademicYear()}
-                </p>
+                <p className="text-xs sm:text-sm">PPDB {getAcademicYear()}</p>
               </div>
             )}
           </div>
@@ -146,7 +153,7 @@ export const Header: React.FC = () => {
               <div key={item.label} className="relative group/nav">
                 <a
                   href={item.href}
-                  className="relative flex flex-row justify-center items-center text-xs sm:text-sm font-medium text-black hover:text-primary transition-colors duration-200 ease-in-out
+                  className="relative flex flex-row justify-center items-center text-xs sm:text-sm font-medium text-text hover:text-primary transition-colors duration-200 ease-in-out
                   after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-[#014921] 
                   after:transition-all after:duration-300 after:ease-in-out
                   hover:after:w-full"
@@ -163,7 +170,7 @@ export const Header: React.FC = () => {
                 </a>
                 {item?.children && (
                   <div
-                    className="absolute left-0 top-full mt-0 w-fit min-w-52 max-w-full bg-white shadow-lg drop-shadow-gray-300 border border-gray-200 rounded-md p-3 sm:p-4
+                    className="absolute left-0 top-full mt-0 w-fit min-w-52 max-w-full bg-background shadow-lg drop-shadow-gray-300 border border-gray-200 rounded-md p-3 sm:p-4
                     opacity-0 translate-y-2 pointer-events-none invisible
                     space-y-6
                     transition-all duration-300 ease-out
@@ -179,7 +186,7 @@ export const Header: React.FC = () => {
                         <a
                           href={child.href}
                           className="
-                        w-fit relative last:mb-0 justify-left items-center text-xs sm:text-sm font-medium text-black hover:text-primary transition-colors duration-200 ease-in-out
+                        w-fit relative last:mb-0 justify-left items-center text-xs sm:text-sm font-medium text-text hover:text-primary transition-colors duration-200 ease-in-out
                         after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-[#014921] 
                         after:transition-all after:duration-300 after:ease-in-out
                         hover:after:w-full"
@@ -194,6 +201,17 @@ export const Header: React.FC = () => {
             ))}
           </div>
           <div className="flex-row hidden lg:flex">
+            {/* <TextButton
+              variant="icon"
+              icon={
+                theme === "dark" ? (
+                  <LuSun size={20} className="text-text" />
+                ) : (
+                  <LuMoon size={20} className="text-text" />
+                )
+              }
+              onClick={onChangeTheme}
+            /> */}
             <TextButton
               onClick={() => setIsVideoTutorialOpen(true)}
               variant="outline"
@@ -223,7 +241,7 @@ export const Header: React.FC = () => {
               {NavItems.map((item) => (
                 <div key={item.label} className="flex flex-col">
                   <div
-                    className="flex flex-row items-center justify-between text-sm font-medium text-black hover:text-primary transition-colors py-2 cursor-pointer"
+                    className="flex flex-row items-center justify-between text-sm font-medium text-text hover:text-primary transition-colors py-2 cursor-pointer"
                     onClick={() => {
                       if (item?.children) {
                         toggleExpandItem(item.label);
@@ -258,7 +276,7 @@ export const Header: React.FC = () => {
                         <a
                           key={child.label}
                           href={child.href}
-                          className="text-sm flex flex-row gap-2 font-medium text-gray-700 hover:text-primary transition-colors py-1"
+                          className="text-sm flex flex-row gap-2 font-medium text-text hover:text-primary transition-colors py-1"
                           onClick={() => setIsMenuOpen(false)}
                         >
                           {child?.icon ?? ""}

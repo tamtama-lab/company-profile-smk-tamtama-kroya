@@ -14,6 +14,14 @@ const config: Config = {
         secondary: "#56B680",
         accent: "#FF8E8E",
       },
+      backgroundColor: {
+        background: 'var(--background-color)',
+        backgroundPrimary: 'var(--background-color)',
+        backgroundSecondary: 'var(--background-secondary-color)'
+        },
+      textColor:{
+        text: 'var(--text-color)',
+      },
       animation: {
         'fade-in-up': 'fadeInUp 0.6s ease-out',
         'fade-in-down': 'fadeInDown 0.6s ease-out',

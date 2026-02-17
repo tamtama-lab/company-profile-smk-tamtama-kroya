@@ -14,7 +14,7 @@ export const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="w-full h-fit min-h-[80vh] bg-[#F5F5F5] text-primary flex flex-row items-center justify-center px-48 max-sm:px-8 max-md:px-16 max-lg:px-12 max-xl:px-40 py-10">
+    <section className="w-full h-fit min-h-[80vh] bg-background text-primary flex flex-row items-center justify-center px-48 max-sm:px-8 max-md:px-16 max-lg:px-12 max-xl:px-40 py-10">
       <div className="w-full h-full flex flex-row max-sm:flex-col justify-between items-center">
         {/* Text Section */}
         <div className=" h-full w-[56%] max-sm:w-full flex flex-col items-center justify-center">
@@ -26,13 +26,13 @@ export const HeroSection: React.FC = () => {
               </ScrollAnimationWrapper>
             </ScrollAnimationWrapper>
             <ScrollAnimationWrapper>
-              <h1 className="text-3xl max-sm:text-2xl text-left text-[#2D2D2D] font-semibold">
+              <h1 className="text-3xl max-sm:text-2xl text-left text-text font-semibold">
                 Portal Penerimaan Peserta Didik Baru (PPDB) SMK Tamtama Kroya{" "}
                 {getAcademicYear()}
               </h1>
             </ScrollAnimationWrapper>
             <ScrollAnimationWrapper>
-              <h2 className="text-xl max-sm:text-lg text-[#014921]">
+              <h2 className="text-xl max-sm:text-lg text-primary">
                 🏅SMK Pusat Keunggulan (PK)
               </h2>
             </ScrollAnimationWrapper>
