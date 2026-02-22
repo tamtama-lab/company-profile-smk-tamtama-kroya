@@ -65,7 +65,7 @@ export const DateInput: React.FC<DateInputProps> = ({
           <button
             // variant="link"
             id={name}
-            className="w-full flex flex-row border border-gray-300 justify-start text-left px-4 py-2 max-sm:py-1 rounded-sm font-normal"
+            className="w-full flex flex-row border border-gray-300 justify-start text-left px-4 py-1.5 max-sm:py-1 rounded-sm font-normal"
           >
             <div className="w-full max-sm:text-xs flex items-center">
               {" "}

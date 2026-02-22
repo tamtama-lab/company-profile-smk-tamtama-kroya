@@ -128,7 +128,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
             onChange={handleChange}
             onBlur={handleBlur}
             className={cn(
-              "w-full px-4 max-sm:text-sm py-2 max-sm:py-1 border rounded-sm",
+              "w-full px-4 max-sm:text-sm py-1.5 max-sm:py-1 border rounded-sm",
               "placeholder-gray-400 max-sm:placeholder:text-xs",
               "focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white focus:border-transparent transition-colors",
               (isAboveLimit || showEmailError || error) &&

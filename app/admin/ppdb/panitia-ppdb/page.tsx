@@ -42,6 +42,16 @@ interface CommitteeData {
   stampUrl: string;
 }
 
+interface PreviewCommitteeOverride {
+  name?: string | null;
+  position?: string | null;
+  nip?: string | null;
+  place?: string | null;
+  defaultDate?: string | null;
+  signatureUrl?: string | null;
+  stampUrl?: string | null;
+}
+
 const committeeSchema = z.object({
   name: z.string().min(1, "Mohon isi nama panitia terlebih dahulu"),
   position: z.string().min(1, "Mohon isi jabatan terlebih dahulu"),
@@ -298,7 +308,7 @@ export default function PanitiaPpdbPage() {
 
         if (response.status === 404) {
           resetCommitteeForm();
-          return;
+          return null;
         }
 
         const result = await safeReadJson(response);
@@ -313,7 +323,7 @@ export default function PanitiaPpdbPage() {
             ),
             variant: "error",
           });
-          return;
+          return null;
         }
 
         const dataSource = result as { data?: CommitteeData } | CommitteeData;
@@ -334,6 +344,8 @@ export default function PanitiaPpdbPage() {
           place: data?.place || "",
           defaultDate: data?.defaultDate || "",
         });
+
+        return data;
       } catch (error) {
         console.error("Error loading committee:", error);
         showAlert({
@@ -344,6 +356,7 @@ export default function PanitiaPpdbPage() {
               : "Gagal memuat data panitia",
           variant: "error",
         });
+        return null;
       } finally {
         setIsLoadingCommittee(false);
       }
@@ -431,11 +444,6 @@ export default function PanitiaPpdbPage() {
       });
 
       await loadCommitteeByAcademicYear(selectedYearId);
-
-      // Regenerate PDF preview to reflect newly saved data
-      if (displayPreview) {
-        renderInlinePdfPreview();
-      }
     } catch (error) {
       console.error("Error saving committee:", error);
       showAlert({
@@ -500,58 +508,73 @@ export default function PanitiaPpdbPage() {
     };
   }, []);
 
-  const renderInlinePdfPreview = useCallback(async () => {
-    try {
-      setIsGeneratingInlinePreview(true);
+  const renderInlinePdfPreview = useCallback(
+    async (overrideData?: PreviewCommitteeOverride) => {
+      try {
+        setIsGeneratingInlinePreview(true);
 
-      const registration = buildPreviewRegistration();
+        const registration = buildPreviewRegistration();
 
-      let dataUrl = "";
-      let lastError: unknown = null;
+        const effectivePreviewData = overrideData
+          ? {
+              name: overrideData.name ?? "",
+              position: overrideData.position ?? "",
+              nip: overrideData.nip ?? null,
+              place: overrideData.place ?? "",
+              defaultDate: overrideData.defaultDate ?? "",
+              signatureUrl: overrideData.signatureUrl ?? "",
+              stampUrl: overrideData.stampUrl ?? "",
+            }
+          : previewData;
 
-      for (let attempt = 1; attempt <= 2; attempt += 1) {
-        try {
-          dataUrl = await generatePendaftaranUlangPdfDataUrl({
-            registration,
-            committee: {
-              name: previewData.name || "Panitia PPDB",
-              position: previewData.position || "Ketua",
-              title: "Panitia Sistem Penerimaan Murid Baru",
-              nip: toNullableString(previewData.nip),
-              place: previewData.place || "Kroya",
-              date: previewData.defaultDate,
-              signatureUrl: previewData.signatureUrl,
-              stampUrl: previewData.stampUrl,
-              stampSize: "small",
-            },
-          });
-          break;
-        } catch (error) {
-          lastError = error;
+        let dataUrl = "";
+        let lastError: unknown = null;
 
-          if (attempt === 1) {
-            await new Promise((resolve) => setTimeout(resolve, 700));
+        for (let attempt = 1; attempt <= 2; attempt += 1) {
+          try {
+            dataUrl = await generatePendaftaranUlangPdfDataUrl({
+              registration,
+              committee: {
+                name: effectivePreviewData.name || "Panitia PPDB",
+                position: effectivePreviewData.position || "Ketua",
+                title: "Panitia Sistem Penerimaan Murid Baru",
+                nip: toNullableString(effectivePreviewData.nip),
+                place: effectivePreviewData.place || "Kroya",
+                date: effectivePreviewData.defaultDate,
+                signatureUrl: effectivePreviewData.signatureUrl,
+                stampUrl: effectivePreviewData.stampUrl,
+                stampSize: "small",
+              },
+            });
+            break;
+          } catch (error) {
+            lastError = error;
+
+            if (attempt === 1) {
+              await new Promise((resolve) => setTimeout(resolve, 700));
+            }
           }
         }
-      }
 
-      if (!dataUrl) {
-        throw lastError ?? new Error("Gagal menyiapkan preview PDF");
-      }
+        if (!dataUrl) {
+          throw lastError ?? new Error("Gagal menyiapkan preview PDF");
+        }
 
-      setInlinePdfPreviewUrl(dataUrl);
-    } catch (error) {
-      console.error("Failed to render inline PDF preview:", error);
-      setInlinePdfPreviewUrl("");
-      showAlert({
-        title: "Gagal",
-        description: "Tidak dapat menampilkan preview PDF di panel",
-        variant: "error",
-      });
-    } finally {
-      setIsGeneratingInlinePreview(false);
-    }
-  }, [buildPreviewRegistration, previewData, showAlert]);
+        setInlinePdfPreviewUrl(dataUrl);
+      } catch (error) {
+        console.error("Failed to render inline PDF preview:", error);
+        setInlinePdfPreviewUrl("");
+        showAlert({
+          title: "Gagal",
+          description: "Tidak dapat menampilkan preview PDF di panel",
+          variant: "error",
+        });
+      } finally {
+        setIsGeneratingInlinePreview(false);
+      }
+    },
+    [buildPreviewRegistration, previewData, showAlert],
+  );
 
   useEffect(() => {
     if (isLoadingCommittee || isLoadingYears) {
@@ -596,7 +619,33 @@ export default function PanitiaPpdbPage() {
               text={
                 displayPreview ? "Sembunyikan Preview" : "Tampilkan Preview"
               }
-              onClick={() => setDisplayPreview((prev) => !prev)}
+              onClick={async () => {
+                if (displayPreview) {
+                  setDisplayPreview(false);
+                  return;
+                }
+
+                let latestCommittee: CommitteeData | null = null;
+
+                if (selectedYearId) {
+                  latestCommittee =
+                    await loadCommitteeByAcademicYear(selectedYearId);
+                }
+
+                setDisplayPreview(true);
+
+                if (latestCommittee) {
+                  await renderInlinePdfPreview({
+                    name: latestCommittee.name,
+                    position: latestCommittee.position,
+                    nip: latestCommittee.nip ?? null,
+                    place: latestCommittee.place,
+                    defaultDate: latestCommittee.defaultDate,
+                    signatureUrl: latestCommittee.signatureUrl,
+                    stampUrl: latestCommittee.stampUrl,
+                  });
+                }
+              }}
             />
           </div>
 
@@ -794,7 +843,7 @@ export default function PanitiaPpdbPage() {
             </div>
 
             {displayPreview && (
-              <div className="w-1/2 border border-gray-300 shadow-sm rounded-md bg-white p-4">
+              <div className="w-1/2 border border-gray-300 shadow-sm rounded-md bg-white p-2">
                 {isGeneratingInlinePreview ? (
                   <div className="h-full border border-gray-200 rounded-md flex items-center justify-center text-sm text-gray-500">
                     Menyiapkan preview PDF...
