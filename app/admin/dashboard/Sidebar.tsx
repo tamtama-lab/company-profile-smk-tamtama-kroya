@@ -17,10 +17,11 @@ import {
   FiSettings,
   FiUsers,
 } from "react-icons/fi";
-import { MdExpandMore } from "react-icons/md";
-import { LuFilePenLine, LuListChecks } from "react-icons/lu";
+import { MdExpandMore, MdSportsTennis } from "react-icons/md";
+import { LuFilePenLine, LuListChecks, LuTrophy } from "react-icons/lu";
 import { TbMessageUser } from "react-icons/tb";
 import { FaChalkboardTeacher } from "react-icons/fa";
+import { FaGraduationCap } from "react-icons/fa6";
 
 const sidebarItems = [
   {
@@ -55,6 +56,26 @@ const sidebarItems = [
         icon: FiPhone,
         label: "Kontak & Media Sosial",
         href: "/admin/informasi/kontak-media",
+      },
+    ],
+  },
+  {
+    group: "manajemen kesiswaan",
+    items: [
+      {
+        icon: FaGraduationCap,
+        label: "Data Alumni",
+        href: "/admin/siswa/data-alumni",
+      },
+      {
+        icon: LuTrophy,
+        label: "Prestasi Siswa",
+        href: "/admin/siswa/prestasi-siswa",
+      },
+      {
+        icon: MdSportsTennis,
+        label: "Ekstrakurikuler",
+        href: "/admin/siswa/ekstrakurikuler",
       },
     ],
   },
