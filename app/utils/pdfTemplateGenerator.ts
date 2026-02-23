@@ -1,7 +1,5 @@
 import {
   createDocument,
-  PendaftaranUlangTemplate,
-  type PendaftaranUlangTemplateOptions,
 } from "@tamtama-lab/pdf-templates";
 import { initPdfMake } from "@tamtama-lab/pdf-templates/browser";
 import { createHeaderSection } from "@tamtama-lab/pdf-templates/sections/header";
@@ -10,13 +8,48 @@ import {
   type SignatureInfo,
 } from "@tamtama-lab/pdf-templates/sections/signature";
 import type { TDocumentDefinitions } from "pdfmake/interfaces";
-import { PendaftaranUlangCustomTemplate } from "@/utils/templates/PendaftaranUlangCustomTemplate";
 
 export type PdfAction = "open" | "download" | "print" | "preview";
 
-type PendaftaranUlangRegistration = ConstructorParameters<
-  typeof PendaftaranUlangTemplate
->[0];
+interface PendaftaranUlangStudentDetail {
+  nisn?: string | null;
+  nik?: string | null;
+  fullName?: string | null;
+  placeOfBirth?: string | null;
+  dateOfBirth?: string | null;
+  gender?: number | null;
+  religion?: string | null;
+  schoolOriginName?: string | null;
+  schoolOriginNpsn?: string | null;
+  address?: string | null;
+  phoneNumber?: string | null;
+  email?: string | null;
+  isKipRecipient?: boolean | null;
+  kipNumber?: string | null;
+}
+
+interface PendaftaranUlangParentDetail {
+  fatherName?: string | null;
+  fatherLivingStatus?: string | null;
+  motherName?: string | null;
+  motherLivingStatus?: string | null;
+  parentPhoneNumber?: string | null;
+  parentAddress?: string | null;
+  guardianName?: string | null;
+  guardianPhoneNumber?: string | null;
+  guardianAddress?: string | null;
+}
+
+export interface PendaftaranUlangRegistration {
+  registrationNumber?: number | string | null;
+  majorChoiceCode?: string | null;
+  createdAt?: string | Date | null;
+  updatedAt?: string | Date | null;
+  studentDetail?: PendaftaranUlangStudentDetail | null;
+  parentDetail?: PendaftaranUlangParentDetail | null;
+  majorChoice?: unknown;
+  author?: unknown;
+}
 
 export interface CommitteeSignaturePayload {
   name: string;
@@ -33,7 +66,6 @@ export interface CommitteeSignaturePayload {
 export interface GeneratePendaftaranUlangPdfParams {
   registration: PendaftaranUlangRegistration;
   committee?: CommitteeSignaturePayload;
-  options?: Omit<PendaftaranUlangTemplateOptions, "signature">;
   action?: PdfAction;
   filename?: string;
   targetWindow?: Window | null;
@@ -65,31 +97,33 @@ export function createTemplateSignature(committee: CommitteeSignaturePayload) {
 }
 
 export function createPendaftaranUlangDocDefinition({
-  registration,
   committee,
 }: Omit<GeneratePendaftaranUlangPdfParams, "action" | "filename">): TDocumentDefinitions {
+  const signature = createSignatureSection(
+    committee
+      ? buildSignatureInfo(committee)
+      : {
+          name: "Panitia PPDB",
+          position: "Ketua",
+        },
+  );
+
   return createDocument(
-    new PendaftaranUlangCustomTemplate(
-      registration,
-      committee
-        ? {
-            name: committee.name,
-            position: committee.position,
-            title: committee.title,
-            nip: committee.nip,
-            place: committee.place,
-            date: committee.date,
-            signatureImage: committee.signatureUrl,
-            stampImage: committee.stampUrl,
-            stampSize: committee.stampSize,
-          }
-        : undefined,
-    ),
+    [
+      createHeaderSection(),
+      { marginTop: 120, text: "" },
+      {
+        columns: [{ width: "*", text: "" }, { width: 220, ...signature }],
+      },
+    ],
+    {
+      pageMargins: [30, 30, 30, 30],
+    },
   );
 }
 
 export async function generatePendaftaranUlangPdf({
-  registration,
+  registration: _registration,
   committee,
   action = "open",
   filename = "pendaftaran-ulang.pdf",
@@ -107,8 +141,8 @@ export async function generatePendaftaranUlangPdf({
     : undefined;
 
   const docDefinition = createPendaftaranUlangDocDefinition({
-    registration,
     committee: resolvedCommittee,
+    registration: _registration,
   });
 
   const pdfInstance = pdfMake.createPdf(docDefinition);
@@ -133,7 +167,7 @@ export async function generatePendaftaranUlangPdf({
 }
 
 export async function generatePendaftaranUlangPdfDataUrl({
-  registration,
+  registration: _registration,
   committee,
 }: Omit<GeneratePendaftaranUlangPdfParams, "action" | "filename" | "targetWindow">): Promise<string> {
   const { default: pdfMake } = await import("pdfmake/build/pdfmake");
@@ -148,12 +182,47 @@ export async function generatePendaftaranUlangPdfDataUrl({
     : undefined;
 
   const docDefinition = createPendaftaranUlangDocDefinition({
-    registration,
     committee: resolvedCommittee,
+    registration: _registration,
   });
 
   const pdfInstance = pdfMake.createPdf(docDefinition);
   return getPdfDataUrl(pdfInstance);
+}
+
+export async function generatePendaftaranUlangPdfBlob({
+  registration: _registration,
+  committee,
+}: Omit<GeneratePendaftaranUlangPdfParams, "action" | "filename" | "targetWindow">): Promise<Blob> {
+  const { default: pdfMake } = await import("pdfmake/build/pdfmake");
+
+  if (!isPdfMakeInitialized) {
+    initPdfMake(pdfMake);
+    isPdfMakeInitialized = true;
+  }
+
+  const resolvedCommittee = committee
+    ? await resolveCommitteeImageSources(committee)
+    : undefined;
+
+  const docDefinition = createPendaftaranUlangDocDefinition({
+    committee: resolvedCommittee,
+    registration: _registration,
+  });
+
+  const pdfInstance = pdfMake.createPdf(docDefinition);
+  return getPdfBlob(pdfInstance);
+}
+
+export function createPdfObjectUrl(
+  blob: Blob,
+  previousUrl?: string | null,
+): string {
+  if (previousUrl) {
+    URL.revokeObjectURL(previousUrl);
+  }
+
+  return URL.createObjectURL(blob);
 }
 
 function parseSignatureDate(value?: string | Date): Date | undefined {
@@ -284,6 +353,16 @@ async function getPdfDataUrl(pdfInstance: {
   return new Promise<string>((resolve) => {
     pdfInstance.getDataUrl((dataUrl) => {
       resolve(dataUrl);
+    });
+  });
+}
+
+async function getPdfBlob(pdfInstance: {
+  getBlob: (callback: (blob: Blob) => void) => void;
+}): Promise<Blob> {
+  return new Promise<Blob>((resolve) => {
+    pdfInstance.getBlob((blob) => {
+      resolve(blob);
     });
   });
 }

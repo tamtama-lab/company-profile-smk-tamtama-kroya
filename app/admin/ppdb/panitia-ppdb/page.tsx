@@ -17,94 +17,30 @@ import { FormInput } from "@/components/ui/form-input";
 import { PhotoUpload } from "@/components/Upload/PhotoUpload";
 import { getAuthHeader } from "@/utils/auth";
 import {
-  generatePendaftaranUlangPdf,
-  generatePendaftaranUlangPdfDataUrl,
+  createPdfObjectUrl,
+  generatePendaftaranUlangPdfBlob,
 } from "@/utils/pdfTemplateGenerator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
-
-interface AcademicYearOption {
-  value: string | number;
-  label: string;
-}
-
-interface CommitteeData {
-  id?: number;
-  academicYearId: number;
-  name: string;
-  position: string;
-  nip?: string | null;
-  place: string;
-  defaultDate: string;
-  signatureUrl: string;
-  stampUrl: string;
-}
-
-interface PreviewCommitteeOverride {
-  name?: string | null;
-  position?: string | null;
-  nip?: string | null;
-  place?: string | null;
-  defaultDate?: string | null;
-  signatureUrl?: string | null;
-  stampUrl?: string | null;
-}
-
-const committeeSchema = z.object({
-  name: z.string().min(1, "Mohon isi nama panitia terlebih dahulu"),
-  position: z.string().min(1, "Mohon isi jabatan terlebih dahulu"),
-  nip: z.string().optional().nullable(),
-  place: z.string().min(1, "Mohon isi tempat terlebih dahulu"),
-  defaultDate: z.string().min(1, "Mohon isi tanggal terlebih dahulu"),
-});
-
-type CommitteeFormData = z.infer<typeof committeeSchema>;
-
-function toNullableString(value: string | null | undefined): string | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-async function safeReadJson(response: Response): Promise<unknown> {
-  try {
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-function getApiErrorMessage(result: unknown, status: number, fallback: string) {
-  if (result && typeof result === "object") {
-    const maybeRecord = result as { message?: string; error?: string };
-    if (maybeRecord.message?.trim()) {
-      return maybeRecord.message;
-    }
-    if (maybeRecord.error?.trim()) {
-      return maybeRecord.error;
-    }
-  }
-
-  if (status === 401) {
-    return "Sesi login berakhir. Silakan login kembali";
-  }
-
-  if (status >= 500) {
-    return "Terjadi kesalahan server. Silakan coba lagi beberapa saat";
-  }
-
-  return fallback;
-}
+import {
+  buildPreviewRegistration,
+  getApiErrorMessage,
+  safeReadJson,
+  toNullableString,
+} from "./helpers";
+import {
+  committeeSchema,
+  type AcademicYearOption,
+  type CommitteeData,
+  type CommitteeFormData,
+  type PreviewCommitteeOverride,
+} from "./types";
 
 export default function PanitiaPpdbPage() {
   const { showAlert } = useAlert();
 
-  const [displayPreview, setDisplayPreview] = useState(false);
+  const [displayPreview, setDisplayPreview] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingInlinePreview, setIsGeneratingInlinePreview] =
     useState(false);
@@ -123,9 +59,12 @@ export default function PanitiaPpdbPage() {
   const [signaturePreview, setSignaturePreview] = useState<string>("");
   const [stampPreview, setStampPreview] = useState<string>("");
   const [inlinePdfPreviewUrl, setInlinePdfPreviewUrl] = useState<string>("");
+  const previewDebounceRef = useRef<number | null>(null);
+  const previewRequestRef = useRef(0);
 
   const form = useForm<CommitteeFormData>({
     resolver: zodResolver(committeeSchema),
+    mode: "onChange",
     defaultValues: {
       name: "",
       position: "",
@@ -134,21 +73,9 @@ export default function PanitiaPpdbPage() {
       defaultDate: "",
     },
   });
+  const { isValid } = form.formState;
 
   const isBusy = isSaving || isLoadingCommittee || isLoadingYears;
-
-  const previewData = useMemo(
-    () => ({
-      name: form.watch("name"),
-      position: form.watch("position"),
-      nip: form.watch("nip"),
-      place: form.watch("place"),
-      defaultDate: form.watch("defaultDate"),
-      signatureUrl: signaturePreview,
-      stampUrl: stampPreview,
-    }),
-    [form, signaturePreview, stampPreview],
-  );
 
   const toDataUrl = (file: File, setter: (value: string) => void) => {
     const reader = new FileReader();
@@ -173,6 +100,24 @@ export default function PanitiaPpdbPage() {
       defaultDate: "",
     });
   }, [form]);
+
+  const clearInlinePdfPreview = useCallback(() => {
+    setInlinePdfPreviewUrl((previousUrl) => {
+      if (previousUrl) {
+        URL.revokeObjectURL(previousUrl);
+      }
+      return "";
+    });
+  }, []);
+
+  const cancelPendingPreview = useCallback(() => {
+    if (previewDebounceRef.current) {
+      window.clearTimeout(previewDebounceRef.current);
+      previewDebounceRef.current = null;
+    }
+
+    previewRequestRef.current += 1;
+  }, []);
 
   const handleSignatureChange = (file: File | null) => {
     if (!file) {
@@ -468,71 +413,33 @@ export default function PanitiaPpdbPage() {
     loadCommitteeByAcademicYear(selectedYearId);
   }, [loadCommitteeByAcademicYear, selectedYearId]);
 
-  const buildPreviewRegistration = useCallback((): Parameters<
-    typeof generatePendaftaranUlangPdf
-  >[0]["registration"] => {
-    return {
-      registrationNumber: 20260001,
-      majorChoiceCode: "Jurusan Pilihan",
-      createdAt: new Date().toISOString(),
-      updatedAt: null,
-      studentDetail: {
-        nisn: "1234567890",
-        nik: "3301010101010001",
-        fullName: "Nama Calon Murid",
-        placeOfBirth: "Kota Lahir",
-        dateOfBirth: "2010-01-01",
-        gender: 1,
-        religion: "islam",
-        schoolOriginName: "SMP Negeri 1 Kroya",
-        schoolOriginNpsn: "20300562",
-        address: "Jl. Semangka Kedawung, Kroya",
-        phoneNumber: "081234567890",
-        email: "preview@student.com",
-        isKipRecipient: false,
-        kipNumber: null,
-      },
-      parentDetail: {
-        fatherName: "Ayah Preview",
-        fatherLivingStatus: "alive",
-        motherName: "Ibu Preview",
-        motherLivingStatus: "alive",
-        parentPhoneNumber: "081234567891",
-        parentAddress: "Jl. Semangka Kedawung, Kroya",
-        guardianName: null,
-        guardianPhoneNumber: null,
-        guardianAddress: null,
-      },
-      majorChoice: null,
-      author: null,
-    };
-  }, []);
-
   const renderInlinePdfPreview = useCallback(
     async (overrideData?: PreviewCommitteeOverride) => {
+      const requestId = ++previewRequestRef.current;
+
       try {
         setIsGeneratingInlinePreview(true);
 
         const registration = buildPreviewRegistration();
+        const formValues = form.getValues();
 
-        const effectivePreviewData = overrideData
-          ? {
-              name: overrideData.name ?? "",
-              position: overrideData.position ?? "",
-              nip: overrideData.nip ?? null,
-              place: overrideData.place ?? "",
-              defaultDate: overrideData.defaultDate ?? "",
-              signatureUrl: overrideData.signatureUrl ?? "",
-              stampUrl: overrideData.stampUrl ?? "",
-            }
-          : previewData;
+        const effectivePreviewData = {
+          name: overrideData?.name ?? formValues.name ?? "",
+          position: overrideData?.position ?? formValues.position ?? "",
+          nip: overrideData?.nip ?? formValues.nip ?? null,
+          place: overrideData?.place ?? formValues.place ?? "",
+          defaultDate:
+            overrideData?.defaultDate ?? formValues.defaultDate ?? "",
+          signatureUrl: overrideData?.signatureUrl ?? signaturePreview,
+          stampUrl: overrideData?.stampUrl ?? stampPreview,
+        };
 
-        let dataUrl = "";
+        let blob: Blob | null = null;
         let lastError: unknown = null;
 
         for (let attempt = 1; attempt <= 2; attempt += 1) {
           try {
-            dataUrl = await generatePendaftaranUlangPdfDataUrl({
+            blob = await generatePendaftaranUlangPdfBlob({
               registration,
               committee: {
                 name: effectivePreviewData.name || "Panitia PPDB",
@@ -556,50 +463,132 @@ export default function PanitiaPpdbPage() {
           }
         }
 
-        if (!dataUrl) {
+        if (!blob) {
           throw lastError ?? new Error("Gagal menyiapkan preview PDF");
         }
 
-        setInlinePdfPreviewUrl(dataUrl);
+        if (requestId !== previewRequestRef.current) {
+          return;
+        }
+
+        setInlinePdfPreviewUrl((previousUrl) =>
+          createPdfObjectUrl(blob, previousUrl),
+        );
       } catch (error) {
+        if (requestId !== previewRequestRef.current) {
+          return;
+        }
+
         console.error("Failed to render inline PDF preview:", error);
-        setInlinePdfPreviewUrl("");
+        clearInlinePdfPreview();
         showAlert({
           title: "Gagal",
           description: "Tidak dapat menampilkan preview PDF di panel",
           variant: "error",
         });
       } finally {
-        setIsGeneratingInlinePreview(false);
+        if (requestId === previewRequestRef.current) {
+          setIsGeneratingInlinePreview(false);
+        }
       }
     },
-    [buildPreviewRegistration, previewData, showAlert],
+    [clearInlinePdfPreview, form, showAlert, signaturePreview, stampPreview],
   );
+
+  const triggerPreviewDebounced = useCallback(
+    (overrideData?: PreviewCommitteeOverride) => {
+      cancelPendingPreview();
+
+      previewDebounceRef.current = window.setTimeout(() => {
+        void renderInlinePdfPreview(overrideData);
+      }, 500);
+    },
+    [cancelPendingPreview, renderInlinePdfPreview],
+  );
+
+  const isPreviewReady =
+    displayPreview && !isLoadingCommittee && !isLoadingYears;
 
   useEffect(() => {
     if (isLoadingCommittee || isLoadingYears) {
-      setDisplayPreview(false);
-      setInlinePdfPreviewUrl("");
+      cancelPendingPreview();
+      clearInlinePdfPreview();
     }
-  }, [isLoadingCommittee, isLoadingYears]);
+  }, [
+    cancelPendingPreview,
+    clearInlinePdfPreview,
+    isLoadingCommittee,
+    isLoadingYears,
+  ]);
 
   useEffect(() => {
     if (!displayPreview) {
-      setInlinePdfPreviewUrl("");
+      cancelPendingPreview();
+      clearInlinePdfPreview();
+
       return;
     }
 
-    if (isLoadingCommittee || isLoadingYears) {
+    if (!isPreviewReady || !isValid) {
       return;
     }
 
-    renderInlinePdfPreview();
+    triggerPreviewDebounced();
   }, [
+    cancelPendingPreview,
+    clearInlinePdfPreview,
     displayPreview,
-    isLoadingCommittee,
-    isLoadingYears,
-    renderInlinePdfPreview,
+    isPreviewReady,
+    isValid,
+    triggerPreviewDebounced,
   ]);
+
+  useEffect(() => {
+    if (!isPreviewReady) {
+      return;
+    }
+
+    const subscription = form.watch(() => {
+      if (isValid) {
+        triggerPreviewDebounced();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      cancelPendingPreview();
+    };
+  }, [
+    cancelPendingPreview,
+    form,
+    isPreviewReady,
+    isValid,
+    triggerPreviewDebounced,
+  ]);
+
+  useEffect(() => {
+    if (!isPreviewReady || !isValid) {
+      return;
+    }
+
+    triggerPreviewDebounced();
+  }, [
+    isPreviewReady,
+    isValid,
+    signaturePreview,
+    stampPreview,
+    triggerPreviewDebounced,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      cancelPendingPreview();
+
+      if (inlinePdfPreviewUrl) {
+        URL.revokeObjectURL(inlinePdfPreviewUrl);
+      }
+    };
+  }, [cancelPendingPreview, inlinePdfPreviewUrl]);
 
   return (
     <div className="w-full min-h-[calc(100vh-4px)] bg-gray-100 p-4">
@@ -619,32 +608,12 @@ export default function PanitiaPpdbPage() {
               text={
                 displayPreview ? "Sembunyikan Preview" : "Tampilkan Preview"
               }
-              onClick={async () => {
+              onClick={() => {
                 if (displayPreview) {
                   setDisplayPreview(false);
                   return;
                 }
-
-                let latestCommittee: CommitteeData | null = null;
-
-                if (selectedYearId) {
-                  latestCommittee =
-                    await loadCommitteeByAcademicYear(selectedYearId);
-                }
-
                 setDisplayPreview(true);
-
-                if (latestCommittee) {
-                  await renderInlinePdfPreview({
-                    name: latestCommittee.name,
-                    position: latestCommittee.position,
-                    nip: latestCommittee.nip ?? null,
-                    place: latestCommittee.place,
-                    defaultDate: latestCommittee.defaultDate,
-                    signatureUrl: latestCommittee.signatureUrl,
-                    stampUrl: latestCommittee.stampUrl,
-                  });
-                }
               }}
             />
           </div>
