@@ -111,13 +111,13 @@ export function createPendaftaranUlangDocDefinition({
   return createDocument(
     [
       createHeaderSection(),
-      { marginTop: 120, text: "" },
+      { marginTop: 420, text: "" },
       {
         columns: [{ width: "*", text: "" }, { width: 220, ...signature }],
       },
     ],
     {
-      pageMargins: [30, 30, 30, 30],
+      pageMargins: [30, 30, 10, 30],
     },
   );
 }
