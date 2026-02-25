@@ -7,66 +7,40 @@ import {
   createPageTwoPdfObjectUrl,
   generatePageTwoPdfBlob,
 } from "@/utils/pdfPageTwoTemplateGenerator";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { DocumentFormData, documentSchema } from "./types";
+import {
+  DocumentFormData,
+  documentSchema,
+  PageThreeConfig,
+  PageTwoConfig,
+  PageTwoResponse,
+} from "./types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FirstTab from "./TabContent/firstTab";
 import SecondTab from "./TabContent/secondTab";
+import {
+  ALL_STUDENT_INFO_FIELD_KEYS,
+  DEFAULT_DISABLED_STUDENT_INFO_FIELDS,
+  DEFAULT_FORM_VALUES,
+  DEFAULT_STUDENT_INFO_FIELDS,
+  DEFAULT_STUDENT_INFO_ORDER,
+  getApiMessage,
+  readResponseJson,
+  STUDENT_INFO_FIELD_OPTIONS,
+} from "./helper";
 
-type PageTwoConfig = {
-  title?: string;
-  letterNumber?: string;
-  opening?: string;
-  content?: string;
-  closing?: string;
-  studentInfoFields?: string[];
+const ACADEMIC_YEAR_TOKEN = "{{ academic_years }}";
+const ACADEMIC_YEAR_TOKEN_REGEX = /\{\{\s*academic_years\s*\}\}/gi;
+
+const replaceAcademicYearTokenWithName = (value: string, yearName: string) => {
+  if (!value) return value;
+  return value.replace(ACADEMIC_YEAR_TOKEN_REGEX, yearName);
 };
 
-type PageTwoResponse = {
-  academicYear?: {
-    name?: string;
-    formatted?: string;
-  };
-  config?: PageTwoConfig;
-};
-
-type PageThreeConfig = {
-  pageThreeUrl?: string;
-  pageThreeType?: string;
-};
-
-const DEFAULT_FORM_VALUES: DocumentFormData = {
-  letterTittle: "",
-  letterNumber: "",
-  letterOpening: "",
-  letterContent: "",
-  letterClosing: "",
-};
-
-const DEFAULT_STUDENT_INFO_FIELDS = [
-  "STUDENT_NAME",
-  "REGISTRATION_NUMBER",
-  "ACCEPTANCE_STATUS",
-  "MAJOR_CHOICE",
-];
-
-const readResponseJson = async (response: Response) => {
-  try {
-    return await response.json();
-  } catch {
-    return null;
-  }
-};
-
-const getApiMessage = (data: unknown, fallback: string) => {
-  if (data && typeof data === "object") {
-    const maybeMessage = (data as { message?: string }).message;
-    const maybeError = (data as { error?: string }).error;
-    return maybeMessage || maybeError || fallback;
-  }
-
-  return fallback;
+const replaceAcademicYearNameWithToken = (value: string, yearName: string) => {
+  if (!value || !yearName) return value;
+  return value.split(yearName).join(ACADEMIC_YEAR_TOKEN);
 };
 
 export default function BuktiPendaftaranPage() {
@@ -74,6 +48,8 @@ export default function BuktiPendaftaranPage() {
   const [displayPreview, setDisplayPreview] = useState(true);
   const [isLoadingTwo, setIsLoadingTwo] = useState(false);
   const [isSavingTwo, setIsSavingTwo] = useState(false);
+  const [isSavingStudentInfoToggle, setIsSavingStudentInfoToggle] =
+    useState(false);
   const [isSavingThree, setIsSavingThree] = useState(false);
   const [isGeneratingPreviewTwo, setIsGeneratingPreviewTwo] = useState(false);
   const [pageTwoPreviewUrl, setPageTwoPreviewUrl] = useState<string | null>(
@@ -83,9 +59,18 @@ export default function BuktiPendaftaranPage() {
     useState<string>("2026/2027");
   const [initialFormValues, setInitialFormValues] =
     useState<DocumentFormData>(DEFAULT_FORM_VALUES);
-  const [studentInfoFields, setStudentInfoFields] = useState<string[]>(
-    DEFAULT_STUDENT_INFO_FIELDS,
+  const [studentInfoOrder, setStudentInfoOrder] = useState<string[]>(
+    DEFAULT_STUDENT_INFO_ORDER,
   );
+  const [disabledStudentInfoFieldKeys, setDisabledStudentInfoFieldKeys] =
+    useState<string[]>(DEFAULT_DISABLED_STUDENT_INFO_FIELDS);
+  const [initialStudentInfoOrder, setInitialStudentInfoOrder] = useState<
+    string[]
+  >(DEFAULT_STUDENT_INFO_ORDER);
+  const [
+    initialDisabledStudentInfoFieldKeys,
+    setInitialDisabledStudentInfoFieldKeys,
+  ] = useState<string[]>(DEFAULT_DISABLED_STUDENT_INFO_FIELDS);
   const [existingPageThreeUrl, setExistingPageThreeUrl] = useState<
     string | null
   >(null);
@@ -109,15 +94,33 @@ export default function BuktiPendaftaranPage() {
     Record<string, { file: File; previewUrl: string }>
   >({});
 
-  const mapTwoConfigToForm = useCallback((config: PageTwoConfig) => {
-    return {
-      letterTittle: config.title ?? "",
-      letterNumber: config.letterNumber ?? "",
-      letterOpening: config.opening ?? "",
-      letterContent: config.content ?? "",
-      letterClosing: config.closing ?? "",
-    };
-  }, []);
+  const mapTwoConfigToForm = useCallback(
+    (config: PageTwoConfig, academicYearName: string) => {
+      return {
+        letterTittle: replaceAcademicYearTokenWithName(
+          config.title ?? "",
+          academicYearName,
+        ),
+        letterNumber: replaceAcademicYearTokenWithName(
+          config.letterNumber ?? "",
+          academicYearName,
+        ),
+        letterOpening: replaceAcademicYearTokenWithName(
+          config.opening ?? "",
+          academicYearName,
+        ),
+        letterContent: replaceAcademicYearTokenWithName(
+          config.content ?? "",
+          academicYearName,
+        ),
+        letterClosing: replaceAcademicYearTokenWithName(
+          config.closing ?? "",
+          academicYearName,
+        ),
+      };
+    },
+    [],
+  );
 
   const fetchPageTwoConfig = useCallback(async () => {
     setIsLoadingTwo(true);
@@ -141,20 +144,36 @@ export default function BuktiPendaftaranPage() {
 
       const responseData = (data as PageTwoResponse) ?? {};
       const config = (responseData.config ?? {}) as PageTwoConfig;
-      const formattedAcademicYear =
-        responseData.academicYear?.formatted ||
+      const academicYearName =
         responseData.academicYear?.name ||
+        responseData.academicYear?.formatted ||
         "2026/2027";
-      const mappedValues = mapTwoConfigToForm(config);
+      const mappedValues = mapTwoConfigToForm(config, academicYearName);
+      const fetchedActiveStudentInfoFields =
+        Array.isArray(config.studentInfoFields) &&
+        config.studentInfoFields.length
+          ? config.studentInfoFields.filter((fieldKey): fieldKey is string =>
+              ALL_STUDENT_INFO_FIELD_KEYS.includes(fieldKey),
+            )
+          : DEFAULT_STUDENT_INFO_FIELDS;
+      const nextStudentInfoOrder = [
+        ...fetchedActiveStudentInfoFields,
+        ...ALL_STUDENT_INFO_FIELD_KEYS.filter(
+          (key) => !fetchedActiveStudentInfoFields.includes(key),
+        ),
+      ];
+      const nextDisabledStudentInfoFieldKeys =
+        ALL_STUDENT_INFO_FIELD_KEYS.filter(
+          (key) => !fetchedActiveStudentInfoFields.includes(key),
+        );
+
       form.reset(mappedValues);
       setInitialFormValues(mappedValues);
-      setAcademicYearsLabel(formattedAcademicYear);
-      setStudentInfoFields(
-        Array.isArray(config.studentInfoFields) &&
-          config.studentInfoFields.length
-          ? config.studentInfoFields
-          : DEFAULT_STUDENT_INFO_FIELDS,
-      );
+      setAcademicYearsLabel(academicYearName);
+      setStudentInfoOrder(nextStudentInfoOrder);
+      setDisabledStudentInfoFieldKeys(nextDisabledStudentInfoFieldKeys);
+      setInitialStudentInfoOrder(nextStudentInfoOrder);
+      setInitialDisabledStudentInfoFieldKeys(nextDisabledStudentInfoFieldKeys);
     } catch (error) {
       const message =
         error instanceof Error
@@ -213,6 +232,32 @@ export default function BuktiPendaftaranPage() {
   const watchedContent = form.watch("letterContent");
   const watchedClosing = form.watch("letterClosing");
 
+  const activeStudentInfoFields = useMemo(
+    () =>
+      studentInfoOrder.filter(
+        (fieldKey) => !disabledStudentInfoFieldKeys.includes(fieldKey),
+      ),
+    [disabledStudentInfoFieldKeys, studentInfoOrder],
+  );
+
+  const studentInfoFieldItems = useMemo(
+    () =>
+      studentInfoOrder.map((fieldKey) => {
+        const fieldMeta = STUDENT_INFO_FIELD_OPTIONS.find(
+          (option) => option.key === fieldKey,
+        );
+
+        return {
+          key: fieldKey,
+          placeholder: fieldMeta?.placeholder || `{{${fieldKey}}}`,
+          label: fieldMeta?.label || fieldKey,
+          source: fieldMeta?.source || "-",
+          enabled: !disabledStudentInfoFieldKeys.includes(fieldKey),
+        };
+      }),
+    [disabledStudentInfoFieldKeys, studentInfoOrder],
+  );
+
   useEffect(() => {
     let isCancelled = false;
 
@@ -226,6 +271,7 @@ export default function BuktiPendaftaranPage() {
           content: watchedContent,
           closing: watchedClosing,
           academicYears: academicYearsLabel,
+          studentInfoFields: activeStudentInfoFields,
         });
 
         if (isCancelled) {
@@ -253,6 +299,7 @@ export default function BuktiPendaftaranPage() {
     watchedOpening,
     watchedTitle,
     academicYearsLabel,
+    activeStudentInfoFields,
   ]);
 
   useEffect(() => {
@@ -266,53 +313,103 @@ export default function BuktiPendaftaranPage() {
     };
   }, []);
 
-  const onSubmit = async (values: DocumentFormData) => {
-    setIsSavingTwo(true);
-    try {
-      const payload = {
-        title: values.letterTittle,
-        letterNumber: values.letterNumber,
-        opening: values.letterOpening,
-        content: values.letterContent,
-        closing: values.letterClosing,
-        studentInfoFields,
-      };
+  const savePageTwoConfig = useCallback(
+    async (
+      values: DocumentFormData,
+      nextActiveStudentInfoFields: string[],
+      options?: { showSuccessAlert?: boolean; source?: "submit" | "toggle" },
+    ) => {
+      const showSuccessAlert = options?.showSuccessAlert ?? true;
+      const source = options?.source ?? "submit";
 
-      const response = await fetch("/api/backoffice/pdf-configs/2", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await readResponseJson(response);
-
-      if (!response.ok) {
-        throw new Error(
-          getApiMessage(data, "Gagal menyimpan konfigurasi PDF halaman 2"),
-        );
+      if (source === "toggle") {
+        setIsSavingStudentInfoToggle(true);
+      } else {
+        setIsSavingTwo(true);
       }
+      try {
+        const payload = {
+          title: replaceAcademicYearNameWithToken(
+            values.letterTittle,
+            academicYearsLabel,
+          ),
+          letterNumber: replaceAcademicYearNameWithToken(
+            values.letterNumber,
+            academicYearsLabel,
+          ),
+          opening: replaceAcademicYearNameWithToken(
+            values.letterOpening,
+            academicYearsLabel,
+          ),
+          content: replaceAcademicYearNameWithToken(
+            values.letterContent,
+            academicYearsLabel,
+          ),
+          closing: replaceAcademicYearNameWithToken(
+            values.letterClosing,
+            academicYearsLabel,
+          ),
+          studentInfoFields: nextActiveStudentInfoFields,
+        };
 
+        const response = await fetch("/api/backoffice/pdf-configs/2", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeader(),
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await readResponseJson(response);
+
+        if (!response.ok) {
+          throw new Error(
+            getApiMessage(data, "Gagal menyimpan konfigurasi PDF halaman 2"),
+          );
+        }
+
+        if (showSuccessAlert) {
+          showAlert({
+            title: "Berhasil",
+            description: "PDF rangkap ke 2 berhasil diunggah",
+            variant: "success",
+          });
+        }
+
+        return true;
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Gagal menyimpan konfigurasi PDF halaman 2";
+        showAlert({
+          title: "Gagal",
+          description: message,
+          variant: "error",
+        });
+        return false;
+      } finally {
+        if (source === "toggle") {
+          setIsSavingStudentInfoToggle(false);
+        } else {
+          setIsSavingTwo(false);
+        }
+      }
+    },
+    [academicYearsLabel, showAlert],
+  );
+
+  const onSubmit = async (values: DocumentFormData) => {
+    const isSaved = await savePageTwoConfig(values, activeStudentInfoFields, {
+      showSuccessAlert: true,
+      source: "submit",
+    });
+
+    if (isSaved) {
       setInitialFormValues(values);
-      showAlert({
-        title: "Berhasil",
-        description: "PDF rangkap ke 2 berhasil diunggah",
-        variant: "success",
-      });
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Gagal menyimpan konfigurasi PDF halaman 2";
-      showAlert({
-        title: "Gagal",
-        description: message,
-        variant: "error",
-      });
-    } finally {
-      setIsSavingTwo(false);
+      setInitialStudentInfoOrder(studentInfoOrder);
+      setInitialDisabledStudentInfoFieldKeys(disabledStudentInfoFieldKeys);
     }
   };
 
@@ -476,8 +573,77 @@ export default function BuktiPendaftaranPage() {
     return null;
   };
 
+  const handleToggleStudentInfoField = useCallback(
+    async (fieldKey: string) => {
+      if (isSavingStudentInfoToggle) {
+        return;
+      }
+
+      const previousDisabledKeys = disabledStudentInfoFieldKeys;
+      const nextDisabledKeys = previousDisabledKeys.includes(fieldKey)
+        ? previousDisabledKeys.filter((key) => key !== fieldKey)
+        : [...previousDisabledKeys, fieldKey];
+      const nextActiveStudentInfoFields = studentInfoOrder.filter(
+        (key) => !nextDisabledKeys.includes(key),
+      );
+      const currentValues = form.getValues();
+
+      setDisabledStudentInfoFieldKeys(nextDisabledKeys);
+
+      const isSaved = await savePageTwoConfig(
+        currentValues,
+        nextActiveStudentInfoFields,
+        {
+          showSuccessAlert: false,
+          source: "toggle",
+        },
+      );
+
+      if (isSaved) {
+        setInitialFormValues(currentValues);
+        setInitialStudentInfoOrder(studentInfoOrder);
+        setInitialDisabledStudentInfoFieldKeys(nextDisabledKeys);
+        return;
+      }
+
+      setDisabledStudentInfoFieldKeys(previousDisabledKeys);
+    },
+    [
+      disabledStudentInfoFieldKeys,
+      form,
+      isSavingStudentInfoToggle,
+      savePageTwoConfig,
+      studentInfoOrder,
+    ],
+  );
+
+  const handleReorderStudentInfoField = useCallback(
+    (draggedKey: string, targetKey: string) => {
+      if (!draggedKey || !targetKey || draggedKey === targetKey) {
+        return;
+      }
+
+      setStudentInfoOrder((previousOrder) => {
+        const draggedIndex = previousOrder.indexOf(draggedKey);
+        const targetIndex = previousOrder.indexOf(targetKey);
+
+        if (draggedIndex < 0 || targetIndex < 0) {
+          return previousOrder;
+        }
+
+        const nextOrder = [...previousOrder];
+        nextOrder.splice(draggedIndex, 1);
+        nextOrder.splice(targetIndex, 0, draggedKey);
+        return nextOrder;
+      });
+    },
+    [],
+  );
+
   const handleResetPageTwo = () => {
     form.reset(initialFormValues);
+    setStudentInfoOrder(initialStudentInfoOrder);
+    setDisabledStudentInfoFieldKeys(initialDisabledStudentInfoFieldKeys);
   };
 
   const handleResetPageThree = () => {
@@ -518,8 +684,12 @@ export default function BuktiPendaftaranPage() {
               onCancel={handleResetPageTwo}
               onSave={form.handleSubmit(onSubmit)}
               isLoading={isLoadingTwo || isSavingTwo}
+              isStudentInfoToggleLoading={isSavingStudentInfoToggle}
               previewUrl={pageTwoPreviewUrl}
               isGeneratingPreview={isGeneratingPreviewTwo}
+              studentInfoFields={studentInfoFieldItems}
+              onToggleStudentInfoField={handleToggleStudentInfoField}
+              onReorderStudentInfoField={handleReorderStudentInfoField}
             />
           ) : (
             <SecondTab

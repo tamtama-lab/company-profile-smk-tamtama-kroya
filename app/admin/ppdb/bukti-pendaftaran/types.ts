@@ -15,6 +15,31 @@ export interface DocumentData {
   uploadedAt: string;
   };
 }
+
+
+export interface PageTwoConfig  {
+  title?: string;
+  letterNumber?: string;
+  opening?: string;
+  content?: string;
+  closing?: string;
+  studentInfoFields?: string[];
+};
+
+export interface PageTwoResponse  {
+  academicYear?: {
+    name?: string;
+    formatted?: string;
+  };
+  config?: PageTwoConfig;
+};
+
+export interface PageThreeConfig {
+  pageThreeUrl?: string;
+  pageThreeType?: string;
+};
+
+
 export const documentSchema = z.object({
   letterTittle: z.string().min(1, "Mohon isi judul surat terlebih dahulu"),
   letterNumber: z.string().min(1, "Mohon isi nomor surat terlebih dahulu"),

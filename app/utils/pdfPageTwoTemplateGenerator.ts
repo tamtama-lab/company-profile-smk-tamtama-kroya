@@ -9,6 +9,7 @@ export interface PageTwoPdfConfig {
   content?: string;
   closing?: string;
   academicYears?: string;
+  studentInfoFields?: string[];
 }
 
 let isPdfMakeInitialized = false;
@@ -28,6 +29,7 @@ const DEFAULT_REGISTRATION = ({
     fullName: "Nama Calon Murid",
     placeOfBirth: "Kroya",
     dateOfBirth: "2010-01-01",
+    studentNisn: "1234567890",
     gender: 1,
     religion: "islam",
     schoolOriginName: "SMP/MTs Contoh",
@@ -49,7 +51,7 @@ const DEFAULT_REGISTRATION = ({
 export function createPageTwoDocDefinition(
   config: PageTwoPdfConfig,
 ): TDocumentDefinitions {
-  const template = new PendaftaranUlangTemplate(DEFAULT_REGISTRATION, {
+  const templateOptions = {
     window: typeof window !== "undefined" ? window : undefined,
     variables: {
       academic_years: config.academicYears || "2026/2027",
@@ -59,7 +61,13 @@ export function createPageTwoDocDefinition(
     opening: config.opening || "",
     content: config.content || "",
     closing: config.closing || "",
-  });
+    studentInfoFields: config.studentInfoFields,
+  } as unknown as ConstructorParameters<typeof PendaftaranUlangTemplate>[1];
+
+  const template = new PendaftaranUlangTemplate(
+    DEFAULT_REGISTRATION,
+    templateOptions,
+  );
 
   return createDocument(template);
 }
