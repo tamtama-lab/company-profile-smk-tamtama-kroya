@@ -8,9 +8,13 @@ interface SecondTabProps {
   onTogglePreview: () => void;
   draftFile: File | null;
   draftPreviewUrl: string | null;
+  existingPreviewUrl?: string | null;
   onFile: (file: File | null) => void;
   onRemove: () => void;
   onValidate: (file: File) => string | null;
+  onSave: () => void;
+  onCancel: () => void;
+  isSaving?: boolean;
 }
 
 export default function SecondTab({
@@ -18,10 +22,16 @@ export default function SecondTab({
   onTogglePreview,
   draftFile,
   draftPreviewUrl,
+  existingPreviewUrl,
   onFile,
   onRemove,
   onValidate,
+  onSave,
+  onCancel,
+  isSaving = false,
 }: SecondTabProps) {
+  const previewSource = draftPreviewUrl ?? existingPreviewUrl ?? null;
+
   return (
     <div className="w-full gap-x-3 h-fit flex flex-row">
       <SectionCard
@@ -42,12 +52,20 @@ export default function SecondTab({
             <SectionCard
               className="w-full h-full p-2"
               title="Dokumen Rangkap ke 3"
-              leftButton={<TextButton variant="outline" text="Batalkan" />}
+              leftButton={
+                <TextButton
+                  variant="outline"
+                  text="Batalkan"
+                  onClick={onCancel}
+                />
+              }
+              handleSaveChanges={onSave}
+              isLoading={isSaving}
             >
               <div className="w-full h-[60vh] p-4">
                 <DragDropFile
                   className="h-full"
-                  accept="image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  accept="image/png,image/jpg,image/jpeg,application/pdf"
                   textButton="Cari Dokumen"
                   initialFile={draftFile}
                   onFile={onFile}
@@ -61,7 +79,7 @@ export default function SecondTab({
             <div className="w-1/2 h-full border border-gray-300 shadow-sm rounded-md bg-white p-4">
               <FileUploadPreview
                 file={draftFile}
-                previewUrl={draftPreviewUrl}
+                previewUrl={previewSource}
                 emptyText="Belum ada dokumen untuk dipreview"
               />
             </div>

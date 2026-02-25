@@ -60,7 +60,7 @@ export interface CommitteeSignaturePayload {
   date?: string | Date;
   signatureUrl?: string;
   stampUrl?: string;
-  stampSize?: SignatureInfo["stampSize"];
+  stampSize?: SignatureInfo;
 }
 
 export interface GeneratePendaftaranUlangPdfParams {
@@ -89,7 +89,6 @@ export function buildSignatureInfo(
     date: parseSignatureDate(committee.date),
     signatureImage: committee.signatureUrl,
     stampImage: committee.stampUrl,
-    stampSize: committee.stampSize,
   };
 }
 

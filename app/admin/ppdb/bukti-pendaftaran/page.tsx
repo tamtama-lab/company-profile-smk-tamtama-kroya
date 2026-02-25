@@ -1,28 +1,97 @@
 "use client";
 
-import { TextButton } from "@/components/Buttons/TextButton";
-import { SectionCard } from "@/components/Card/SectionCard";
 import { TitleSection } from "@/components/TitleSection/index";
 import { useAlert } from "@/components/ui/alert";
+import { getAuthHeader } from "@/utils/auth";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { FormInput, FormInputRichText } from "@/components/ui/form-input";
-import DragDropFile from "@/components/Upload/DragDropFile";
-import FileUploadPreview from "@/components/Upload/FileUploadPreview";
-import { useState } from "react";
+  createPageTwoPdfObjectUrl,
+  generatePageTwoPdfBlob,
+} from "@/utils/pdfPageTwoTemplateGenerator";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { DocumentFormData, documentSchema } from "./types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import FirstTab from "./TabContent/firstTab";
 import SecondTab from "./TabContent/secondTab";
+
+type PageTwoConfig = {
+  title?: string;
+  letterNumber?: string;
+  opening?: string;
+  content?: string;
+  closing?: string;
+  studentInfoFields?: string[];
+};
+
+type PageTwoResponse = {
+  academicYear?: {
+    name?: string;
+    formatted?: string;
+  };
+  config?: PageTwoConfig;
+};
+
+type PageThreeConfig = {
+  pageThreeUrl?: string;
+  pageThreeType?: string;
+};
+
+const DEFAULT_FORM_VALUES: DocumentFormData = {
+  letterTittle: "",
+  letterNumber: "",
+  letterOpening: "",
+  letterContent: "",
+  letterClosing: "",
+};
+
+const DEFAULT_STUDENT_INFO_FIELDS = [
+  "STUDENT_NAME",
+  "REGISTRATION_NUMBER",
+  "ACCEPTANCE_STATUS",
+  "MAJOR_CHOICE",
+];
+
+const readResponseJson = async (response: Response) => {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+};
+
+const getApiMessage = (data: unknown, fallback: string) => {
+  if (data && typeof data === "object") {
+    const maybeMessage = (data as { message?: string }).message;
+    const maybeError = (data as { error?: string }).error;
+    return maybeMessage || maybeError || fallback;
+  }
+
+  return fallback;
+};
 
 export default function BuktiPendaftaranPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [displayPreview, setDisplayPreview] = useState(true);
+  const [isLoadingTwo, setIsLoadingTwo] = useState(false);
+  const [isSavingTwo, setIsSavingTwo] = useState(false);
+  const [isSavingThree, setIsSavingThree] = useState(false);
+  const [isGeneratingPreviewTwo, setIsGeneratingPreviewTwo] = useState(false);
+  const [pageTwoPreviewUrl, setPageTwoPreviewUrl] = useState<string | null>(
+    null,
+  );
+  const [academicYearsLabel, setAcademicYearsLabel] =
+    useState<string>("2026/2027");
+  const [initialFormValues, setInitialFormValues] =
+    useState<DocumentFormData>(DEFAULT_FORM_VALUES);
+  const [studentInfoFields, setStudentInfoFields] = useState<string[]>(
+    DEFAULT_STUDENT_INFO_FIELDS,
+  );
+  const [existingPageThreeUrl, setExistingPageThreeUrl] = useState<
+    string | null
+  >(null);
+  const [existingPageThreeType, setExistingPageThreeType] = useState<
+    string | null
+  >(null);
   const { showAlert } = useAlert();
 
   const tabs = [
@@ -33,19 +102,219 @@ export default function BuktiPendaftaranPage() {
   const form = useForm<DocumentFormData>({
     resolver: zodResolver(documentSchema),
     mode: "onChange",
-    defaultValues: {
-      letterTittle: "",
-      letterNumber: "",
-      letterOpening: "",
-      letterContent: "",
-      letterClosing: "",
-    },
+    defaultValues: DEFAULT_FORM_VALUES,
   });
-  const onSubmit = async (values: DocumentFormData) => {};
 
   const [photoDrafts, setPhotoDrafts] = useState<
     Record<string, { file: File; previewUrl: string }>
   >({});
+
+  const mapTwoConfigToForm = useCallback((config: PageTwoConfig) => {
+    return {
+      letterTittle: config.title ?? "",
+      letterNumber: config.letterNumber ?? "",
+      letterOpening: config.opening ?? "",
+      letterContent: config.content ?? "",
+      letterClosing: config.closing ?? "",
+    };
+  }, []);
+
+  const fetchPageTwoConfig = useCallback(async () => {
+    setIsLoadingTwo(true);
+    try {
+      const response = await fetch("/api/backoffice/pdf-configs/2", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        cache: "no-store",
+      });
+
+      const data = await readResponseJson(response);
+
+      if (!response.ok) {
+        throw new Error(
+          getApiMessage(data, "Gagal memuat konfigurasi PDF halaman 2"),
+        );
+      }
+
+      const responseData = (data as PageTwoResponse) ?? {};
+      const config = (responseData.config ?? {}) as PageTwoConfig;
+      const formattedAcademicYear =
+        responseData.academicYear?.formatted ||
+        responseData.academicYear?.name ||
+        "2026/2027";
+      const mappedValues = mapTwoConfigToForm(config);
+      form.reset(mappedValues);
+      setInitialFormValues(mappedValues);
+      setAcademicYearsLabel(formattedAcademicYear);
+      setStudentInfoFields(
+        Array.isArray(config.studentInfoFields) &&
+          config.studentInfoFields.length
+          ? config.studentInfoFields
+          : DEFAULT_STUDENT_INFO_FIELDS,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal memuat konfigurasi PDF halaman 2";
+      showAlert({
+        title: "Gagal",
+        description: message,
+        variant: "error",
+      });
+    } finally {
+      setIsLoadingTwo(false);
+    }
+  }, [form, mapTwoConfigToForm, showAlert]);
+
+  const fetchPageThreeConfig = useCallback(async () => {
+    try {
+      const response = await fetch("/api/backoffice/pdf-configs/3", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        cache: "no-store",
+      });
+
+      const data = await readResponseJson(response);
+
+      if (!response.ok) {
+        throw new Error(getApiMessage(data, "Gagal memuat PDF halaman 3"));
+      }
+
+      const config = ((data as { config?: PageThreeConfig })?.config ??
+        {}) as PageThreeConfig;
+      setExistingPageThreeUrl(config.pageThreeUrl ?? null);
+      setExistingPageThreeType(config.pageThreeType ?? null);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Gagal memuat  PDF halaman 3";
+      showAlert({
+        title: "Gagal",
+        description: message,
+        variant: "error",
+      });
+    }
+  }, [showAlert]);
+
+  useEffect(() => {
+    void fetchPageTwoConfig();
+    void fetchPageThreeConfig();
+  }, [fetchPageThreeConfig, fetchPageTwoConfig]);
+
+  const watchedTitle = form.watch("letterTittle");
+  const watchedLetterNumber = form.watch("letterNumber");
+  const watchedOpening = form.watch("letterOpening");
+  const watchedContent = form.watch("letterContent");
+  const watchedClosing = form.watch("letterClosing");
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const timeoutId = window.setTimeout(async () => {
+      setIsGeneratingPreviewTwo(true);
+      try {
+        const blob = await generatePageTwoPdfBlob({
+          title: watchedTitle,
+          letterNumber: watchedLetterNumber,
+          opening: watchedOpening,
+          content: watchedContent,
+          closing: watchedClosing,
+          academicYears: academicYearsLabel,
+        });
+
+        if (isCancelled) {
+          return;
+        }
+
+        setPageTwoPreviewUrl((prev) => createPageTwoPdfObjectUrl(blob, prev));
+      } catch (error) {
+        console.error("Gagal membuat preview PDF halaman dua:", error);
+      } finally {
+        if (!isCancelled) {
+          setIsGeneratingPreviewTwo(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    watchedClosing,
+    watchedContent,
+    watchedLetterNumber,
+    watchedOpening,
+    watchedTitle,
+    academicYearsLabel,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      setPageTwoPreviewUrl((prev) => {
+        if (prev) {
+          URL.revokeObjectURL(prev);
+        }
+        return null;
+      });
+    };
+  }, []);
+
+  const onSubmit = async (values: DocumentFormData) => {
+    setIsSavingTwo(true);
+    try {
+      const payload = {
+        title: values.letterTittle,
+        letterNumber: values.letterNumber,
+        opening: values.letterOpening,
+        content: values.letterContent,
+        closing: values.letterClosing,
+        studentInfoFields,
+      };
+
+      const response = await fetch("/api/backoffice/pdf-configs/2", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await readResponseJson(response);
+
+      if (!response.ok) {
+        throw new Error(
+          getApiMessage(data, "Gagal menyimpan konfigurasi PDF halaman 2"),
+        );
+      }
+
+      setInitialFormValues(values);
+      showAlert({
+        title: "Berhasil",
+        description: "PDF rangkap ke 2 berhasil diunggah",
+        variant: "success",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menyimpan konfigurasi PDF halaman 2";
+      showAlert({
+        title: "Gagal",
+        description: message,
+        variant: "error",
+      });
+    } finally {
+      setIsSavingTwo(false);
+    }
+  };
 
   const setDraftFile = (tabId: string, file: File | null) => {
     setPhotoDrafts((prev) => {
@@ -65,34 +334,156 @@ export default function BuktiPendaftaranPage() {
     });
   };
 
-  const validateUploadFile = (file: File) => {
-    if (file.size > 10 * 1024 * 1024) {
+  const detectPageThreeType = (file: File) => {
+    if (file.type === "application/pdf") {
+      return "pdf";
+    }
+
+    return "image";
+  };
+
+  const savePageThree = async () => {
+    const tabId = tabs[1].id;
+    const draftFile = photoDrafts[tabId]?.file ?? null;
+
+    if (!draftFile && !existingPageThreeUrl) {
       showAlert({
-        title: "Ukuran terlalu besar",
-        description: `Ukuran file maksimal 10MB`,
+        title: "Dokumen belum dipilih",
+        description: "Silakan unggah file terlebih dahulu",
         variant: "warning",
       });
-      return `Ukuran file maksimal 10MB`;
+      return;
+    }
+
+    setIsSavingThree(true);
+    try {
+      let pageThreeUrl = existingPageThreeUrl;
+      let pageThreeType = existingPageThreeType;
+
+      if (draftFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", draftFile);
+
+        const uploadResponse = await fetch(
+          "/api/backoffice/pdf-configs/3/upload",
+          {
+            method: "POST",
+            headers: {
+              ...getAuthHeader(),
+            },
+            body: uploadFormData,
+          },
+        );
+
+        const uploadData = await readResponseJson(uploadResponse);
+
+        if (!uploadResponse.ok) {
+          throw new Error(
+            getApiMessage(uploadData, "Gagal upload dokumen halaman 3"),
+          );
+        }
+
+        pageThreeUrl =
+          (
+            uploadData as {
+              pageThreeUrl?: string;
+              url?: string;
+              fileUrl?: string;
+            }
+          )?.pageThreeUrl ??
+          (uploadData as { url?: string })?.url ??
+          (uploadData as { fileUrl?: string })?.fileUrl ??
+          null;
+        pageThreeType =
+          (uploadData as { pageThreeType?: string })?.pageThreeType ??
+          detectPageThreeType(draftFile);
+      }
+
+      if (!pageThreeUrl) {
+        throw new Error("URL dokumen halaman 3 tidak ditemukan");
+      }
+
+      const response = await fetch("/api/backoffice/pdf-configs/3", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify({
+          pageThreeUrl,
+          pageThreeType: pageThreeType ?? "image",
+        }),
+      });
+
+      const data = await readResponseJson(response);
+
+      if (!response.ok) {
+        throw new Error(
+          getApiMessage(data, "Gagal menyimpan konfigurasi PDF halaman 3"),
+        );
+      }
+
+      setExistingPageThreeUrl(pageThreeUrl);
+      setExistingPageThreeType(pageThreeType ?? "image");
+      setDraftFile(tabId, null);
+
+      showAlert({
+        title: "Berhasil",
+        description: "Konfigurasi PDF rangkap ke 3 berhasil disimpan",
+        variant: "success",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menyimpan konfigurasi PDF halaman 3";
+      showAlert({
+        title: "Gagal",
+        description: message,
+        variant: "error",
+      });
+    } finally {
+      setIsSavingThree(false);
+    }
+  };
+
+  const validateUploadFile = (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      showAlert({
+        title: "Ukuran terlalu besar",
+        description: `Ukuran file maksimal 5MB`,
+        variant: "warning",
+      });
+      return `Ukuran file maksimal 5MB`;
     }
 
     const allowedTypes = [
       "image/png",
+      "image/jpg",
+      "image/jpeg",
       "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
 
     if (!allowedTypes.includes(file.type)) {
       showAlert({
         title: "Format tidak didukung",
-        description: "Hanya file PNG, PDF, DOC, dan DOCX yang diterima",
+        description: "Hanya file PDF, PNG, JPG, dan JPEG yang diterima",
         variant: "warning",
       });
-      return "Hanya file PNG, PDF, DOC, dan DOCX yang diterima";
+      return "Hanya file PDF, PNG, JPG, dan JPEG yang diterima";
     }
 
     return null;
   };
+
+  const handleResetPageTwo = () => {
+    form.reset(initialFormValues);
+  };
+
+  const handleResetPageThree = () => {
+    setDraftFile(tabs[1].id, null);
+  };
+
   return (
     <div className="w-full h-[calc(100vh-4px)] bg-gray-100 p-4">
       <div className="h-full">
@@ -120,166 +511,16 @@ export default function BuktiPendaftaranPage() {
             </div>
           </div>
           {activeTab === 0 ? (
-            <div className="w-full gap-x-3 h-fit flex flex-row">
-              <SectionCard
-                title="Edit Pengumuman PDF Rangkap Ke 2"
-                className="w-full h-full px-2"
-                headerButton={
-                  <TextButton
-                    variant="outline"
-                    className="text-sm! py-2!"
-                    text={
-                      displayPreview
-                        ? "Sembunyikan Preview"
-                        : "Tampilkan Preview"
-                    }
-                    onClick={() => setDisplayPreview((prev) => !prev)}
-                  />
-                }
-                cardFooter={false}
-              >
-                <div className="w-full min-h-screen h-fit flex flex-row my-4 gap-4">
-                  <div
-                    className={`${displayPreview ? "w-1/2" : "w-full"} h-full`}
-                  >
-                    <SectionCard
-                      className="w-full h-full p-2"
-                      // title="Dokumen Rangkap ke 3"
-                      leftButton={
-                        <TextButton variant="outline" text="Batalkan" />
-                      }
-                    >
-                      {" "}
-                      <Form {...form}>
-                        <form
-                          onSubmit={form.handleSubmit(onSubmit)}
-                          className="w-full p-6"
-                        >
-                          <div className="grid grid-cols-1 gap-x-5 gap-y-5">
-                            {/* Username */}
-                            <FormField
-                              control={form.control}
-                              name="letterTittle"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <FormInputRichText
-                                      {...field}
-                                      label="Judul Surat"
-                                      placeholder="Masukkan Judul Surat"
-                                      className="w-full"
-                                      isMandatory
-                                      error={
-                                        form.formState.errors.letterTittle
-                                          ?.message
-                                      }
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="letterNumber"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <FormInput
-                                      {...field}
-                                      label="Nomor Surat"
-                                      placeholder="Masukkan Nomor Surat"
-                                      className="w-full"
-                                      isMandatory
-                                      error={
-                                        form.formState.errors.letterNumber
-                                          ?.message
-                                      }
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="letterOpening"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <FormInput
-                                      {...field}
-                                      label="Kalimat Pembuka"
-                                      placeholder="Masukkan Kalimat Pembuka"
-                                      className="w-full"
-                                      isMandatory
-                                      error={
-                                        form.formState.errors.letterOpening
-                                          ?.message
-                                      }
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="letterContent"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <FormInputRichText
-                                      {...field}
-                                      label="Isi Surat"
-                                      placeholder="Masukkan Isi Surat"
-                                      className="w-full"
-                                      isMandatory
-                                      error={
-                                        form.formState.errors.letterContent
-                                          ?.message
-                                      }
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="letterClosing"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <FormInput
-                                      {...field}
-                                      label="Kalimat Penutup"
-                                      placeholder="Masukkan Kalimat Penutup"
-                                      className="w-full"
-                                      isMandatory
-                                      error={
-                                        form.formState.errors.letterClosing
-                                          ?.message
-                                      }
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </form>
-                      </Form>
-                    </SectionCard>
-                  </div>
-                  {displayPreview && (
-                    <div className="w-1/2 h-full border border-gray-300 shadow-sm rounded-md bg-white p-4">
-                      Preview Tab 1
-                    </div>
-                  )}
-                </div>
-              </SectionCard>
-            </div>
+            <FirstTab
+              displayPreview={displayPreview}
+              onTogglePreview={() => setDisplayPreview((prev) => !prev)}
+              form={form}
+              onCancel={handleResetPageTwo}
+              onSave={form.handleSubmit(onSubmit)}
+              isLoading={isLoadingTwo || isSavingTwo}
+              previewUrl={pageTwoPreviewUrl}
+              isGeneratingPreview={isGeneratingPreviewTwo}
+            />
           ) : (
             <SecondTab
               displayPreview={displayPreview}
@@ -288,9 +529,13 @@ export default function BuktiPendaftaranPage() {
               draftPreviewUrl={
                 photoDrafts[tabs[activeTab].id]?.previewUrl ?? null
               }
+              existingPreviewUrl={existingPageThreeUrl}
               onFile={(file) => setDraftFile(tabs[activeTab].id, file)}
               onRemove={() => setDraftFile(tabs[activeTab].id, null)}
               onValidate={validateUploadFile}
+              onSave={savePageThree}
+              onCancel={handleResetPageThree}
+              isSaving={isSavingThree}
             />
           )}
         </div>

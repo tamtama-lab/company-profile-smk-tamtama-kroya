@@ -49,8 +49,8 @@ export default function DragDropFile({
     if (!ext) return null;
     if (ext === "png") return "png";
     if (ext === "pdf") return "pdf";
-    if (ext === "doc") return "doc";
-    if (ext === "docx") return "docx";
+    // if (ext === "doc") return "doc";
+    // if (ext === "docx") return "docx";
     return null;
   };
 
@@ -59,12 +59,12 @@ export default function DragDropFile({
     const mime = file.type.toLowerCase();
     if (mime === "image/png") return "png";
     if (mime === "application/pdf") return "pdf";
-    if (mime === "application/msword") return "doc";
-    if (
-      mime ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
-      return "docx";
+    // if (mime === "application/msword") return "doc";
+    // if (
+    //   mime ===
+    //   "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    // )
+    //   return "docx";
 
     return getFileKindFromName(file.name);
   };
@@ -277,7 +277,7 @@ export default function DragDropFile({
             </div>
             <div className="text-xs text-gray-600 mt-2">
               <span className="text-red-500">*</span> Jenis file yang didukung:
-              PNG, PDF, DOC, DOCX
+              JPG/PNG/PDF
             </div>
             {error && <div className="text-xs text-red-600 mt-2">{error}</div>}
           </div>

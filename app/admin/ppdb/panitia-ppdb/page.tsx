@@ -450,7 +450,6 @@ export default function PanitiaPpdbPage() {
                 date: effectivePreviewData.defaultDate,
                 signatureUrl: effectivePreviewData.signatureUrl,
                 stampUrl: effectivePreviewData.stampUrl,
-                stampSize: "small",
               },
             });
             break;

@@ -8,12 +8,14 @@ interface FileUploadPreviewProps {
   emptyText?: string;
 }
 
-type SupportedFileKind = "png" | "pdf" | "doc" | "docx";
+type SupportedFileKind = "png" | "jpg" | "jpeg" | "pdf" | "doc" | "docx";
 
 const getKindFromName = (name?: string | null): SupportedFileKind | null => {
   const ext = name?.split(".").pop()?.toLowerCase();
   if (!ext) return null;
   if (ext === "png") return "png";
+  if (ext === "jpg") return "jpg";
+  if (ext === "jpeg") return "jpeg";
   if (ext === "pdf") return "pdf";
   if (ext === "doc") return "doc";
   if (ext === "docx") return "docx";
@@ -24,6 +26,8 @@ const getKindFromFile = (file: File | null): SupportedFileKind | null => {
   if (!file) return null;
   const mime = file.type.toLowerCase();
   if (mime === "image/png") return "png";
+  if (mime === "image/jpg") return "jpg";
+  if (mime === "image/jpeg") return "jpeg";
   if (mime === "application/pdf") return "pdf";
   if (mime === "application/msword") return "doc";
   if (
@@ -89,7 +93,7 @@ export default function FileUploadPreview({
     );
   }
 
-  if (fileKind === "png") {
+  if (fileKind === "png" || fileKind === "jpg" || fileKind === "jpeg") {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-3">
         <img
