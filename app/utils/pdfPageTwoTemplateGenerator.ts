@@ -14,6 +14,8 @@ export interface PageTwoPdfConfig {
 
 let isPdfMakeInitialized = false;
 
+const PAGE_ONE_MARGINS: [number, number, number, number] = [40, 50, 40, 40];
+
 type TemplateRegistration = ConstructorParameters<
   typeof PendaftaranUlangTemplate
 >[0];
@@ -69,7 +71,48 @@ export function createPageTwoDocDefinition(
     templateOptions,
   );
 
-  return createDocument(template);
+  const docDefinition = createDocument(template);
+  enforcePageTwoLayout(docDefinition);
+
+  return docDefinition;
+}
+
+function enforcePageTwoLayout(docDefinition: TDocumentDefinitions): void {
+  const contentList = Array.isArray(docDefinition.content)
+    ? docDefinition.content
+    : docDefinition.content
+      ? [docDefinition.content]
+      : [];
+
+  const firstContent = contentList[0] as
+    | { margin?: number | [number, number, number, number] }
+    | undefined;
+
+  docDefinition.pageMargins = PAGE_ONE_MARGINS;
+
+  if (firstContent && firstContent.margin !== undefined) {
+    delete firstContent.margin;
+  }
+
+  for (const contentItem of contentList) {
+    if (!contentItem || typeof contentItem !== "object") {
+      continue;
+    }
+
+    const stack = (contentItem as { stack?: unknown }).stack;
+
+    if (!Array.isArray(stack) || stack.length === 0) {
+      continue;
+    }
+
+    const footerSection = stack[stack.length - 1] as
+      | ({ unbreakable?: boolean } & object)
+      | undefined;
+
+    if (footerSection && typeof footerSection === "object") {
+      footerSection.unbreakable = true;
+    }
+  }
 }
 
 export async function generatePageTwoPdfBlob(

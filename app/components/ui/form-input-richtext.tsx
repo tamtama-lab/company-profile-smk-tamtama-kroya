@@ -357,6 +357,71 @@ export const FormInputRichText = forwardRef<
     const toolbarButtonClass =
       "h-8 w-8 inline-flex items-center justify-center rounded-sm border transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
+    const applyInlineMarkAtCursor = (mark: "bold" | "italic" | "strike") => {
+      if (!editor) return;
+
+      const runToggle = () => {
+        const chain = editor.chain().focus();
+
+        if (mark === "bold") {
+          chain.toggleBold().run();
+          return;
+        }
+
+        if (mark === "italic") {
+          chain.toggleItalic().run();
+          return;
+        }
+
+        chain.toggleStrike().run();
+      };
+
+      const { state } = editor;
+      const { selection } = state;
+
+      if (!selection.empty) {
+        runToggle();
+        return;
+      }
+
+      const cursorPos = selection.from;
+      const resolvedPos = state.doc.resolve(cursorPos);
+      const textContent = resolvedPos.parent.textContent || "";
+      const parentOffset = resolvedPos.parentOffset;
+      const isWordChar = (char: string) => /[\p{L}\p{N}_-]/u.test(char);
+
+      let startOffset = parentOffset;
+      while (
+        startOffset > 0 &&
+        isWordChar(textContent[startOffset - 1] || "")
+      ) {
+        startOffset -= 1;
+      }
+
+      let endOffset = parentOffset;
+      while (
+        endOffset < textContent.length &&
+        isWordChar(textContent[endOffset] || "")
+      ) {
+        endOffset += 1;
+      }
+
+      if (startOffset === endOffset) {
+        runToggle();
+        return;
+      }
+
+      const parentStart = cursorPos - parentOffset;
+      const from = parentStart + startOffset;
+      const to = parentStart + endOffset;
+
+      editor.chain().focus().setTextSelection({ from, to }).run();
+
+      runToggle();
+
+      editor.chain().focus().setTextSelection(to).run();
+    };
+
     const formatButtons = [
       {
         id: "paragraph",
@@ -372,7 +437,7 @@ export const FormInputRichText = forwardRef<
         icon: <MdFormatBold className="w-4 h-4" />,
         active: editorState?.isBold ?? false,
         disabled: !(editorState?.canBold ?? false),
-        action: () => editor?.chain().focus().toggleBold().run(),
+        action: () => applyInlineMarkAtCursor("bold"),
       },
       {
         id: "italic",
@@ -380,7 +445,7 @@ export const FormInputRichText = forwardRef<
         icon: <MdFormatItalic className="w-4 h-4" />,
         active: editorState?.isItalic ?? false,
         disabled: !(editorState?.canItalic ?? false),
-        action: () => editor?.chain().focus().toggleItalic().run(),
+        action: () => applyInlineMarkAtCursor("italic"),
       },
       {
         id: "strike",
@@ -388,7 +453,7 @@ export const FormInputRichText = forwardRef<
         icon: <MdFormatStrikethrough className="w-4 h-4" />,
         active: editorState?.isStrike ?? false,
         disabled: !(editorState?.canStrike ?? false),
-        action: () => editor?.chain().focus().toggleStrike().run(),
+        action: () => applyInlineMarkAtCursor("strike"),
       },
       // {
       //   id: "code",
