@@ -2,8 +2,8 @@
 
 import GridListPaginate from "@/components/GridListPaginate";
 import { TitleSection } from "@/components/TitleSection/index";
-import { useEffect, useMemo, useState } from "react";
-import { AlumniApiResponse, AlumniItem } from "./type";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlumniApiResponse, AlumniItem, YEAR_OPTIONS_LIMIT } from "./type";
 import Toggle from "@/components/ui/toggle";
 import { TextButton } from "@/components/Buttons/TextButton";
 import { LuPen, LuTrash2 } from "react-icons/lu";
@@ -16,7 +16,31 @@ import { BaseModal } from "@/components/Modal/BaseModal";
 import { useRouter } from "next/navigation";
 import { getAuthHeader } from "@/utils/auth";
 import { useAlert } from "@/components/ui/alert";
-import Image from "next/image";
+import Search from "@/components/Filter/Search";
+import SelectInput from "@/components/InputForm/SelectInput";
+import { IoMdRefresh } from "react-icons/io";
+import { SearchableSelect } from "@/components/InputForm/SelectInput/SearchableSelect";
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_MIN = 1977;
+
+const sortByOptions = [
+  { value: "createdAt", label: "Urutkan: Tanggal Dibuat" },
+  { value: "name", label: "Urutkan: Nama" },
+  { value: "generationYear", label: "Urutkan: Angkatan" },
+];
+
+const sortOrderOptions = [
+  { value: "desc", label: "Urutan: Terbaru / Z-A" },
+  { value: "asc", label: "Urutan: Terlama / A-Z" },
+];
+
+const MAJOR_LABEL_MAP: Record<string, string> = {
+  TP: "Teknik Permesinan",
+  TKR: "Teknik Kendaraan Ringan",
+  TITL: "Teknik Instalasi Tenaga Listrik",
+  DKV: "Desain Komunikasi Visual",
+};
 
 export default function DataAlumniPage() {
   const router = useRouter();
@@ -24,20 +48,65 @@ export default function DataAlumniPage() {
 
   const [loading, setLoading] = useState(false);
   const [alumni, setAlumni] = useState<AlumniItem[]>([]);
-  const [pagination, setPagination] = useState({
-    total: 0,
-    currentPage: 1,
-    perPage: 10,
-  });
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [selectedMajor, setSelectedMajor] = useState<string>("");
+  const [selectedGenerationYear, setSelectedGenerationYear] =
+    useState<string>("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [majorOptions, setMajorOptions] = useState<
+    Array<{ value: string | number; label: string }>
+  >([]);
+  const [isLoadingMajors, setIsLoadingMajors] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchAlumni = async (page = 1, perPage = pagination.perPage) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 750);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const yearFilterOptions = useMemo(
+    () => [
+      { value: "", label: "Semua Angkatan" },
+      ...Array.from({ length: CURRENT_YEAR - YEAR_MIN }, (_, index) => {
+        const year = CURRENT_YEAR - 1 - index;
+        return { value: String(year), label: String(year) };
+      }),
+    ],
+    [],
+  );
+
+  const fetchAlumni = useCallback(async () => {
     try {
       setLoading(true);
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        limit: String(limit),
+        sortBy,
+        sortOrder,
+      });
+
+      if (debouncedSearchTerm) {
+        params.append("search", debouncedSearchTerm);
+      }
+      if (selectedMajor) {
+        params.append("major", selectedMajor);
+      }
+      if (selectedGenerationYear) {
+        params.append("generationYear", selectedGenerationYear);
+      }
+
       const response = await fetch(
-        `/api/backoffice/alumni?page=${page}&perPage=${perPage}`,
+        `/api/backoffice/alumni?${params.toString()}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -53,11 +122,9 @@ export default function DataAlumniPage() {
       const result: AlumniApiResponse = await response.json();
 
       setAlumni(result.data || []);
-      setPagination({
-        total: result.meta?.total || 0,
-        currentPage: result.meta?.currentPage || 1,
-        perPage: result.meta?.perPage || perPage,
-      });
+      setTotal(result.meta?.total || 0);
+      setCurrentPage(result.meta?.currentPage || currentPage);
+      setLimit(result.meta?.perPage || limit);
     } catch (error) {
       console.error("Failed fetch alumni", error);
       showAlert({
@@ -66,30 +133,119 @@ export default function DataAlumniPage() {
         variant: "error",
       });
       setAlumni([]);
-      setPagination((prev) => ({ ...prev, total: 0 }));
+      setTotal(0);
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    currentPage,
+    limit,
+    sortBy,
+    sortOrder,
+    debouncedSearchTerm,
+    selectedMajor,
+    selectedGenerationYear,
+    showAlert,
+  ]);
 
   useEffect(() => {
-    fetchAlumni(1, pagination.perPage);
-  }, []);
+    let cancelled = false;
+
+    const fetchMajors = async () => {
+      setIsLoadingMajors(true);
+      try {
+        const response = await fetch("/api/filters/options", {
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeader(),
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Gagal memuat data jurusan");
+        }
+
+        const data = await response.json();
+        const mappedMajors = (data.majors || []).map(
+          (major: { name: string; abbreviation: string }) => ({
+            value: major.abbreviation,
+            label: `${major.name} (${major.abbreviation})`,
+          }),
+        );
+
+        if (!cancelled) {
+          setMajorOptions([
+            { value: "", label: "Semua Jurusan" },
+            ...mappedMajors,
+          ]);
+        }
+      } catch (error) {
+        console.error("Error fetching majors:", error);
+        if (!cancelled) {
+          showAlert({
+            title: "Gagal",
+            description: "Gagal memuat daftar jurusan",
+            variant: "error",
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingMajors(false);
+        }
+      }
+    };
+
+    fetchMajors();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showAlert]);
+
+  useEffect(() => {
+    fetchAlumni();
+  }, [fetchAlumni]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    debouncedSearchTerm,
+    selectedMajor,
+    selectedGenerationYear,
+    sortBy,
+    sortOrder,
+  ]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setDebouncedSearchTerm("");
+    setSelectedMajor("");
+    setSelectedGenerationYear("");
+    setSortBy("createdAt");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
 
   const paginationConfig = useMemo(
     () => ({
-      current: pagination.currentPage,
-      pageSize: pagination.perPage,
-      total: pagination.total,
+      current: currentPage,
+      pageSize: limit,
+      total,
       onChange: (page: number, pageSize: number) => {
-        fetchAlumni(page, pageSize);
+        setCurrentPage(page);
+        setLimit(pageSize);
       },
       showSizeChanger: true,
-      onShowSizeChange: (page: number, pageSize: number) => {
-        fetchAlumni(page, pageSize);
+      onShowSizeChange: (_page: number, pageSize: number) => {
+        setCurrentPage(1);
+        setLimit(pageSize);
       },
     }),
-    [pagination],
+    [currentPage, limit, total],
   );
 
   const handleTogglePublish = async (
@@ -161,7 +317,7 @@ export default function DataAlumniPage() {
       });
       setDeleteModalOpen(false);
       setDeletingId(null);
-      fetchAlumni(pagination.currentPage, pagination.perPage);
+      fetchAlumni();
     } catch (error) {
       console.error("Failed delete alumni", error);
       showAlert({
@@ -175,21 +331,8 @@ export default function DataAlumniPage() {
   };
 
   const renderItem = (item: AlumniItem, _: number) => {
-    let majorAbbr = item.major;
-    switch (item.major) {
-      case "TP":
-        item.major = "Teknik Permesinan";
-        break;
-      case "TKR":
-        item.major = "Teknik Kendaraan Ringan";
-        break;
-      case "TITL":
-        item.major = "Teknik Instalasi Tenaga Listrik";
-        break;
-      case "DKV":
-        item.major = "Desain Komunikasi Visual";
-        break;
-    }
+    const majorAbbr = item.major;
+    const majorName = MAJOR_LABEL_MAP[item.major] || item.major;
 
     return (
       <div className="rounded-lg h-28 flex flex-row items-center justify-between border border-gray-300 shadow-2xs p-2 gap-4">
@@ -206,7 +349,9 @@ export default function DataAlumniPage() {
               {item.name}
             </p>
             <div className="w-full flex flex-row items-center gap-4">
-              <p className="text-base italic text-gray-800">{majorAbbr}</p>{" "}
+              <p className="text-base italic text-gray-800">
+                {majorName} ({majorAbbr})
+              </p>{" "}
               <span className="text-gray-300">|</span>
               <p className="text-base italic text-gray-800">
                 Angkatan Tahun {item.generationYear}
@@ -275,12 +420,76 @@ export default function DataAlumniPage() {
           title="Data Alumni SMK Tamtama Kroya"
           subtitle="Halaman ini akan menampilkan daftar alumni SMK Tamtama Kroya yang dapat diubah"
         />
-        <div className="w-full flex justify-end mb-3">
-          <TextButton
-            variant="primary"
-            text="Tambah Alumni"
-            onClick={() => router.push("/admin/siswa/data-alumni/tambah")}
-          />
+        <div className="w-full mb-3">
+          <div className="w-full flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end lg:justify-end">
+            <div className="w-full lg:w-60">
+              <SelectInput
+                label=""
+                value={selectedMajor}
+                onChange={(event) =>
+                  setSelectedMajor(String(event.target.value))
+                }
+                options={majorOptions}
+                placeholder="Pilih jurusan"
+                disabled={isLoadingMajors}
+              />
+            </div>
+
+            <div className="w-full lg:w-52">
+              <SearchableSelect
+                label=""
+                options={yearFilterOptions}
+                isAddValueActive={false}
+                allowClear={false}
+                maxDisplayOptions={YEAR_OPTIONS_LIMIT}
+                className="w-full"
+                minChars={0}
+                placeholder={"Pilih Tahun Angkatan"}
+                isMandatory={false}
+                name={"generationYear"}
+                value={selectedGenerationYear}
+                onChange={(e) => {
+                  setSelectedGenerationYear(String(e.target.value));
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
+            <div className="w-full lg:w-60">
+              <SelectInput
+                label=""
+                value={sortBy}
+                onChange={(event) => setSortBy(String(event.target.value))}
+                options={sortByOptions}
+              />
+            </div>
+            <div className="w-full lg:w-52">
+              <SelectInput
+                label=""
+                value={sortOrder}
+                onChange={(event) => setSortOrder(String(event.target.value))}
+                options={sortOrderOptions}
+              />
+            </div>
+            <TextButton
+              variant="outline"
+              text="Reset Filter"
+              className="w-full lg:w-auto lg:mb-2"
+              onClick={handleResetFilters}
+              icon={<IoMdRefresh className="text-lg shrink-0" />}
+            />
+            <Search
+              placeholder="Cari nama alumni"
+              className="w-full lg:max-w-sm lg:mb-2"
+              searchTerm={searchTerm}
+              handleSearchChange={handleSearchChange}
+            />
+            <TextButton
+              variant="primary"
+              text="Tambah Alumni"
+              onClick={() => router.push("/admin/siswa/data-alumni/tambah")}
+              className="w-full lg:w-auto lg:mb-2"
+            />
+          </div>
         </div>
         <div className="w-full h-fit">
           <GridListPaginate

@@ -23,12 +23,7 @@ import PhotoUpload from "@/components/Upload/PhotoUpload";
 import { SectionCard } from "@/components/Card/SectionCard";
 import SelectInput from "@/components/InputForm/SelectInput";
 import { SearchableSelect } from "@/components/InputForm/SelectInput/SearchableSelect";
-import Toggle from "@/components/ui/toggle";
-
-const CURRENT_YEAR = new Date().getFullYear();
-const YEAR_MIN = 1977;
-const YEAR_MAX = CURRENT_YEAR - 1;
-const YEAR_OPTIONS_LIMIT = 10;
+import { YEAR_MAX, YEAR_MIN, YEAR_OPTIONS_LIMIT } from "../type";
 
 const AlumniSchema = z.object({
   name: z.string().min(1, "Nama alumni harus diisi"),
@@ -370,7 +365,9 @@ export default function AdminAddAlumniPage() {
                           minChars={0}
                           isMandatory
                           error={form.formState.errors.generationYear?.message}
-                          className={isLoading ? "pointer-events-none opacity-60" : ""}
+                          className={
+                            isLoading ? "pointer-events-none opacity-60" : ""
+                          }
                         />
                       </FormControl>
                       <FormMessage />

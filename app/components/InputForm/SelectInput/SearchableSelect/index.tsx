@@ -429,7 +429,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
             value={String(value ?? "")}
             onChange={handleCustomInputChange}
             onBlur={handleBlur}
-            className={`w-full max-sm:text-xs px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${
+            className={`w-full max-sm:text-xs px-4 py-2 border rounded-sm focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${
               hasError
                 ? "border-red-500 focus:ring-red-500"
                 : "border-gray-300 focus:ring-primary"
@@ -468,7 +468,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
             onChange={handleSearchChange}
             onFocus={() => setIsOpen(true)}
             onBlur={handleBlur}
-            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent transition-colors
+            className={`w-full px-4 py-2 border rounded-sm focus:outline-none focus:ring-2 focus:border-transparent transition-colors
             max-sm:px-2 max-sm:text-xs text-sm ${
               hasError
                 ? "border-red-500 focus:ring-red-500"

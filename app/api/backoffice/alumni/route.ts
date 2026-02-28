@@ -19,14 +19,27 @@ export async function GET(request: NextRequest) {
     const page = searchParams.get("page") || "1";
     const perPage = searchParams.get("perPage") || searchParams.get("limit") || "10";
     const search = searchParams.get("search") || "";
+    const major = searchParams.get("major") || "";
+    const generationYear = searchParams.get("generationYear") || "";
+    const sortBy = searchParams.get("sortBy") || "createdAt";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
 
     const queryParams = new URLSearchParams({
       page,
       limit: perPage,
       perPage,
+      sortBy,
+      sortOrder,
     });
+
     if (search) {
       queryParams.append("search", search);
+    }
+    if (major) {
+      queryParams.append("major", major);
+    }
+    if (generationYear) {
+      queryParams.append("generationYear", generationYear);
     }
 
     const backendResponse = await fetch(
