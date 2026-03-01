@@ -80,6 +80,7 @@ export default function AlumnusPage() {
           width={232}
           height={121}
           loading="lazy"
+          unoptimized
           className="w-full h-58 aspect-1.5/1 bg-gray-300 border border-gray-300 rounded-lg object-cover"
         />
         <p className="text-base font-semibold text-gray-800 my-1">

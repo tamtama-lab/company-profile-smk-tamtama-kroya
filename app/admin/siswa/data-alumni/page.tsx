@@ -366,6 +366,7 @@ export default function DataAlumniPage() {
             height={200}
             width={100}
             loading="lazy"
+            unoptimized
             className="w-42 h-full border border-gray-300 aspect-video bg-gray-300 rounded-lg object-cover"
           />
           <div>
