@@ -411,7 +411,7 @@ export default function AdminEditAlumniPage() {
                   }}
                   disabled={isLoading}
                   label="Foto Alumni"
-                  maxSizeInMB={1}
+                  maxSizeInMB={5}
                   isMandatory={false}
                 />
 
@@ -432,7 +432,9 @@ export default function AdminEditAlumniPage() {
                           minChars={0}
                           isMandatory
                           error={form.formState.errors.generationYear?.message}
-                          className={isLoading ? "pointer-events-none opacity-60" : ""}
+                          className={
+                            isLoading ? "pointer-events-none opacity-60" : ""
+                          }
                         />
                       </FormControl>
                       <FormMessage />

@@ -42,6 +42,16 @@ const MAJOR_LABEL_MAP: Record<string, string> = {
   DKV: "Desain Komunikasi Visual",
 };
 
+const normalizeBoolean = (value: unknown): boolean => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const lowered = value.trim().toLowerCase();
+    return lowered === "true" || lowered === "1";
+  }
+  return false;
+};
+
 export default function DataAlumniPage() {
   const router = useRouter();
   const { showAlert } = useAlert();
@@ -121,7 +131,12 @@ export default function DataAlumniPage() {
 
       const result: AlumniApiResponse = await response.json();
 
-      setAlumni(result.data || []);
+      setAlumni(
+        (result.data || []).map((item) => ({
+          ...item,
+          isPublished: normalizeBoolean(item.isPublished),
+        })),
+      );
       setTotal(result.meta?.total || 0);
       setCurrentPage(result.meta?.currentPage || currentPage);
       setLimit(result.meta?.perPage || limit);
@@ -278,6 +293,13 @@ export default function DataAlumniPage() {
           current.id === item.id ? { ...current, isPublished } : current,
         ),
       );
+      showAlert({
+        title: "Berhasil",
+        description: `Visibilitas alumni berhasil diubah menjadi ${
+          isPublished ? "ditampilkan" : "disembunyikan"
+        }`,
+        variant: "success",
+      });
     } catch (error) {
       console.error("Failed update visibility", error);
       showAlert({

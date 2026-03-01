@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 
     const baseUrl = request.nextUrl.pathname;
 
-    const response: AlumniResponse = {
+    const response: AlumniResponse = {  
       meta: {
         total,
         perPage,

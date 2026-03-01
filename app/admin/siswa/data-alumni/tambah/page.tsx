@@ -344,7 +344,7 @@ export default function AdminAddAlumniPage() {
                   }}
                   disabled={isLoading}
                   label="Foto Alumni"
-                  maxSizeInMB={1}
+                  maxSizeInMB={5}
                   isMandatory={true}
                 />
 
