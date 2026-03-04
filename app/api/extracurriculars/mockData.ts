@@ -23,6 +23,8 @@ export interface MockExtracurricularDetail {
   thumbnailUrl: string;
   categories: string[];
   mentorName: string;
+  location: string;
+  schedule: string;
   description: string;
   createdAt: string;
   updatedAt: string;
@@ -42,6 +44,8 @@ export const MOCK_EXTRACURRICULARS: MockExtracurricularDetail[] = [
     thumbnailUrl: "https://picsum.photos/seed/futsal-thumb/1200/800",
     categories: ["Olahraga"],
     mentorName: "Budi Santoso",
+    location: "Lapangan Futsal SMK Tamtama Kroya",
+    schedule: "Setiap Senin dan Kamis, 15:30 - 17:00 WIB",
     description:
       "Ekstrakurikuler futsal untuk meningkatkan kebugaran, strategi bermain, dan sportivitas siswa.",
     createdAt,
@@ -91,6 +95,8 @@ export const MOCK_EXTRACURRICULARS: MockExtracurricularDetail[] = [
     thumbnailUrl: "https://picsum.photos/seed/paskibra-thumb/1200/800",
     categories: ["Kepemimpinan", "Disiplin"],
     mentorName: "Andi Prasetyo",
+    location: "Gedung Olahraga SMK Tamtama Kroya",
+    schedule: "Setiap Selasa dan Jumat, 14:00 - 16:00 WIB",
     description:
       "Paskibra membentuk karakter disiplin, jiwa kepemimpinan, dan kecintaan terhadap bangsa.",
     createdAt,
@@ -140,6 +146,8 @@ export const MOCK_EXTRACURRICULARS: MockExtracurricularDetail[] = [
     thumbnailUrl: "https://picsum.photos/seed/pmr-thumb/1200/800",
     categories: ["Sosial", "Kesehatan"],
     mentorName: "Siti Rahma",
+    location: "Gedung Olahraga SMK Tamtama Kroya",
+    schedule: "Setiap Rabu dan Jumat, 13:00 - 15:00 WIB",
     description:
       "Palang Merah Remaja yang berfokus pada pertolongan pertama, kepedulian sosial, dan kesiapsiagaan.",
     createdAt,
@@ -189,6 +197,8 @@ export const MOCK_EXTRACURRICULARS: MockExtracurricularDetail[] = [
     thumbnailUrl: "https://picsum.photos/seed/robotika-thumb/1200/800",
     categories: ["Teknologi", "Akademik"],
     mentorName: "Rizky Maulana",
+    location: "Laboratorium Teknologi SMK Tamtama Kroya",
+    schedule: "Setiap Jumat, 16:00 - 18:00 WIB",
     description:
       "Ekstrakurikuler robotika untuk mengasah logika, kreativitas, dan keterampilan rekayasa siswa.",
     createdAt,
@@ -238,6 +248,8 @@ export const MOCK_EXTRACURRICULARS: MockExtracurricularDetail[] = [
     thumbnailUrl: "https://picsum.photos/seed/sinematografi-thumb/1200/800",
     categories: ["Seni", "Media Kreatif"],
     mentorName: "Dewi Lestari",
+    location: "Studio Multimedia SMK Tamtama Kroya",
+    schedule: "Setiap Kamis, 15:00 - 17:00 WIB",
     description:
       "Sinematografi membina kemampuan siswa dalam produksi video, storytelling, dan teknik pengambilan gambar.",
     createdAt,

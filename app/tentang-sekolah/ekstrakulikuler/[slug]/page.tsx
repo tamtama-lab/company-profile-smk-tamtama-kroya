@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ExtracurricularDetail } from "../type";
 import { resolveSlug } from "@/utils/resolveSlug";
-import { formatDate } from "@/utils/formatDateTime";
 import { LuArrowLeft } from "react-icons/lu";
 
 export default function ExtracurricularDetailPage() {
@@ -111,11 +110,12 @@ export default function ExtracurricularDetailPage() {
 
   return (
     <main className="min-h-screen w-full bg-white px-4 py-10 sm:px-6 sm:py-12 md:px-10 lg:px-16 xl:px-24">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 py-20 sm:pb-4 max-sm:pt-20 max-sm:px-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 py-16 sm:pb-4 max-sm:pt-20 max-sm:px-8">
         <div className="w-fit">
           <TextButton
-            variant="ghost"
-            icon={<LuArrowLeft className="text-xl" />}
+            variant="shadow"
+            icon={<LuArrowLeft className="text-2xl" />}
+            className="w-fit!"
             onClick={() => router.push("/tentang-sekolah/ekstrakulikuler")}
           />
         </div>
@@ -127,7 +127,7 @@ export default function ExtracurricularDetailPage() {
           <h2 className="text-xl text-primary">SMK Tamtama Kroya</h2>
         </div>
 
-        <div className="flex flex-row gap-4 w-full h-full border">
+        <div className="flex flex-row gap-4 w-full h-full">
           <Image
             src={detail.thumbnailUrl || "https://placehold.co/1200x800/png"}
             alt={detail.name}
@@ -135,23 +135,27 @@ export default function ExtracurricularDetailPage() {
             height={800}
             loading="lazy"
             unoptimized
-            className="w-1/2 h-auto max-h-135 rounded-lg border border-gray-200 object-cover"
+            className="w-6/10 h-auto max-h-92 rounded-lg border border-gray-200 object-cover"
           />
-          <div className="w-full h-full flex flex-col gap-2  border">
-            <p className="text-base text-gray-600">
-              Pembina: {detail.mentorName} • Diperbarui{" "}
-              {formatDate(detail.updatedAt)}
-            </p>
-            <div className="flex flex-wrap gap-2">
+          <div className="w-4/10 h-full flex flex-col gap-4 p-8 border border-gray-400 rounded-md">
+            <h2 className="text-xl text-primary font-bold">
+              Informasi Singkat
+            </h2>
+
+            <p className="">• Pembina: {detail.mentorName}</p>
+            <div className="flex flex-wrap gap-1">
+              • Kategori:
               {detail.categories.map((category) => (
                 <span
                   key={category}
-                  className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm"
+                  className="px-3 rounded-full bg-primary/10"
                 >
                   {category}
                 </span>
               ))}
             </div>
+            <p className="">• Lokasi: {detail.location}</p>
+            <p className="">• Jadwal: {detail.schedule}</p>
           </div>
         </div>
 
@@ -164,45 +168,41 @@ export default function ExtracurricularDetailPage() {
           </p>
         </section>
 
-        {galleries.length > 0 && (
-          <section className="flex flex-col gap-3">
-            <h2 className="text-2xl max-sm:text-xl font-bold text-primary">
-              Foto Kegiatan
-            </h2>
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {galleries.map((gallery) => (
-                <Image
-                  key={gallery.id}
-                  src={gallery.photoUrl || "https://placehold.co/1600x900/png"}
-                  alt={`${detail.name} galeri ${gallery.order + 1}`}
-                  width={1600}
-                  height={900}
-                  loading="lazy"
-                  unoptimized
-                  className="w-full h-52 rounded-lg border border-gray-200 object-cover"
-                />
-              ))}
-            </div>
-          </section>
-        )}
+        <section className="flex flex-col gap-3">
+          <h2 className="text-2xl max-sm:text-xl font-bold text-primary">
+            Foto Kegiatan
+          </h2>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {galleries.map((gallery) => (
+              <Image
+                key={gallery.id}
+                src={gallery.photoUrl || "https://placehold.co/1600x900/png"}
+                alt={`${detail.name} galeri ${gallery.order + 1}`}
+                width={1600}
+                height={900}
+                loading="lazy"
+                unoptimized
+                className="w-full h-52 rounded-lg border border-gray-200 object-cover"
+              />
+            ))}
+          </div>
+        </section>
 
-        {achievements.length > 0 && (
-          <section className="flex flex-col gap-3">
-            <h2 className="text-2xl max-sm:text-xl font-bold text-primary">
-              Prestasi
-            </h2>
-            <div className="flex flex-col gap-2">
-              {achievements.map((achievement) => (
-                <div
-                  key={achievement.id}
-                  className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-700"
-                >
-                  {achievement.name}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+        <section className="flex flex-col gap-3">
+          <h2 className="text-2xl max-sm:text-xl font-bold text-primary">
+            Prestasi Kegiatan
+          </h2>
+          <div className="flex flex-col gap-2">
+            {achievements.map((achievement) => (
+              <div
+                key={achievement.id}
+                className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-700"
+              >
+                {achievement.name}
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );

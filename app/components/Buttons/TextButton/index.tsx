@@ -91,7 +91,7 @@ export const TextButton = React.forwardRef<HTMLButtonElement, TextButtonProps>(
         loadingStyle = "border-primary border-t-primary/30";
         break;
       case "shadow":
-        defaultStyle = "bg-transparent border-white shadow-lg";
+        defaultStyle = "bg-transparent border-white shadow-md";
         loadingStyle = "border-primary border-t-primary/30";
         break;
       case "icon":

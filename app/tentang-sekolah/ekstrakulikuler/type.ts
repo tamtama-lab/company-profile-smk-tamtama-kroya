@@ -41,6 +41,8 @@ export interface ExtracurricularAchievementItem {
 }
 
 export interface ExtracurricularDetail {
+  location: string;
+  schedule: string;
   id: number;
   name: string;
   slug: string;

@@ -35,6 +35,8 @@ interface BackendExtracurricularDetail {
   categories?: string[] | string;
   category?: string[] | string;
   mentorName?: string;
+  location?: string;
+  schedule?: string;
   description?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -124,6 +126,8 @@ const normalizeDetail = (
       item.thumbnailUrl || item.thumbnail || "https://placehold.co/1200x800/png",
     categories: toCategoryArray(item.categories || item.category),
     mentorName: item.mentorName || "-",
+    location: item.location || "Location belum tersedia.",
+    schedule: item.schedule || "Jadwal belum tersedia.",
     description: item.description || "Deskripsi belum tersedia.",
     createdAt: item.createdAt || new Date().toISOString(),
     updatedAt: item.updatedAt || new Date().toISOString(),
@@ -179,9 +183,9 @@ export async function GET(request: NextRequest) {
 
       const rawData = "data" in backendData ? backendData.data : backendData;
 
-      if (rawData) {
-        return NextResponse.json(normalizeDetail(rawData), { status: 200 });
-      }
+    //   if (rawData) {
+    //     return NextResponse.json(normalizeDetail(rawData), { status: 200 });
+    //   }
     }
   } catch (error) {
     console.error("Failed to fetch extracurricular detail from backend:", error);

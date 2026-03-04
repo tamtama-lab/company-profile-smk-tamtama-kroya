@@ -17,7 +17,6 @@ import { FaCheckCircle } from "react-icons/fa";
 import { IoMdPin } from "react-icons/io";
 import { VideoTutorialModal } from "../Modal/VideoTutorialModal";
 import { getAcademicYear } from "@/lib/getAcademicYear";
-import { startsWith } from "zod";
 
 export const NavItems = [
   { label: "Beranda", href: "/" },
