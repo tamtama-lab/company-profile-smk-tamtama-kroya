@@ -17,6 +17,11 @@ const MAJOR_LABEL_MAP: Record<string, string> = {
   DKV: "Desain Komunikasi Visual",
 };
 
+const LG_BREAKPOINT = 1024;
+
+const getPerPageByViewport = () =>
+  typeof window !== "undefined" && window.innerWidth < LG_BREAKPOINT ? 10 : 9;
+
 export default function AlumnusPage() {
   const [loading, setLoading] = useState(false);
   const [alumni, setAlumni] = useState<AlumniItem[]>([]);
@@ -33,7 +38,7 @@ export default function AlumnusPage() {
   const [pagination, setPagination] = useState({
     total: 0,
     currentPage: 1,
-    perPage: 9,
+    perPage: getPerPageByViewport(),
   });
 
   useEffect(() => {
@@ -82,6 +87,31 @@ export default function AlumnusPage() {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncPerPageWithViewport = () => {
+      const nextPerPage = getPerPageByViewport();
+
+      setPagination((prev) => {
+        if (prev.perPage === nextPerPage) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          currentPage: 1,
+          perPage: nextPerPage,
+        };
+      });
+    };
+
+    syncPerPageWithViewport();
+    window.addEventListener("resize", syncPerPageWithViewport);
+
+    return () => {
+      window.removeEventListener("resize", syncPerPageWithViewport);
     };
   }, []);
 
@@ -213,9 +243,9 @@ export default function AlumnusPage() {
             mereka setelah menyelesaikan pendidikan.
           </p>
         </div>
-        <div className="flex flex-row justify-end w-full gap-3 md:flex-row md:items-end px-4">
+        <div className="flex flex-col border border-gray-300 justify-end w-full flex-wrap md:flex-nowarp gap-3 md:flex-row md:items-end px-0">
           <SelectInput
-            className="w-full sm:min-w-56"
+            className="w-full!"
             options={majorOptions}
             value={selectedMajor}
             onChange={handleMajorChange}
@@ -230,14 +260,14 @@ export default function AlumnusPage() {
             <TextButton
               variant="outline"
               // text="Reset Filter"
-              className="w-full lg:w-auto lg:mb-2"
+              className="w-full sm:w-fit! sm:mb-2"
               onClick={handleResetFilters}
               icon={<RiFilterOffFill className="text-xl shrink-0" />}
             />
           )}
           <Search
             placeholder="Cari nama alumni/tempat kerja"
-            className="w-full sm:max-w-76 mb-2"
+            className="w-full md:max-w-72 sm:max-w-68 mb-2"
             searchTerm={searchTerm}
             handleSearchChange={handleSearchChange}
           />
