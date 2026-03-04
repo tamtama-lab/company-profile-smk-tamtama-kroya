@@ -243,7 +243,7 @@ export default function AlumnusPage() {
             mereka setelah menyelesaikan pendidikan.
           </p>
         </div>
-        <div className="flex flex-col border border-gray-300 justify-end w-full flex-wrap md:flex-nowarp gap-3 md:flex-row md:items-end px-0">
+        <div className="flex flex-col justify-end w-full flex-wrap md:flex-nowarp gap-3 md:flex-row md:items-end px-0">
           <SelectInput
             className="w-full!"
             options={majorOptions}
