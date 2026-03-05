@@ -79,11 +79,11 @@ export default function ExtracurricularDetailPage() {
     [detail?.achievements],
   );
 
-  const shouldAutoScrollGallery = galleries.length >= 4;
+  const shouldUseMarquee = galleries.length > 4;
 
   const marqueeGalleries = useMemo(
-    () => (shouldAutoScrollGallery ? [...galleries, ...galleries] : galleries),
-    [galleries, shouldAutoScrollGallery],
+    () => (shouldUseMarquee ? [...galleries, ...galleries] : galleries),
+    [galleries, shouldUseMarquee],
   );
 
   const marqueeDuration = useMemo(
@@ -216,7 +216,7 @@ export default function ExtracurricularDetailPage() {
         <section className="flex flex-col gap-3 mt-10">
           <RotatedHighlightTitle title="Foto Kegiatan" />
           {galleries.length > 0 ? (
-            shouldAutoScrollGallery ? (
+            shouldUseMarquee ? (
               <div className="group relative mt-6 overflow-hidden">
                 {/* <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-linear-to-r from-white via-white/60 to-transparent" />
                 <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-linear-to-l from-white via-white/60 to-transparent" /> */}
@@ -247,21 +247,28 @@ export default function ExtracurricularDetailPage() {
                 </div>
               </div>
             ) : (
-              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {galleries.map((gallery) => (
-                  <Image
-                    key={gallery.id}
-                    src={
-                      gallery.photoUrl || "https://placehold.co/1600x900/png"
-                    }
-                    alt={`${detail.name} galeri ${gallery.order + 1}`}
-                    width={1600}
-                    height={900}
-                    loading="lazy"
-                    unoptimized
-                    className="h-52 w-full rounded-lg border border-gray-200 object-cover grayscale transition-[filter,transform] duration-500 ease-out hover:grayscale-0 hover:scale-[1.01]"
-                  />
-                ))}
+              <div className="mt-6 -mx-2 overflow-x-auto px-2 pb-2">
+                <div className="flex w-max gap-4">
+                  {galleries.map((gallery) => (
+                    <div
+                      key={gallery.id}
+                      className="w-[78vw] shrink-0 sm:w-[45vw] md:w-[34vw] lg:w-[28vw] xl:w-[22vw]"
+                    >
+                      <Image
+                        src={
+                          gallery.photoUrl ||
+                          "https://placehold.co/1600x900/png"
+                        }
+                        alt={`${detail.name} galeri ${gallery.order + 1}`}
+                        width={1600}
+                        height={900}
+                        loading="lazy"
+                        unoptimized
+                        className="h-52 w-full rounded-lg border border-gray-200 object-cover grayscale transition-[filter,transform] duration-500 ease-out hover:grayscale-0 hover:scale-[1.01]"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             )
           ) : (
