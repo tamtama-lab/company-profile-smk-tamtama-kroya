@@ -1154,7 +1154,7 @@ export default function ExtracurricularFormPage({
             </div>
           </div>
 
-          <div className="max-h-60">
+          <div className="w-full lg:max-h-60">
             <PhotoUpload
               previewUrl={thumbnailPreview || formValues.thumbnailUrl}
               onFileSelect={handleThumbnailChange}
