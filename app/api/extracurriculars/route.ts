@@ -217,7 +217,7 @@ export async function GET(request: NextRequest) {
   const page = toPositiveInt(searchParams.get("page"), 1);
   const perPage = toPositiveInt(
     searchParams.get("perPage") || searchParams.get("limit"),
-    10,
+    6,
   );
   const search = (searchParams.get("search") || "").trim();
   const categories = parseCategories(searchParams);

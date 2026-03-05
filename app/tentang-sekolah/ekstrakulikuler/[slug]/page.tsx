@@ -87,7 +87,7 @@ export default function ExtracurricularDetailPage() {
   );
 
   const marqueeDuration = useMemo(
-    () => Math.max(18, galleries.length * 4),
+    () => Math.max(50, galleries.length * 4),
     [galleries.length],
   );
 
@@ -140,8 +140,8 @@ export default function ExtracurricularDetailPage() {
 
   if (error || !detail) {
     return (
-      <main className="min-h-screen w-full bg-linear-to-b from-[#fafafa] to-gray-50 px-4 sm:px-6 sm:py-12 md:px-10 lg:px-16 xl:px-24">
-        <div className="mx-auto flex w-full max-w-4xl flex-col items-center justify-center gap-4 mt-32 text-center">
+      <main className="h-screen w-full px-4 sm:px-6 sm:py-12 md:px-10 lg:px-16 xl:px-24">
+        <div className="flex w-full h-full flex-col items-center justify-center gap-4  text-center">
           <p className="text-lg text-gray-700">
             {error || "Data tidak tersedia"}
           </p>
@@ -323,7 +323,7 @@ export default function ExtracurricularDetailPage() {
 
       <style jsx>{`
         .ekstra-marquee-track {
-          animation: marquee-left var(--marquee-duration, 30s) linear infinite;
+          animation: marquee-left var(--marquee-duration, 60s) linear infinite;
           will-change: transform;
         }
 

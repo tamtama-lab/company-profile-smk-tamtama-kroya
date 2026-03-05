@@ -11,11 +11,9 @@ import { RiFilterOffFill } from "react-icons/ri";
 import { ExtracurricularListItem, ExtracurricularListResponse } from "./type";
 import { toSlug } from "@/utils/resolveSlug";
 
-const LG_BREAKPOINT = 1024;
-const DEFAULT_CATEGORY_OPTION = { value: "", label: "Semua Kategori" };
-
-const getPerPageByViewport = () =>
-  typeof window !== "undefined" && window.innerWidth < LG_BREAKPOINT ? 10 : 9;
+const ITEMS_PER_PAGE = 6;
+const CATEGORY_FILTER_DEFAULT = { value: "", label: "Semua Kategori" };
+const CATEGORY_OPTIONS_ENDPOINT = "/api/extracurriculars/categories";
 
 export default function ExtracurricularPage() {
   const router = useRouter();
@@ -28,12 +26,12 @@ export default function ExtracurricularPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [categoryOptions, setCategoryOptions] = useState<
     Array<{ value: string | number; label: string }>
-  >([DEFAULT_CATEGORY_OPTION]);
+  >([CATEGORY_FILTER_DEFAULT]);
 
   const [pagination, setPagination] = useState({
     total: 0,
     currentPage: 1,
-    perPage: getPerPageByViewport(),
+    perPage: ITEMS_PER_PAGE,
   });
 
   useEffect(() => {
@@ -45,37 +43,59 @@ export default function ExtracurricularPage() {
   }, [searchTerm]);
 
   useEffect(() => {
-    const syncPerPageWithViewport = () => {
-      const nextPerPage = getPerPageByViewport();
+    let cancelled = false;
+    const fetchCategoryOptions = async () => {
+      try {
+        const response = await fetch(CATEGORY_OPTIONS_ENDPOINT, {
+          method: "GET",
+          cache: "no-store",
+        });
 
-      setPagination((prev) => {
-        if (prev.perPage === nextPerPage) {
-          return prev;
+        if (!response.ok) {
+          throw new Error("Gagal memuat kategori ekstrakurikuler");
         }
 
-        return {
-          ...prev,
-          currentPage: 1,
-          perPage: nextPerPage,
-        };
-      });
+        const payload = (await response.json()) as unknown;
+        const categories = Array.isArray(payload)
+          ? payload
+              .filter((item): item is string => typeof item === "string")
+              .map((item) => item.trim())
+              .filter(Boolean)
+          : [];
+
+        if (cancelled) {
+          return;
+        }
+
+        setCategoryOptions([
+          CATEGORY_FILTER_DEFAULT,
+          ...Array.from(new Set(categories))
+            .sort((a, b) => a.localeCompare(b))
+            .map((category) => ({ value: category, label: category })),
+        ]);
+      } catch (error) {
+        console.error("Failed fetch extracurricular categories", error);
+
+        if (!cancelled) {
+          setCategoryOptions([CATEGORY_FILTER_DEFAULT]);
+        }
+      }
     };
 
-    syncPerPageWithViewport();
-    window.addEventListener("resize", syncPerPageWithViewport);
+    fetchCategoryOptions();
 
     return () => {
-      window.removeEventListener("resize", syncPerPageWithViewport);
+      cancelled = true;
     };
   }, []);
 
   const fetchExtracurriculars = useCallback(
-    async (page = 1, perPage = pagination.perPage) => {
+    async (page = 1) => {
       try {
         setLoading(true);
         const params = new URLSearchParams({
           page: String(page),
-          perPage: String(perPage),
+          perPage: String(ITEMS_PER_PAGE),
         });
 
         if (debouncedSearchTerm) {
@@ -94,38 +114,13 @@ export default function ExtracurricularPage() {
         }
 
         const result: ExtracurricularListResponse = await response.json();
-        const items = result.items || [];
+        const items = (result.items || []).slice(0, ITEMS_PER_PAGE);
 
         setExtracurriculars(items);
         setPagination({
           total: result.meta?.total || 0,
-          currentPage: result.meta?.currentPage || 1,
-          perPage: result.meta?.perPage || perPage,
-        });
-
-        setCategoryOptions((prev) => {
-          const mergedCategories = new Set(
-            prev
-              .map((option) => String(option.value))
-              .filter((value) => value !== ""),
-          );
-
-          items.forEach((item) => {
-            item.category.forEach((category) => {
-              const normalized = category.trim();
-              if (normalized) {
-                mergedCategories.add(normalized);
-              }
-            });
-          });
-
-          return [
-            DEFAULT_CATEGORY_OPTION,
-            ...Array.from(mergedCategories).map((category) => ({
-              value: category,
-              label: category,
-            })),
-          ];
+          currentPage: result.meta?.currentPage || page,
+          perPage: ITEMS_PER_PAGE,
         });
       } catch (error) {
         console.error("Failed fetch extracurriculars", error);
@@ -135,12 +130,12 @@ export default function ExtracurricularPage() {
         setLoading(false);
       }
     },
-    [debouncedSearchTerm, selectedCategory, pagination.perPage],
+    [debouncedSearchTerm, selectedCategory],
   );
 
   useEffect(() => {
-    fetchExtracurriculars(1, pagination.perPage);
-  }, [fetchExtracurriculars, pagination.perPage]);
+    fetchExtracurriculars(1);
+  }, [fetchExtracurriculars]);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -161,13 +156,13 @@ export default function ExtracurricularPage() {
   const paginationConfig = useMemo(
     () => ({
       current: pagination.currentPage,
-      pageSize: pagination.perPage,
+      pageSize: ITEMS_PER_PAGE,
       total: pagination.total,
-      onChange: (page: number, pageSize: number) => {
-        fetchExtracurriculars(page, pageSize);
+      onChange: (page: number) => {
+        fetchExtracurriculars(page);
       },
-      onShowSizeChange: (page: number, pageSize: number) => {
-        fetchExtracurriculars(page, pageSize);
+      onShowSizeChange: (page: number) => {
+        fetchExtracurriculars(page);
       },
     }),
     [pagination, fetchExtracurriculars],
@@ -193,7 +188,20 @@ export default function ExtracurricularPage() {
           <p className="text-base text-left font-semibold text-gray-800">
             {item.name}
           </p>
-          <p className="text-sm text-gray-600">{categoryLabel}</p>
+          <div className="flex flex-wrap gap-1 min-h-6">
+            {item.category.length > 0 ? (
+              item.category.map((category) => (
+                <span
+                  key={`${item.slug}-${category}`}
+                  className="rounded-full bg-teal-500/10 w-fit px-2 py-1 text-xs text-primary"
+                >
+                  {category}
+                </span>
+              ))
+            ) : (
+              <span className="text-xs text-gray-500">-</span>
+            )}{" "}
+          </div>
           <TextButton
             variant="gray"
             text="Lihat Detail"

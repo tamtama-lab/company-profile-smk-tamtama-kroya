@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { LuGripVertical, LuPlus, LuTrash2 } from "react-icons/lu";
 import { TextButton } from "@/components/Buttons/TextButton";
-import CategoryMultiInput from "@/components/InputForm/CategoryMultiInput";
+import SelectInput from "@/components/InputForm/SelectInput";
+import { BaseModal } from "@/components/Modal/BaseModal";
 import { TitleSection } from "@/components/TitleSection";
 import { useAlert } from "@/components/ui/alert";
 import PhotoUpload from "@/components/Upload/PhotoUpload";
@@ -50,6 +50,8 @@ const DEFAULT_FORM_VALUES: ExtracurricularFormValues = {
   thumbnailUrl: "",
   isPublished: true,
 };
+
+const CATEGORY_OPTIONS_ENDPOINT = "/api/extracurriculars/categories";
 
 const fileToDataUrl = (file: File) =>
   new Promise<string>((resolve, reject) => {
@@ -132,6 +134,9 @@ export default function ExtracurricularFormPage({
   const [formValues, setFormValues] =
     useState<ExtracurricularFormValues>(DEFAULT_FORM_VALUES);
   const [formErrors, setFormErrors] = useState<FormErrorState>({});
+  const [categoryOptions, setCategoryOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
 
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
@@ -153,16 +158,80 @@ export default function ExtracurricularFormPage({
   const [isAddingAchievement, setIsAddingAchievement] = useState(false);
   const [achievementAddAlert, setAchievementAddAlert] =
     useState<InlineActionAlert | null>(null);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   const canSyncNestedItems = isEditMode && Boolean(slug);
+  const isFormBusy =
+    isSubmitting || isSyncingGalleries || isSyncingAchievements;
 
-  const categorySuggestions = useMemo(
-    () =>
-      Array.from(new Set(formValues.categories)).sort((a, b) =>
-        a.localeCompare(b),
-      ),
-    [formValues.categories],
-  );
+  const availableCategoryOptions = useMemo(() => {
+    const merged = new Set<string>();
+
+    categoryOptions.forEach((option) => {
+      const normalized = String(option.value).trim();
+      if (normalized) {
+        merged.add(normalized);
+      }
+    });
+
+    formValues.categories.forEach((category) => {
+      const normalized = category.trim();
+      if (normalized) {
+        merged.add(normalized);
+      }
+    });
+
+    return Array.from(merged)
+      .sort((a, b) => a.localeCompare(b))
+      .map((category) => ({ value: category, label: category }));
+  }, [categoryOptions, formValues.categories]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchCategoryOptions = async () => {
+      try {
+        const response = await fetch(CATEGORY_OPTIONS_ENDPOINT, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Gagal memuat kategori ekstrakurikuler");
+        }
+
+        const payload = (await response.json()) as unknown;
+        const categories = Array.isArray(payload)
+          ? payload
+              .filter((item): item is string => typeof item === "string")
+              .map((item) => item.trim())
+              .filter(Boolean)
+          : [];
+
+        if (cancelled) {
+          return;
+        }
+
+        setCategoryOptions(
+          Array.from(new Set(categories))
+            .sort((a, b) => a.localeCompare(b))
+            .map((category) => ({ value: category, label: category })),
+        );
+      } catch (error) {
+        console.error("Failed fetch extracurricular categories", error);
+
+        if (!cancelled) {
+          setCategoryOptions([]);
+        }
+      }
+    };
+
+    fetchCategoryOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isEditMode || !slug) {
@@ -238,7 +307,8 @@ export default function ExtracurricularFormPage({
         setFormValues({
           name: detail.name,
           slug: detail.slug,
-          categories: detail.categories,
+          categories:
+            detail.categories.length > 0 ? [detail.categories[0]] : [],
           mentorName: detail.mentorName,
           schedule: detail.schedule,
           location: detail.location,
@@ -1027,6 +1097,19 @@ export default function ExtracurricularFormPage({
     }
   };
 
+  const handleOpenCancelModal = () => {
+    if (isFormBusy) {
+      return;
+    }
+
+    setIsCancelModalOpen(true);
+  };
+
+  const handleConfirmCancel = () => {
+    setIsCancelModalOpen(false);
+    router.push("/admin/siswa/ekstrakurikuler");
+  };
+
   if (isLoadingDetail) {
     return (
       <div className="w-full min-h-[calc(100vh-4px)] bg-gray-100 p-4">
@@ -1085,25 +1168,29 @@ export default function ExtracurricularFormPage({
             />
 
             <FormInput
-              label="Slug"
+              label="Slug (Diisi otomatis oleh sistem)"
               value={formValues.slug}
               readOnly
               className="bg-gray-100"
               placeholder="Slug otomatis"
             />
 
-            <CategoryMultiInput
+            <SelectInput
               label="Kategori"
-              value={formValues.categories}
-              onChange={(nextCategories) => {
+              value={formValues.categories[0] || ""}
+              options={availableCategoryOptions}
+              placeholder="Pilih kategori"
+              onChange={(event) => {
+                const nextCategory = String(event.target.value || "").trim();
+
                 setFormValues((prev) => ({
                   ...prev,
-                  categories: nextCategories,
+                  categories: nextCategory ? [nextCategory] : [],
                 }));
                 setFormErrors((prev) => ({ ...prev, categories: undefined }));
               }}
-              suggestions={categorySuggestions}
               isMandatory
+              disabled={isSubmitting}
               error={formErrors.categories}
             />
 
@@ -1324,27 +1411,53 @@ export default function ExtracurricularFormPage({
           </div>
 
           <div className="flex justify-end gap-3 lg:col-span-2">
-            <Link href="/admin/siswa/ekstrakurikuler">
-              <TextButton
-                variant="outline"
-                text="Batal"
-                disabled={
-                  isSubmitting || isSyncingGalleries || isSyncingAchievements
-                }
-              />
-            </Link>
+            <TextButton
+              variant="outline"
+              text="Batal"
+              disabled={isFormBusy}
+              onClick={handleOpenCancelModal}
+            />
             <TextButton
               variant="primary"
               text={isEditMode ? "Simpan" : "Simpan"}
               isLoading={isSubmitting}
-              disabled={
-                isSubmitting || isSyncingGalleries || isSyncingAchievements
-              }
+              disabled={isFormBusy}
               onClick={handleSubmit}
             />
           </div>
         </div>
       </div>
+
+      <BaseModal
+        isOpen={isCancelModalOpen}
+        onClose={() => {
+          if (!isFormBusy) {
+            setIsCancelModalOpen(false);
+          }
+        }}
+        title="Konfirmasi Batal"
+        size="md"
+        footer={
+          <div className="flex justify-end gap-2">
+            <TextButton
+              variant="outline"
+              text="Lanjutkan"
+              onClick={() => setIsCancelModalOpen(false)}
+              disabled={isFormBusy}
+            />
+            <TextButton
+              variant="danger"
+              text="Ya, Batalkan"
+              onClick={handleConfirmCancel}
+              disabled={isFormBusy}
+            />
+          </div>
+        }
+      >
+        <p className="text-sm text-gray-700">
+          Perubahan yang belum disimpan akan hilang. Yakin ingin batal?
+        </p>
+      </BaseModal>
     </div>
   );
 }

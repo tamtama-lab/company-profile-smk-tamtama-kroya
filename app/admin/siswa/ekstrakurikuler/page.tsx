@@ -18,6 +18,7 @@ import { ExtracurricularItem, ExtracurricularListResponse } from "./type";
 import { normalizeItem } from "./helpers";
 
 const CATEGORY_FILTER_DEFAULT = { value: "", label: "Semua Kategori" };
+const CATEGORY_OPTIONS_ENDPOINT = "/api/extracurriculars/categories";
 
 export default function DataExtraPage() {
   const router = useRouter();
@@ -54,34 +55,53 @@ export default function DataExtraPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const mergeCategoryOptions = useCallback(
-    (nextItems: ExtracurricularItem[]) => {
-      setCategoryOptions((prevOptions) => {
-        const mergedCategories = new Set<string>(
-          prevOptions
-            .map((option) => String(option.value).trim())
-            .filter((value) => value !== ""),
-        );
+  useEffect(() => {
+    let cancelled = false;
 
-        nextItems.forEach((item) => {
-          item.categories.forEach((category) => {
-            const normalized = category.trim();
-            if (normalized) {
-              mergedCategories.add(normalized);
-            }
-          });
+    const fetchCategoryOptions = async () => {
+      try {
+        const response = await fetch(CATEGORY_OPTIONS_ENDPOINT, {
+          method: "GET",
+          cache: "no-store",
         });
 
-        return [
+        if (!response.ok) {
+          throw new Error("Gagal memuat kategori ekstrakurikuler");
+        }
+
+        const payload = (await response.json()) as unknown;
+        const categories = Array.isArray(payload)
+          ? payload
+              .filter((item): item is string => typeof item === "string")
+              .map((item) => item.trim())
+              .filter(Boolean)
+          : [];
+
+        if (cancelled) {
+          return;
+        }
+
+        setCategoryOptions([
           CATEGORY_FILTER_DEFAULT,
-          ...Array.from(mergedCategories)
+          ...Array.from(new Set(categories))
             .sort((a, b) => a.localeCompare(b))
             .map((category) => ({ value: category, label: category })),
-        ];
-      });
-    },
-    [],
-  );
+        ]);
+      } catch (error) {
+        console.error("Failed fetch extracurricular categories", error);
+
+        if (!cancelled) {
+          setCategoryOptions([CATEGORY_FILTER_DEFAULT]);
+        }
+      }
+    };
+
+    fetchCategoryOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const fetchExtracurriculars = useCallback(async () => {
     try {
@@ -134,7 +154,6 @@ export default function DataExtraPage() {
       const normalizedItems = rawItems.map((item) => normalizeItem(item));
 
       setItems(normalizedItems);
-      mergeCategoryOptions(normalizedItems);
 
       const responseMeta = payload.meta;
       setPagination((prev) => ({
@@ -161,7 +180,6 @@ export default function DataExtraPage() {
     pagination.perPage,
     debouncedSearchTerm,
     selectedCategory,
-    mergeCategoryOptions,
     showAlert,
   ]);
 
@@ -349,7 +367,7 @@ export default function DataExtraPage() {
             item.categories.map((category) => (
               <span
                 key={`${item.slug}-${category}`}
-                className="rounded-full bg-teal-500/10 px-2 py-1 text-[11px] text-primary"
+                className="rounded-full bg-teal-500/10 px-2 py-1 text-xs text-primary"
               >
                 {category}
               </span>
@@ -359,19 +377,17 @@ export default function DataExtraPage() {
           )}
         </div>
 
-        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+        <div className="mt-auto flex items-center justify-center gap-2 pt-2">
           <div className="flex items-center gap-2">
             <Toggle
-              size="sm"
+              size="md"
+              showIcon
               enabled={Boolean(item.isPublished)}
               disabled={Boolean(togglingBySlug[item.slug])}
               onChange={(nextValue) => {
                 handleTogglePublish(item, nextValue);
               }}
             />
-            <span className="text-xs text-gray-600">
-              {item.isPublished ? "Aktif" : "Non Aktif"}
-            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -409,7 +425,7 @@ export default function DataExtraPage() {
           <SelectInput
             value={selectedCategory}
             options={categoryOptions}
-            className="w-full lg:w-56 -mb-1.5"
+            className="w-full lg:w-60 -mb-1.5"
             onChange={(event) => {
               setSelectedCategory(String(event.target.value));
               setPagination((prev) => ({ ...prev, currentPage: 1 }));
