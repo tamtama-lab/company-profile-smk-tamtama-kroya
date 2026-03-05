@@ -34,6 +34,11 @@ type FormErrorState = Partial<
   >
 >;
 
+type InlineActionAlert = {
+  variant: "success" | "error";
+  message: string;
+};
+
 const DEFAULT_FORM_VALUES: ExtracurricularFormValues = {
   name: "",
   slug: "",
@@ -142,6 +147,12 @@ export default function ExtracurricularFormPage({
   const [draggingAchievementClientId, setDraggingAchievementClientId] =
     useState<string | null>(null);
   const [newAchievementName, setNewAchievementName] = useState("");
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [galleryUploadAlert, setGalleryUploadAlert] =
+    useState<InlineActionAlert | null>(null);
+  const [isAddingAchievement, setIsAddingAchievement] = useState(false);
+  const [achievementAddAlert, setAchievementAddAlert] =
+    useState<InlineActionAlert | null>(null);
 
   const canSyncNestedItems = isEditMode && Boolean(slug);
 
@@ -279,6 +290,34 @@ export default function ExtracurricularFormPage({
     };
   }, [isEditMode, slug, showAlert, router]);
 
+  useEffect(() => {
+    if (!galleryUploadAlert) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setGalleryUploadAlert(null);
+    }, 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [galleryUploadAlert]);
+
+  useEffect(() => {
+    if (!achievementAddAlert) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setAchievementAddAlert(null);
+    }, 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [achievementAddAlert]);
+
   const handleThumbnailChange = (file: File | null) => {
     if (!file) {
       setThumbnailFile(null);
@@ -385,7 +424,43 @@ export default function ExtracurricularFormPage({
     setGalleryItems(nextItems);
     setIsSyncingGalleries(true);
 
+    let hasAddedItems = false;
+    let addedItemCount = 0;
+
     try {
+      const fetchLatestGalleryItems = async () => {
+        const galleriesRes = await fetch(
+          `/api/backoffice/extracurriculars/${encodeURIComponent(targetSlug)}/galleries`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...getAuthHeader(),
+            },
+          },
+        );
+
+        if (!galleriesRes.ok) {
+          const errorData = await galleriesRes.json();
+          throw new Error(errorData?.message || "Gagal memuat ulang galeri");
+        }
+
+        const galleriesData = await galleriesRes.json();
+        const galleryArray = toArrayPayload<{
+          id?: number;
+          photoUrl?: string;
+          order?: number;
+        }>(galleriesData);
+
+        return sortByOrder(
+          galleryArray.map((item) => ({
+            clientId: createClientId("gallery-existing"),
+            id: Number(item.id || 0),
+            previewUrl: String(item.photoUrl || ""),
+            order: Number(item.order || 0),
+          })),
+        );
+      };
+
       const previousItemMap = new Map(
         previousItems.map((item) => [item.clientId, item]),
       );
@@ -425,10 +500,13 @@ export default function ExtracurricularFormPage({
         (item) => !previousItemMap.has(item.clientId),
       );
 
-      const uploadedGalleryMeta = new Map<
-        string,
-        { id: number; photoUrl: string | null }
-      >();
+      hasAddedItems = addedItems.length > 0;
+      addedItemCount = addedItems.length;
+
+      if (hasAddedItems) {
+        setGalleryUploadAlert(null);
+        setIsUploadingGallery(true);
+      }
 
       for (const addedItem of addedItems) {
         if (!addedItem.file) {
@@ -454,41 +532,47 @@ export default function ExtracurricularFormPage({
         if (!uploadRes.ok) {
           throw new Error(uploadData?.message || "Gagal upload foto galeri");
         }
-
-        const uploadedId = extractCreatedId(uploadData);
-
-        if (!uploadedId) {
-          throw new Error("ID foto galeri tidak ditemukan dari response API");
-        }
-
-        uploadedGalleryMeta.set(addedItem.clientId, {
-          id: uploadedId,
-          photoUrl: extractCreatedPhotoUrl(uploadData),
-        });
       }
 
-      const syncedItems = normalizeGalleryInputOrder(
-        nextItems.map((item) => {
-          const uploaded = uploadedGalleryMeta.get(item.clientId);
+      const hasAddOrDelete = removedItems.length > 0 || addedItems.length > 0;
 
-          if (!uploaded) {
-            return item;
-          }
+      if (hasAddOrDelete) {
+        const latestItems = await fetchLatestGalleryItems();
+        setGalleryItems(normalizeGalleryInputOrder(latestItems));
 
-          return {
-            ...item,
-            id: uploaded.id,
-            file: undefined,
-            previewUrl: uploaded.photoUrl || item.previewUrl,
-          };
-        }),
-      );
+        if (hasAddedItems) {
+          setGalleryUploadAlert({
+            variant: "success",
+            message: `${addedItemCount} foto berhasil ditambahkan ke galeri.`,
+          });
+        }
 
-      await reorderGalleriesOnServer(targetSlug, syncedItems);
-      setGalleryItems(syncedItems);
+        return;
+      }
+
+      await reorderGalleriesOnServer(targetSlug, nextItems);
+      setGalleryItems(nextItems);
+
+      if (hasAddedItems) {
+        setGalleryUploadAlert({
+          variant: "success",
+          message: `${addedItemCount} foto berhasil ditambahkan ke galeri.`,
+        });
+      }
     } catch (error) {
       console.error("Failed to sync galleries immediately", error);
       setGalleryItems(previousItems);
+
+      if (hasAddedItems) {
+        setGalleryUploadAlert({
+          variant: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Gagal mengunggah foto galeri",
+        });
+      }
+
       showAlert({
         title: "Gagal",
         description:
@@ -498,6 +582,7 @@ export default function ExtracurricularFormPage({
         variant: "error",
       });
     } finally {
+      setIsUploadingGallery(false);
       setIsSyncingGalleries(false);
     }
   };
@@ -520,6 +605,11 @@ export default function ExtracurricularFormPage({
           },
         ]),
       );
+
+      setAchievementAddAlert({
+        variant: "success",
+        message: "Prestasi berhasil ditambahkan.",
+      });
       setNewAchievementName("");
       return;
     }
@@ -527,6 +617,8 @@ export default function ExtracurricularFormPage({
     const targetSlug = String(slug || "").trim();
 
     setIsSyncingAchievements(true);
+    setIsAddingAchievement(true);
+    setAchievementAddAlert(null);
 
     try {
       const response = await fetch(
@@ -563,11 +655,21 @@ export default function ExtracurricularFormPage({
         },
       ]);
 
-      await reorderAchievementsOnServer(targetSlug, nextItems);
       setAchievementItems(nextItems);
       setNewAchievementName("");
+      setAchievementAddAlert({
+        variant: "success",
+        message: "Prestasi berhasil ditambahkan.",
+      });
     } catch (error) {
       console.error("Failed to add achievement immediately", error);
+
+      setAchievementAddAlert({
+        variant: "error",
+        message:
+          error instanceof Error ? error.message : "Gagal menambahkan prestasi",
+      });
+
       showAlert({
         title: "Gagal",
         description:
@@ -575,6 +677,7 @@ export default function ExtracurricularFormPage({
         variant: "error",
       });
     } finally {
+      setIsAddingAchievement(false);
       setIsSyncingAchievements(false);
     }
   };
@@ -625,8 +728,6 @@ export default function ExtracurricularFormPage({
           throw new Error(errorData?.message || "Gagal menghapus prestasi");
         }
       }
-
-      await reorderAchievementsOnServer(targetSlug, nextItems);
     } catch (error) {
       console.error("Failed to delete achievement immediately", error);
       setAchievementItems(previousItems);
@@ -929,8 +1030,22 @@ export default function ExtracurricularFormPage({
   if (isLoadingDetail) {
     return (
       <div className="w-full min-h-[calc(100vh-4px)] bg-gray-100 p-4">
-        <div className="h-full flex items-center justify-center text-gray-500">
-          Memuat data ekstrakurikuler...
+        <TitleSection
+          title={isEditMode ? "Edit Ekstrakurikuler" : "Tambah Ekstrakurikuler"}
+          subtitle={
+            isEditMode
+              ? "Perbarui informasi ekstrakurikuler SMK Tamtama Kroya."
+              : "Tambahkan data ekstrakurikuler SMK Tamtama Kroya."
+          }
+        />
+
+        <div className="w-full border border-gray-300 bg-white shadow-lg rounded-md p-4">
+          <div className="w-full h-[60vh] flex flex-col gap-4 justify-center items-center">
+            <div className="w-12 h-12 border-4 border-dashed border-gray-400 rounded-full animate-spin" />
+            <p className="text-sm text-gray-500">
+              Memuat data ekstrakurikuler...
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -1084,6 +1199,7 @@ export default function ExtracurricularFormPage({
               items={galleryItems}
               onChange={handleGalleryItemsChange}
               disabled={isSubmitting || isSyncingGalleries}
+              isLoadingAddButton={isUploadingGallery}
               maxItems={20}
               maxSizeInMB={5}
               onValidationError={(message) => {
@@ -1094,6 +1210,21 @@ export default function ExtracurricularFormPage({
                 });
               }}
             />
+
+            {galleryUploadAlert && (
+              <div className="mt-2 space-y-2">
+                <div
+                  className={`rounded-sm border px-3 py-2 text-sm ${
+                    galleryUploadAlert.variant === "success"
+                      ? "border-green-300 bg-green-50 text-green-700"
+                      : "border-red-300 bg-red-50 text-red-700"
+                  }`}
+                  role="alert"
+                >
+                  {galleryUploadAlert.message}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2 lg:col-span-2">
@@ -1154,6 +1285,30 @@ export default function ExtracurricularFormPage({
                 }}
               />
             </div>
+
+            {(isAddingAchievement || achievementAddAlert) && (
+              <div className="space-y-2">
+                {isAddingAchievement && (
+                  <div className="h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
+                    <div className="h-full w-2/5 rounded-full bg-primary animate-pulse" />
+                  </div>
+                )}
+
+                {achievementAddAlert && (
+                  <div
+                    className={`rounded-sm border px-3 py-2 text-sm ${
+                      achievementAddAlert.variant === "success"
+                        ? "border-green-300 bg-green-50 text-green-700"
+                        : "border-red-300 bg-red-50 text-red-700"
+                    }`}
+                    role="alert"
+                  >
+                    {achievementAddAlert.message}
+                  </div>
+                )}
+              </div>
+            )}
+
             <TextButton
               variant="outline"
               icon={<LuPlus className="text-sm" />}

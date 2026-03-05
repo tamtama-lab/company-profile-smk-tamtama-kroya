@@ -17,6 +17,7 @@ interface MultipleImageUploaderProps {
   items: MultipleImageItem[];
   onChange: (nextItems: MultipleImageItem[]) => void;
   disabled?: boolean;
+  isLoadingAddButton?: boolean;
   isMandatory?: boolean;
   error?: string;
   className?: string;
@@ -49,6 +50,7 @@ export default function MultipleImageUploader({
   items,
   onChange,
   disabled = false,
+  isLoadingAddButton = false,
   isMandatory = false,
   error,
   className = "",
@@ -204,7 +206,7 @@ export default function MultipleImageUploader({
         accept="image/png,image/jpeg,image/jpg"
         multiple
         className="hidden"
-        disabled={disabled || !canAddMore}
+        disabled={disabled || isLoadingAddButton || !canAddMore}
         onChange={(event) => {
           handleFileSelection(event.target.files);
           event.target.value = "";
@@ -254,11 +256,20 @@ export default function MultipleImageUploader({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            disabled={disabled}
+            disabled={disabled || isLoadingAddButton}
             className="h-32 w-64 rounded-sm border-2 border-dashed border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 flex flex-col items-center justify-center gap-2"
           >
-            <LuImagePlus className="text-2xl" />
-            <span className="text-xs font-medium">Tambah Foto</span>
+            {isLoadingAddButton ? (
+              <>
+                <span className="h-5 w-5 rounded-full border-2 border-gray-500 border-t-transparent animate-spin" />
+                <span className="text-xs font-medium">Mengunggah...</span>
+              </>
+            ) : (
+              <>
+                <LuImagePlus className="text-2xl" />
+                <span className="text-xs font-medium">Tambah Foto</span>
+              </>
+            )}
           </button>
         )}
       </div>

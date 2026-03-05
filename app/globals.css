@@ -277,3 +277,27 @@ input[type="number"] {
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
 }
+
+/* Extracurricular gallery horizontal scrollbar */
+.gallery-thin-scrollbar::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+}
+
+.gallery-thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.gallery-thin-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 9999px;
+}
+
+.gallery-thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.gallery-thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}

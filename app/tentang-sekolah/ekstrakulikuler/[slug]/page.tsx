@@ -105,6 +105,26 @@ export default function ExtracurricularDetailPage() {
     return [words[0] || "", words.slice(1).join(" ")];
   }, [detail?.name]);
 
+  const formattedCategories = useMemo(() => {
+    const categories = (detail?.categories || [])
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (categories.length === 0) {
+      return "-";
+    }
+
+    if (categories.length === 1) {
+      return categories[0];
+    }
+
+    if (categories.length === 2) {
+      return `${categories[0]} & ${categories[1]}`;
+    }
+
+    return `${categories.slice(0, -1).join(", ")} & ${categories[categories.length - 1]}`;
+  }, [detail?.categories]);
+
   if (loading) {
     return (
       <main className="min-h-screen w-full bg-linear-to-b from-[#fafafa] to-gray-50 px-4 sm:px-6 sm:py-12 md:px-10 lg:px-16 xl:px-24">
@@ -169,27 +189,35 @@ export default function ExtracurricularDetailPage() {
               Informasi Singkat
             </h2>
 
-            <p className="font-semibold">
-              • Pembina:{" "}
-              <span className="font-normal">{detail.mentorName}</span>
-            </p>
-            <div className="flex flex-wrap gap-1 font-semibold">
-              • Kategori:
-              {detail.categories.map((category) => (
-                <span
-                  key={category}
-                  className="pr-2 rounded-full bg-primary/10 font-normal capitalize"
-                >
-                  {category}
-                </span>
-              ))}
+            <div className="flex flex-col gap-2 text-gray-800">
+              <div className="grid grid-cols-[7rem_1fr] items-start gap-x-2">
+                <p className="font-semibold whitespace-nowrap">Pembina</p>
+                <p className="font-normal wrap-break-word">
+                  : {detail.mentorName}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-[7rem_1fr] items-start gap-x-2">
+                <p className="font-semibold whitespace-nowrap">Kategori</p>
+                <p className="font-normal wrap-break-word capitalize">
+                  : {formattedCategories}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-[7rem_1fr] items-start gap-x-2">
+                <p className="font-semibold whitespace-nowrap">Lokasi</p>
+                <p className="font-normal wrap-break-word">
+                  : {detail.location}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-[7rem_1fr] items-start gap-x-2">
+                <p className="font-semibold whitespace-nowrap">Jadwal</p>
+                <p className="font-normal wrap-break-word">
+                  : {detail.schedule}
+                </p>
+              </div>
             </div>
-            <p className="font-semibold">
-              • Lokasi: <span className="font-normal">{detail.location}</span>
-            </p>
-            <p className="font-semibold">
-              • Jadwal: <span className="font-normal">{detail.schedule}</span>
-            </p>
           </div>
         </div>
 
@@ -247,7 +275,7 @@ export default function ExtracurricularDetailPage() {
                 </div>
               </div>
             ) : (
-              <div className="mt-6 -mx-2 overflow-x-auto px-2 pb-2">
+              <div className="gallery-thin-scrollbar mt-6 -mx-2 overflow-x-auto px-2 pb-2">
                 <div className="flex w-max gap-4">
                   {galleries.map((gallery) => (
                     <div
