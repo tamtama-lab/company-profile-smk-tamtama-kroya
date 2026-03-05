@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
 import { LuGripVertical, LuImagePlus, LuTrash2 } from "react-icons/lu";
 
@@ -210,7 +211,7 @@ export default function MultipleImageUploader({
         }}
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="flex flex-row w-full flex-wrap gap-4">
         {sortedItems.map((item, index) => (
           <div
             key={item.clientId}
@@ -219,20 +220,23 @@ export default function MultipleImageUploader({
             onDragOver={handleDragOver}
             onDrop={(event) => handleDrop(event, item.clientId)}
             onDragEnd={handleDragEnd}
-            className={`relative rounded-sm border border-gray-300 bg-white p-1 ${
+            className={`relative w-64 rounded-sm border border-gray-300 bg-white p-2 ${
               disabled ? "" : "cursor-move"
             } ${draggingClientId === item.clientId ? "opacity-60" : ""}`}
           >
-            <img
+            <Image
               src={item.previewUrl}
               alt={`Gallery ${index + 1}`}
-              className="h-28 w-full rounded object-cover"
+              className="h-32 w-full rounded border border-gray-300 object-cover"
+              width={1200}
+              height={800}
+              unoptimized
+              loading="lazy"
             />
 
             <div className="mt-1 flex items-center justify-between gap-1">
               <div className="flex items-center gap-1 text-gray-500">
                 <LuGripVertical className="text-sm" />
-                <span className="text-[11px]">Drag untuk urutkan</span>
               </div>
               <button
                 type="button"
@@ -240,7 +244,7 @@ export default function MultipleImageUploader({
                 disabled={disabled}
                 onClick={() => removeItem(item.clientId)}
               >
-                <LuTrash2 className="text-xs" />
+                <LuTrash2 className="text-sm" />
               </button>
             </div>
           </div>
@@ -251,7 +255,7 @@ export default function MultipleImageUploader({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={disabled}
-            className="h-36 rounded-sm border border-dashed border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 flex flex-col items-center justify-center gap-2"
+            className="h-32 w-64 rounded-sm border-2 border-dashed border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 flex flex-col items-center justify-center gap-2"
           >
             <LuImagePlus className="text-2xl" />
             <span className="text-xs font-medium">Tambah Foto</span>

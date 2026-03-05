@@ -76,7 +76,7 @@ export const Header: React.FC = () => {
               <Image
                 src="/header/logo.png"
                 alt="logo-smk-tamtama-kroya"
-                // className="shrink-0"
+                className="shrink-0"
                 width={40}
                 height={40}
               />

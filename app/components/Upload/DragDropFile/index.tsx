@@ -243,7 +243,7 @@ export default function DragDropFile({
               <img
                 src={selectedPreviewUrl}
                 alt={selectedFile?.name ?? "preview"}
-                className="max-w-48 max-h-64 object-contain rounded-md"
+                className="max-w-56 max-h-72 object-contain rounded-md"
               />
             ) : (
               <div className="flex flex-col items-center gap-2 text-gray-700">

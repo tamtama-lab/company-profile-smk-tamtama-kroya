@@ -342,15 +342,6 @@ export default function DataExtraPage() {
           <h3 className="text-base font-semibold text-gray-800 leading-5">
             {item.name}
           </h3>
-          <span
-            className={`shrink-0 rounded-full px-2 py-1 text-[11px] ${
-              item.isPublished
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-200 text-gray-600"
-            }`}
-          >
-            {item.isPublished ? "Active" : "Non Active"}
-          </span>
         </div>
 
         <div className="flex flex-wrap gap-1 min-h-6">
@@ -358,19 +349,15 @@ export default function DataExtraPage() {
             item.categories.map((category) => (
               <span
                 key={`${item.slug}-${category}`}
-                className="rounded-full bg-primary/10 px-2 py-1 text-[11px] text-primary"
+                className="rounded-full bg-teal-500/10 px-2 py-1 text-[11px] text-primary"
               >
                 {category}
               </span>
             ))
           ) : (
-            <span className="text-xs text-gray-500">Tanpa kategori</span>
+            <span className="text-xs text-gray-500">-</span>
           )}
         </div>
-
-        <p className="text-xs text-gray-600 min-h-10">
-          {item.description || "Deskripsi belum tersedia."}
-        </p>
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
           <div className="flex items-center gap-2">
@@ -383,7 +370,7 @@ export default function DataExtraPage() {
               }}
             />
             <span className="text-xs text-gray-600">
-              {item.isPublished ? "Active" : "Non Active"}
+              {item.isPublished ? "Aktif" : "Non Aktif"}
             </span>
           </div>
 
@@ -418,49 +405,43 @@ export default function DataExtraPage() {
           subtitle="Berisi data ekstrakurikuler SMK Tamtama Kroya."
         />
 
-        <div className="w-full mb-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="w-full lg:max-w-sm">
-            <Search
-              placeholder="Cari nama ekstrakurikuler"
-              searchTerm={searchTerm}
-              handleSearchChange={setSearchTerm}
-            />
-          </div>
+        <div className="w-full mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
+          <SelectInput
+            value={selectedCategory}
+            options={categoryOptions}
+            className="w-full lg:w-56 -mb-1.5"
+            onChange={(event) => {
+              setSelectedCategory(String(event.target.value));
+              setPagination((prev) => ({ ...prev, currentPage: 1 }));
+            }}
+          />
 
-          <div className="w-full lg:w-fit flex flex-col sm:flex-row gap-2 sm:items-end">
-            <div className="w-full sm:w-56">
-              <SelectInput
-                label=""
-                value={selectedCategory}
-                onChange={(event) => {
-                  setSelectedCategory(String(event.target.value));
-                  setPagination((prev) => ({ ...prev, currentPage: 1 }));
-                }}
-                options={categoryOptions}
-              />
-            </div>
+          <TextButton
+            variant="outline"
+            text="Reset"
+            icon={<IoMdRefresh className="text-base" />}
+            className="w-full sm:w-auto"
+            onClick={() => {
+              setSearchTerm("");
+              setDebouncedSearchTerm("");
+              setSelectedCategory("");
+              setPagination((prev) => ({ ...prev, currentPage: 1 }));
+            }}
+          />
 
-            <TextButton
-              variant="outline"
-              text="Reset"
-              icon={<IoMdRefresh className="text-base" />}
-              className="w-full sm:w-auto sm:mb-2"
-              onClick={() => {
-                setSearchTerm("");
-                setDebouncedSearchTerm("");
-                setSelectedCategory("");
-                setPagination((prev) => ({ ...prev, currentPage: 1 }));
-              }}
-            />
+          <Search
+            placeholder="Cari nama ekstrakurikuler"
+            searchTerm={searchTerm}
+            handleSearchChange={setSearchTerm}
+          />
 
-            <TextButton
-              variant="primary"
-              text="Tambah Ekskul"
-              icon={<LuPlus className="text-base" />}
-              className="w-full sm:w-auto sm:mb-2"
-              onClick={() => router.push("/admin/siswa/ekstrakurikuler/tambah")}
-            />
-          </div>
+          <TextButton
+            variant="primary"
+            text="Tambah Ekskul"
+            icon={<LuPlus className="text-base" />}
+            className="w-full sm:w-auto"
+            onClick={() => router.push("/admin/siswa/ekstrakurikuler/tambah")}
+          />
         </div>
 
         {fetchError && (

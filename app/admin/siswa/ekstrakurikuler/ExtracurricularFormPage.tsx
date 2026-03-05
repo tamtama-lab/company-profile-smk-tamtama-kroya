@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { LuGripVertical } from "react-icons/lu";
+import { LuGripVertical, LuPlus, LuTrash2 } from "react-icons/lu";
 import { TextButton } from "@/components/Buttons/TextButton";
 import CategoryMultiInput from "@/components/InputForm/CategoryMultiInput";
 import { TitleSection } from "@/components/TitleSection";
-import Toggle from "@/components/ui/toggle";
 import { useAlert } from "@/components/ui/alert";
 import PhotoUpload from "@/components/Upload/PhotoUpload";
 import MultipleImageUploader from "@/components/Upload/MultipleImageUploader";
@@ -791,117 +790,60 @@ export default function ExtracurricularFormPage({
     );
   };
 
-  const syncGalleries = async (targetSlug: string) => {
-    const sortedGalleries = sortByOrder(galleryItems);
+  const uploadGalleryPhoto = async (file: File) => {
+    const formData = new FormData();
+    formData.append("photo", file);
 
-    const syncedGalleryItems: ExtracurricularGalleryInputItem[] = [];
-
-    for (const gallery of sortedGalleries) {
-      const existingId = Number(gallery.id || 0);
-
-      if (Number.isFinite(existingId) && existingId > 0) {
-        syncedGalleryItems.push({
-          ...gallery,
-          file: undefined,
-        });
-        continue;
-      }
-
-      if (!gallery.file) {
-        continue;
-      }
-
-      const galleryFormData = new FormData();
-      galleryFormData.append("photo", gallery.file);
-
-      const uploadRes = await fetch(
-        `/api/backoffice/extracurriculars/${encodeURIComponent(targetSlug)}/galleries`,
-        {
-          method: "POST",
-          headers: {
-            ...getAuthHeader(),
-          },
-          body: galleryFormData,
+    const response = await fetch(
+      "/api/backoffice/extracurriculars/galleries/upload",
+      {
+        method: "POST",
+        headers: {
+          ...getAuthHeader(),
         },
-      );
-
-      const uploadData = await uploadRes.json();
-
-      if (!uploadRes.ok) {
-        throw new Error(uploadData?.message || "Gagal upload foto galeri");
-      }
-
-      const uploadedGalleryId = extractCreatedId(uploadData);
-
-      if (!uploadedGalleryId) {
-        throw new Error("ID foto galeri tidak ditemukan dari response API");
-      }
-
-      syncedGalleryItems.push({
-        ...gallery,
-        id: uploadedGalleryId,
-        file: undefined,
-        previewUrl: extractCreatedPhotoUrl(uploadData) || gallery.previewUrl,
-      });
-    }
-
-    const normalizedSyncedGalleries =
-      normalizeGalleryInputOrder(syncedGalleryItems);
-
-    await reorderGalleriesOnServer(targetSlug, normalizedSyncedGalleries);
-    setGalleryItems(normalizedSyncedGalleries);
-  };
-
-  const syncAchievements = async (targetSlug: string) => {
-    const sortedAchievements = sortByOrder(achievementItems);
-
-    const syncedAchievementItems: ExtracurricularAchievementInputItem[] = [];
-
-    for (const achievement of sortedAchievements) {
-      const existingId = Number(achievement.id || 0);
-
-      if (Number.isFinite(existingId) && existingId > 0) {
-        syncedAchievementItems.push(achievement);
-        continue;
-      }
-
-      const response = await fetch(
-        `/api/backoffice/extracurriculars/${encodeURIComponent(targetSlug)}/achievements`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeader(),
-          },
-          body: JSON.stringify({ name: achievement.name }),
-        },
-      );
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseData?.message || "Gagal menambahkan prestasi");
-      }
-
-      const createdAchievementId = extractCreatedId(responseData);
-
-      if (!createdAchievementId) {
-        throw new Error("ID prestasi tidak ditemukan dari response API");
-      }
-
-      syncedAchievementItems.push({
-        ...achievement,
-        id: createdAchievementId,
-      });
-    }
-
-    const normalizedSyncedAchievements = normalizeAchievementInputOrder(
-      syncedAchievementItems,
+        body: formData,
+      },
     );
 
-    await reorderAchievementsOnServer(targetSlug, normalizedSyncedAchievements);
-    setAchievementItems(normalizedSyncedAchievements);
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(responseData?.message || "Gagal upload foto galeri");
+    }
+
+    const photoUrl = extractCreatedPhotoUrl(responseData);
+
+    if (!photoUrl) {
+      throw new Error("URL foto galeri tidak ditemukan dari response API");
+    }
+
+    return photoUrl;
   };
+
+  const getCreatePayloadGalleries = async () => {
+    const sortedGalleries = sortByOrder(galleryItems);
+    const galleries: string[] = [];
+
+    for (const gallery of sortedGalleries) {
+      if (gallery.file) {
+        galleries.push(await uploadGalleryPhoto(gallery.file));
+        continue;
+      }
+
+      const previewUrl = String(gallery.previewUrl || "").trim();
+
+      if (previewUrl && !previewUrl.startsWith("data:")) {
+        galleries.push(previewUrl);
+      }
+    }
+
+    return galleries;
+  };
+
+  const getCreatePayloadAchievements = () =>
+    sortByOrder(achievementItems)
+      .map((item) => item.name.trim())
+      .filter(Boolean);
 
   const handleSubmit = async () => {
     if (!validateForm()) {
@@ -918,7 +860,7 @@ export default function ExtracurricularFormPage({
     try {
       const finalThumbnailUrl = await uploadThumbnailIfNeeded();
 
-      const payload = {
+      const basePayload = {
         name: formValues.name.trim(),
         thumbnailUrl: finalThumbnailUrl,
         categories: formValues.categories,
@@ -928,6 +870,14 @@ export default function ExtracurricularFormPage({
         location: formValues.location.trim(),
         isPublished: formValues.isPublished,
       };
+
+      const payload = isEditMode
+        ? basePayload
+        : {
+            ...basePayload,
+            galleries: await getCreatePayloadGalleries(),
+            achievements: getCreatePayloadAchievements(),
+          };
 
       const endpoint = isEditMode
         ? `/api/backoffice/extracurriculars/${encodeURIComponent(slug || formValues.slug)}`
@@ -950,18 +900,6 @@ export default function ExtracurricularFormPage({
           errorData?.message ||
             `Gagal ${isEditMode ? "memperbarui" : "menambahkan"} ekstrakurikuler`,
         );
-      }
-
-      const responseData = await response.json();
-      const savedSlug =
-        responseData?.slug ||
-        responseData?.data?.slug ||
-        slug ||
-        toSlug(formValues.name);
-
-      if (!canSyncNestedItems) {
-        await syncGalleries(savedSlug);
-        await syncAchievements(savedSlug);
       }
 
       showAlert({
@@ -1013,216 +951,214 @@ export default function ExtracurricularFormPage({
         <h3 className="text-lg font-semibold text-gray-800">Informasi Umum</h3>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <FormInput
-            label="Nama Ekskul"
-            value={formValues.name}
-            onChange={(event) => {
-              const nextName = event.target.value;
-              setFormValues((prev) => ({
-                ...prev,
-                name: nextName,
-                slug: toSlug(nextName),
-              }));
-              setFormErrors((prev) => ({ ...prev, name: undefined }));
-            }}
-            placeholder="Masukkan nama ekskul"
-            isMandatory
-            error={formErrors.name}
-          />
+          <div className="space-y-4">
+            <FormInput
+              label="Nama Ekskul"
+              value={formValues.name}
+              onChange={(event) => {
+                const nextName = event.target.value;
+                setFormValues((prev) => ({
+                  ...prev,
+                  name: nextName,
+                  slug: toSlug(nextName),
+                }));
+                setFormErrors((prev) => ({ ...prev, name: undefined }));
+              }}
+              placeholder="Masukkan nama ekskul"
+              isMandatory
+              error={formErrors.name}
+            />
 
-          <FormInput
-            label="Slug"
-            value={formValues.slug}
-            readOnly
-            className="bg-gray-100"
-            placeholder="Slug otomatis"
-          />
+            <FormInput
+              label="Slug"
+              value={formValues.slug}
+              readOnly
+              className="bg-gray-100"
+              placeholder="Slug otomatis"
+            />
 
-          <CategoryMultiInput
-            label="Kategori"
-            value={formValues.categories}
-            onChange={(nextCategories) => {
-              setFormValues((prev) => ({
-                ...prev,
-                categories: nextCategories,
-              }));
-              setFormErrors((prev) => ({ ...prev, categories: undefined }));
-            }}
-            suggestions={categorySuggestions}
-            isMandatory
-            error={formErrors.categories}
-          />
+            <CategoryMultiInput
+              label="Kategori"
+              value={formValues.categories}
+              onChange={(nextCategories) => {
+                setFormValues((prev) => ({
+                  ...prev,
+                  categories: nextCategories,
+                }));
+                setFormErrors((prev) => ({ ...prev, categories: undefined }));
+              }}
+              suggestions={categorySuggestions}
+              isMandatory
+              error={formErrors.categories}
+            />
 
-          <FormInput
-            label="Nama Pembina"
-            value={formValues.mentorName}
-            onChange={(event) => {
-              setFormValues((prev) => ({
-                ...prev,
-                mentorName: event.target.value,
-              }));
-              setFormErrors((prev) => ({ ...prev, mentorName: undefined }));
-            }}
-            placeholder="Masukkan nama pembina"
-            isMandatory
-            error={formErrors.mentorName}
-          />
+            <FormInput
+              label="Nama Pembina"
+              value={formValues.mentorName}
+              onChange={(event) => {
+                setFormValues((prev) => ({
+                  ...prev,
+                  mentorName: event.target.value,
+                }));
+                setFormErrors((prev) => ({ ...prev, mentorName: undefined }));
+              }}
+              placeholder="Masukkan nama pembina"
+              isMandatory
+              error={formErrors.mentorName}
+            />
 
-          <FormInput
-            label="Jadwal"
-            value={formValues.schedule}
-            onChange={(event) => {
-              setFormValues((prev) => ({
-                ...prev,
-                schedule: event.target.value,
-              }));
-              setFormErrors((prev) => ({ ...prev, schedule: undefined }));
-            }}
-            placeholder="Contoh: Sabtu, 14.00 - 16.00"
-            isMandatory
-            error={formErrors.schedule}
-          />
-
-          <FormInput
-            label="Lokasi"
-            value={formValues.location}
-            onChange={(event) => {
-              setFormValues((prev) => ({
-                ...prev,
-                location: event.target.value,
-              }));
-              setFormErrors((prev) => ({ ...prev, location: undefined }));
-            }}
-            placeholder="Contoh: Lapangan Sekolah"
-            isMandatory
-            error={formErrors.location}
-          />
-        </div>
-
-        <FormTextarea
-          label="Deskripsi"
-          limit={500}
-          value={formValues.description}
-          onChange={(event) => {
-            setFormValues((prev) => ({
-              ...prev,
-              description: event.target.value,
-            }));
-            setFormErrors((prev) => ({ ...prev, description: undefined }));
-          }}
-          placeholder="Masukkan deskripsi kegiatan"
-          isMandatory
-          error={formErrors.description}
-        />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <PhotoUpload
-            previewUrl={thumbnailPreview || formValues.thumbnailUrl}
-            onFileSelect={handleThumbnailChange}
-            onFileRemove={handleThumbnailRemove}
-            onValidationError={(message) => {
-              showAlert({
-                title: "Validasi Thumbnail",
-                description: message,
-                variant: "error",
-              });
-            }}
-            disabled={isSubmitting}
-            label="Thumbnail (Gambar Utama)"
-            maxSizeInMB={5}
-            isMandatory
-            error={formErrors.thumbnailUrl}
-          />
-
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-700">Status</h4>
-            <div className="w-full flex items-center gap-3 border border-gray-300 rounded-sm px-3 py-2">
-              <Toggle
-                size="sm"
-                enabled={formValues.isPublished}
-                onChange={(nextValue) => {
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput
+                label="Jadwal"
+                value={formValues.schedule}
+                onChange={(event) => {
                   setFormValues((prev) => ({
                     ...prev,
-                    isPublished: nextValue,
+                    schedule: event.target.value,
                   }));
+                  setFormErrors((prev) => ({ ...prev, schedule: undefined }));
                 }}
-                disabled={isSubmitting}
+                placeholder="Contoh: Sabtu, 14.00 - 16.00"
+                isMandatory
+                error={formErrors.schedule}
               />
-              <span className="text-sm text-gray-700">
-                {formValues.isPublished ? "Aktif" : "Non Aktif"}
-              </span>
+              <FormInput
+                label="Lokasi"
+                value={formValues.location}
+                onChange={(event) => {
+                  setFormValues((prev) => ({
+                    ...prev,
+                    location: event.target.value,
+                  }));
+                  setFormErrors((prev) => ({ ...prev, location: undefined }));
+                }}
+                placeholder="Contoh: Lapangan Sekolah"
+                isMandatory
+                error={formErrors.location}
+              />
             </div>
           </div>
-        </div>
 
-        <MultipleImageUploader
-          label="Foto Kegiatan"
-          items={galleryItems}
-          onChange={handleGalleryItemsChange}
-          disabled={isSubmitting || isSyncingGalleries}
-          maxItems={20}
-          maxSizeInMB={5}
-          onValidationError={(message) => {
-            showAlert({
-              title: "Validasi Galeri",
-              description: message,
-              variant: "error",
-            });
-          }}
-        />
-
-        <div className="space-y-2">
-          <label className="block text-sm max-sm:text-xs font-semibold text-gray-700">
-            Prestasi & Kegiatan
-          </label>
-
-          <div className="flex flex-col gap-2">
-            {sortByOrder(achievementItems).map((item) => (
-              <div
-                key={item.clientId}
-                draggable={!isSubmitting && !isSyncingAchievements}
-                onDragStart={(event) =>
-                  handleAchievementDragStart(event, item.clientId)
-                }
-                onDragOver={handleAchievementDragOver}
-                onDrop={(event) => handleAchievementDrop(event, item.clientId)}
-                onDragEnd={handleAchievementDragEnd}
-                className={`flex items-center gap-2 border border-gray-300 rounded-sm px-2 py-2 ${
-                  isSubmitting || isSyncingAchievements ? "" : "cursor-move"
-                } ${
-                  draggingAchievementClientId === item.clientId
-                    ? "opacity-60"
-                    : ""
-                }`}
-              >
-                <div className="flex items-center gap-1 text-gray-500">
-                  <LuGripVertical className="text-sm" />
-                </div>
-                <span className="text-sm text-gray-700 flex-1">
-                  {item.name}
-                </span>
-                <TextButton
-                  variant="outline-danger"
-                  text="Hapus"
-                  className="py-1! px-2! text-xs!"
-                  disabled={isSubmitting || isSyncingAchievements}
-                  onClick={() => removeAchievement(item.clientId)}
-                />
-              </div>
-            ))}
+          <div className="max-h-60">
+            <PhotoUpload
+              previewUrl={thumbnailPreview || formValues.thumbnailUrl}
+              onFileSelect={handleThumbnailChange}
+              onFileRemove={handleThumbnailRemove}
+              onValidationError={(message) => {
+                showAlert({
+                  title: "Validasi Thumbnail",
+                  description: message,
+                  variant: "error",
+                });
+              }}
+              disabled={isSubmitting}
+              label="Thumbnail (Gambar Utama)"
+              maxSizeInMB={5}
+              textButton="Ganti Gambar"
+              isMandatory
+              error={formErrors.thumbnailUrl}
+            />
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              value={newAchievementName}
-              onChange={(event) => setNewAchievementName(event.target.value)}
-              placeholder="Tambah prestasi..."
-              className="w-full rounded-sm border border-gray-300 px-3 py-2 text-sm"
-              disabled={isSubmitting || isSyncingAchievements}
+          <div className="lg:col-span-2">
+            <FormTextarea
+              label="Deskripsi"
+              limit={500}
+              value={formValues.description}
+              onChange={(event) => {
+                setFormValues((prev) => ({
+                  ...prev,
+                  description: event.target.value,
+                }));
+                setFormErrors((prev) => ({ ...prev, description: undefined }));
+              }}
+              placeholder="Masukkan deskripsi kegiatan"
+              isMandatory
+              error={formErrors.description}
             />
+          </div>
+
+          <div className="lg:col-span-2">
+            <MultipleImageUploader
+              label="Foto Kegiatan"
+              items={galleryItems}
+              onChange={handleGalleryItemsChange}
+              disabled={isSubmitting || isSyncingGalleries}
+              maxItems={20}
+              maxSizeInMB={5}
+              onValidationError={(message) => {
+                showAlert({
+                  title: "Validasi Galeri",
+                  description: message,
+                  variant: "error",
+                });
+              }}
+            />
+          </div>
+
+          <div className="space-y-2 lg:col-span-2">
+            <label className="block text-sm max-sm:text-xs font-semibold text-gray-700">
+              Prestasi & Kegiatan
+            </label>
+
+            <div className="flex flex-col gap-2">
+              {sortByOrder(achievementItems).map((item) => (
+                <div
+                  key={item.clientId}
+                  draggable={!isSubmitting && !isSyncingAchievements}
+                  onDragStart={(event) =>
+                    handleAchievementDragStart(event, item.clientId)
+                  }
+                  onDragOver={handleAchievementDragOver}
+                  onDrop={(event) =>
+                    handleAchievementDrop(event, item.clientId)
+                  }
+                  onDragEnd={handleAchievementDragEnd}
+                  className={`flex items-center gap-2 border border-gray-300 rounded-sm px-2 py-2 ${
+                    isSubmitting || isSyncingAchievements ? "" : "cursor-move"
+                  } ${
+                    draggingAchievementClientId === item.clientId
+                      ? "opacity-60"
+                      : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-1 text-gray-500">
+                    <LuGripVertical className="text-sm" />
+                  </div>
+                  <span className="text-sm text-gray-700 flex-1">
+                    {item.name}
+                  </span>
+                  <TextButton
+                    variant="outline-danger"
+                    icon={<LuTrash2 className="text-md" />}
+                    className="p-1! text-md"
+                    disabled={isSubmitting || isSyncingAchievements}
+                    onClick={() => removeAchievement(item.clientId)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                value={newAchievementName}
+                onChange={(event) => setNewAchievementName(event.target.value)}
+                placeholder="Tambah prestasi..."
+                className="w-full rounded-sm border border-gray-300 px-3 py-2 text-sm"
+                disabled={isSubmitting || isSyncingAchievements}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addAchievement();
+                  }
+                }}
+              />
+            </div>
             <TextButton
               variant="outline"
-              text="Tambah"
+              icon={<LuPlus className="text-sm" />}
+              text="Tambah Prestasi"
+              className="py-1.5!"
               disabled={
                 isSubmitting ||
                 isSyncingAchievements ||
@@ -1231,27 +1167,27 @@ export default function ExtracurricularFormPage({
               onClick={addAchievement}
             />
           </div>
-        </div>
 
-        <div className="flex justify-end gap-3">
-          <Link href="/admin/siswa/ekstrakurikuler">
+          <div className="flex justify-end gap-3 lg:col-span-2">
+            <Link href="/admin/siswa/ekstrakurikuler">
+              <TextButton
+                variant="outline"
+                text="Batal"
+                disabled={
+                  isSubmitting || isSyncingGalleries || isSyncingAchievements
+                }
+              />
+            </Link>
             <TextButton
-              variant="outline"
-              text="Batal"
+              variant="primary"
+              text={isEditMode ? "Simpan" : "Simpan"}
+              isLoading={isSubmitting}
               disabled={
                 isSubmitting || isSyncingGalleries || isSyncingAchievements
               }
+              onClick={handleSubmit}
             />
-          </Link>
-          <TextButton
-            variant="primary"
-            text={isEditMode ? "Simpan" : "Simpan"}
-            isLoading={isSubmitting}
-            disabled={
-              isSubmitting || isSyncingGalleries || isSyncingAchievements
-            }
-            onClick={handleSubmit}
-          />
+          </div>
         </div>
       </div>
     </div>

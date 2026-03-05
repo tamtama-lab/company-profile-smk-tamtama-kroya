@@ -104,6 +104,16 @@ export async function POST(request: NextRequest) {
           .map((item: unknown) => String(item).trim())
           .filter(Boolean)
       : [];
+    const galleries = Array.isArray(body.galleries)
+      ? body.galleries
+          .map((item: unknown) => String(item).trim())
+          .filter(Boolean)
+      : [];
+    const achievements = Array.isArray(body.achievements)
+      ? body.achievements
+          .map((item: unknown) => String(item).trim())
+          .filter(Boolean)
+      : [];
 
     if (!body.name || categories.length === 0 || !body.description) {
       return NextResponse.json(
@@ -125,6 +135,8 @@ export async function POST(request: NextRequest) {
       location: body.location ? String(body.location).trim() : "",
       isPublished:
         typeof body.isPublished === "boolean" ? body.isPublished : true,
+      galleries,
+      achievements,
     };
 
     const backendResponse = await fetch(

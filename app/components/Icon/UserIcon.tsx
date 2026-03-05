@@ -20,6 +20,8 @@ export function ProfileUser({ source, size = 64 }: UserIconProps) {
           width={size * 2} // Load at 2x resolution
           height={size * 2}
           quality={90}
+          unoptimized
+          loading="lazy"
           className="rounded-full object-cover w-full h-full"
         />
       ) : (
