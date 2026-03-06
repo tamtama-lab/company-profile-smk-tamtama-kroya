@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { MOCK_EXTRACURRICULARS } from "./mockData";
 
 const API_BASE_URL = process.env.BACKEND_URL || "http://localhost:3333";
+const DEFAULT_THUMBNAIL_URL = "https://placehold.co/1200x800/png";
+
+const MOCK_CATEGORY_OPTIONS = [
+  { id: 1, name: "Kejuruan & Teknologi" },
+  { id: 2, name: "Kepemimpinan & Organisasi" },
+  { id: 3, name: "Olahraga" },
+  { id: 4, name: "Seni & Budaya" },
+];
 
 interface PaginationMeta {
   total: number;
@@ -15,15 +23,22 @@ interface PaginationMeta {
   previousPageUrl: string | null;
 }
 
+interface ExtracurricularCategory {
+  id: number;
+  name: string;
+}
+
 interface ExtracurricularListItem {
   name: string;
-  thumbnail: string;
-  category: string[];
+  slug: string;
+  thumbnailUrl: string;
+  categoryId: number | null;
+  category: ExtracurricularCategory | null;
 }
 
 interface ExtracurricularListResponse {
   meta: PaginationMeta;
-  items: ExtracurricularListItem[];
+  data: ExtracurricularListItem[];
 }
 
 interface BackendMetaShape {
@@ -33,11 +48,18 @@ interface BackendMetaShape {
   lastPage?: number;
 }
 
+interface BackendExtracurricularCategory {
+  id?: number | string;
+  name?: string;
+}
+
 interface BackendExtracurricularListItem {
   name?: string;
+  slug?: string;
   thumbnail?: string;
   thumbnailUrl?: string;
-  category?: string[] | string;
+  categoryId?: number | string;
+  category?: BackendExtracurricularCategory | string[] | string;
   categories?: string[] | string;
 }
 
@@ -52,6 +74,24 @@ const toPositiveInt = (value: string | null, fallback: number) => {
 
   if (!Number.isFinite(parsed) || parsed <= 0) {
     return fallback;
+  }
+
+  return Math.floor(parsed);
+};
+
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+
+const parseCategoryId = (value: unknown): number | null => {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
   }
 
   return Math.floor(parsed);
@@ -75,38 +115,116 @@ const toCategoryArray = (value: unknown): string[] => {
   return [];
 };
 
+const findCategoryByName = (name: string): ExtracurricularCategory | null => {
+  const normalizedName = name.trim().toLowerCase();
+
+  if (!normalizedName) {
+    return null;
+  }
+
+  const matched = MOCK_CATEGORY_OPTIONS.find(
+    (item) => item.name.trim().toLowerCase() === normalizedName,
+  );
+
+  return matched ? { ...matched } : null;
+};
+
+const resolveCategory = (item: BackendExtracurricularListItem) => {
+  const rawCategoryId = parseCategoryId(item.categoryId);
+
+  if (item.category && typeof item.category === "object" && !Array.isArray(item.category)) {
+    const root = item.category as Record<string, unknown>;
+    const categoryName =
+      typeof root.name === "string" ? root.name.trim() : "";
+
+    if (categoryName) {
+      const idFromCategoryObject = parseCategoryId(root.id);
+      const matchedCategory = findCategoryByName(categoryName);
+      const resolvedCategoryId =
+        rawCategoryId ?? idFromCategoryObject ?? matchedCategory?.id ?? null;
+
+      return {
+        categoryId: resolvedCategoryId,
+        category: {
+          id: resolvedCategoryId ?? 0,
+          name: categoryName,
+        },
+      };
+    }
+  }
+
+  const categoryNames = toCategoryArray(item.categories || item.category);
+
+  if (categoryNames.length > 0) {
+    const primaryCategoryName = categoryNames[0];
+    const matchedCategory = findCategoryByName(primaryCategoryName);
+    const resolvedCategoryId = rawCategoryId ?? matchedCategory?.id ?? null;
+
+    return {
+      categoryId: resolvedCategoryId,
+      category: {
+        id: resolvedCategoryId ?? 0,
+        name: primaryCategoryName,
+      },
+    };
+  }
+
+  if (rawCategoryId) {
+    const matchedById = MOCK_CATEGORY_OPTIONS.find(
+      (itemValue) => itemValue.id === rawCategoryId,
+    );
+
+    if (matchedById) {
+      return {
+        categoryId: rawCategoryId,
+        category: { ...matchedById },
+      };
+    }
+  }
+
+  return {
+    categoryId: rawCategoryId,
+    category: null,
+  };
+};
+
 const normalizeListItem = (
   item: BackendExtracurricularListItem,
 ): ExtracurricularListItem => ({
-  name: item.name || "Tanpa Nama",
-  thumbnail:
-    item.thumbnail || item.thumbnailUrl || "https://placehold.co/1200x800/png",
-  category: toCategoryArray(item.category || item.categories),
+  name: item.name?.trim() || "Tanpa Nama",
+  slug: item.slug?.trim() || slugify(item.name?.trim() || "Tanpa Nama"),
+  thumbnailUrl:
+    item.thumbnailUrl?.trim() || item.thumbnail?.trim() || DEFAULT_THUMBNAIL_URL,
+  ...resolveCategory(item),
 });
 
 const filterListItems = (
   items: ExtracurricularListItem[],
   search: string,
+  categoryIds: number[],
   categories: string[],
 ) => {
   const normalizedSearch = search.toLowerCase();
   const normalizedCategories = categories.map((item) => item.toLowerCase());
+  const categoryIdSet = new Set(categoryIds);
 
   return items.filter((item) => {
+    const categoryName = item.category?.name.toLowerCase() || "";
+
     const matchSearch =
       !normalizedSearch ||
       item.name.toLowerCase().includes(normalizedSearch) ||
-      item.category.some((category) =>
-        category.toLowerCase().includes(normalizedSearch),
-      );
+      categoryName.includes(normalizedSearch);
+
+    const matchCategoryId =
+      categoryIdSet.size === 0 ||
+      (item.categoryId !== null && categoryIdSet.has(item.categoryId));
 
     const matchCategory =
       normalizedCategories.length === 0 ||
-      item.category.some((category) =>
-        normalizedCategories.includes(category.toLowerCase()),
-      );
+      normalizedCategories.includes(categoryName);
 
-    return matchSearch && matchCategory;
+    return matchSearch && matchCategoryId && matchCategory;
   });
 };
 
@@ -150,7 +268,7 @@ const paginateItems = (
 
   return {
     meta,
-    items: items.slice(startIndex, endIndex),
+    data: items.slice(startIndex, endIndex),
   };
 };
 
@@ -158,18 +276,31 @@ const buildMockResponse = (
   page: number,
   perPage: number,
   search: string,
+  categoryIds: number[],
   categories: string[],
   baseUrl: string,
 ): ExtracurricularListResponse => {
   const mappedItems: ExtracurricularListItem[] = MOCK_EXTRACURRICULARS.map(
     (item) => ({
       name: item.name,
-      thumbnail: item.thumbnailUrl,
-      category: item.categories,
+      slug: item.slug,
+      thumbnailUrl: item.thumbnailUrl,
+      categoryId: findCategoryByName(item.categories[0] || "")?.id || null,
+      category: item.categories[0]
+        ? {
+            id: findCategoryByName(item.categories[0])?.id || 0,
+            name: item.categories[0],
+          }
+        : null,
     }),
   );
 
-  const filteredItems = filterListItems(mappedItems, search, categories);
+  const filteredItems = filterListItems(
+    mappedItems,
+    search,
+    categoryIds,
+    categories,
+  );
   const paginated = paginateItems(filteredItems, page, perPage);
 
   return {
@@ -186,8 +317,25 @@ const buildMockResponse = (
           ? `${baseUrl}?page=${paginated.meta.currentPage - 1}`
           : null,
     },
-    items: paginated.items,
+    data: paginated.data,
   };
+};
+
+const parseCategoryIds = (searchParams: URLSearchParams) => {
+  const categoryValues = searchParams.getAll("categoryId");
+
+  if (categoryValues.length === 0) {
+    return [];
+  }
+
+  return Array.from(
+    new Set(
+      categoryValues
+        .flatMap((value) => value.split(","))
+        .map((value) => parseCategoryId(value.trim()))
+        .filter((value): value is number => value !== null),
+    ),
+  );
 };
 
 const parseCategories = (searchParams: URLSearchParams) => {
@@ -220,6 +368,7 @@ export async function GET(request: NextRequest) {
     6,
   );
   const search = (searchParams.get("search") || "").trim();
+  const categoryIds = parseCategoryIds(searchParams);
   const categories = parseCategories(searchParams);
   const baseUrl = request.nextUrl.pathname;
 
@@ -231,6 +380,10 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       backendParams.set("search", search);
+    }
+
+    if (categoryIds.length > 0) {
+      backendParams.set("categoryId", categoryIds.join(","));
     }
 
     if (categories.length > 0) {
@@ -279,13 +432,18 @@ export async function GET(request: NextRequest) {
           return NextResponse.json<ExtracurricularListResponse>(
             {
               meta,
-              items: normalizedItems,
+              data: normalizedItems,
             },
             { status: 200 },
           );
         }
 
-        const filteredItems = filterListItems(normalizedItems, search, categories);
+        const filteredItems = filterListItems(
+          normalizedItems,
+          search,
+          categoryIds,
+          categories,
+        );
         const paginated = paginateItems(filteredItems, page, perPage);
 
         return NextResponse.json<ExtracurricularListResponse>(
@@ -303,7 +461,7 @@ export async function GET(request: NextRequest) {
                   ? `${baseUrl}?page=${paginated.meta.currentPage - 1}`
                   : null,
             },
-            items: paginated.items,
+            data: paginated.data,
           },
           { status: 200 },
         );
@@ -317,6 +475,7 @@ export async function GET(request: NextRequest) {
     page,
     perPage,
     search,
+    categoryIds,
     categories,
     baseUrl,
   );

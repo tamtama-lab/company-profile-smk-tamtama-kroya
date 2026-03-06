@@ -20,6 +20,62 @@ import { normalizeItem } from "./helpers";
 const CATEGORY_FILTER_DEFAULT = { value: "", label: "Semua Kategori" };
 const CATEGORY_OPTIONS_ENDPOINT = "/api/extracurriculars/categories";
 
+interface CategoryOptionPayloadItem {
+  id: number;
+  name: string;
+}
+
+const toCategoryOptionPayload = (
+  payload: unknown,
+): CategoryOptionPayloadItem[] => {
+  const rawItems = Array.isArray(payload)
+    ? payload
+    : payload && typeof payload === "object"
+      ? Array.isArray((payload as Record<string, unknown>).data)
+        ? ((payload as Record<string, unknown>).data as unknown[])
+        : Array.isArray((payload as Record<string, unknown>).items)
+          ? ((payload as Record<string, unknown>).items as unknown[])
+          : []
+      : [];
+
+  return rawItems
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const name = item.trim();
+
+        if (!name) {
+          return null;
+        }
+
+        return {
+          id: index + 1,
+          name,
+        };
+      }
+
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const root = item as Record<string, unknown>;
+      const name = typeof root.name === "string" ? root.name.trim() : "";
+      const parsedId = Number(root.id);
+
+      if (!name) {
+        return null;
+      }
+
+      return {
+        id:
+          Number.isFinite(parsedId) && parsedId > 0
+            ? Math.floor(parsedId)
+            : index + 1,
+        name,
+      };
+    })
+    .filter((item): item is CategoryOptionPayloadItem => Boolean(item));
+};
+
 export default function DataExtraPage() {
   const router = useRouter();
   const { showAlert } = useAlert();
@@ -29,14 +85,14 @@ export default function DataExtraPage() {
   const [items, setItems] = useState<ExtracurricularItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [categoryOptions, setCategoryOptions] = useState<
     Array<{ value: string | number; label: string }>
   >([CATEGORY_FILTER_DEFAULT]);
   const [pagination, setPagination] = useState({
     total: 0,
     currentPage: 1,
-    perPage: 9,
+    perPage: 6,
   });
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -70,22 +126,30 @@ export default function DataExtraPage() {
         }
 
         const payload = (await response.json()) as unknown;
-        const categories = Array.isArray(payload)
-          ? payload
-              .filter((item): item is string => typeof item === "string")
-              .map((item) => item.trim())
-              .filter(Boolean)
-          : [];
+        const categories = toCategoryOptionPayload(payload);
 
         if (cancelled) {
           return;
         }
 
+        const seenIds = new Set<number>();
+
         setCategoryOptions([
           CATEGORY_FILTER_DEFAULT,
-          ...Array.from(new Set(categories))
-            .sort((a, b) => a.localeCompare(b))
-            .map((category) => ({ value: category, label: category })),
+          ...categories
+            .filter((category) => {
+              if (seenIds.has(category.id)) {
+                return false;
+              }
+
+              seenIds.add(category.id);
+              return true;
+            })
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((category) => ({
+              value: String(category.id),
+              label: category.name,
+            })),
         ]);
       } catch (error) {
         console.error("Failed fetch extracurricular categories", error);
@@ -118,8 +182,8 @@ export default function DataExtraPage() {
         params.set("search", debouncedSearchTerm);
       }
 
-      if (selectedCategory) {
-        params.set("category", selectedCategory);
+      if (selectedCategoryId) {
+        params.set("categoryId", selectedCategoryId);
       }
 
       const response = await fetch(
@@ -179,7 +243,7 @@ export default function DataExtraPage() {
     pagination.currentPage,
     pagination.perPage,
     debouncedSearchTerm,
-    selectedCategory,
+    selectedCategoryId,
     showAlert,
   ]);
 
@@ -253,6 +317,17 @@ export default function DataExtraPage() {
     item: ExtracurricularItem,
     nextPublishedValue: boolean,
   ) => {
+    const categoryId = item.categoryId ?? item.category?.id ?? null;
+
+    if (!categoryId) {
+      showAlert({
+        title: "Gagal",
+        description: "Kategori ekstrakurikuler tidak valid",
+        variant: "error",
+      });
+      return;
+    }
+
     setItems((prev) =>
       prev.map((current) =>
         current.slug === item.slug
@@ -274,12 +349,18 @@ export default function DataExtraPage() {
           body: JSON.stringify({
             name: item.name,
             thumbnailUrl: item.thumbnailUrl,
-            categories: item.categories,
+            categoryId,
             mentorName: item.mentorName,
             description: item.description,
             schedule: item.schedule,
             location: item.location,
             isPublished: nextPublishedValue,
+            galleries: (item.galleries || [])
+              .map((gallery) => String(gallery.photoUrl || "").trim())
+              .filter(Boolean),
+            achievements: (item.achievements || [])
+              .map((achievement) => String(achievement.name || "").trim())
+              .filter(Boolean),
           }),
         },
       );
@@ -363,15 +444,10 @@ export default function DataExtraPage() {
         </div>
 
         <div className="flex flex-wrap gap-1 min-h-6">
-          {item.categories.length > 0 ? (
-            item.categories.map((category) => (
-              <span
-                key={`${item.slug}-${category}`}
-                className="rounded-full bg-teal-500/10 px-2 py-1 text-xs text-primary"
-              >
-                {category}
-              </span>
-            ))
+          {item.category?.name?.trim() || item.categories[0] ? (
+            <span className="rounded-full bg-teal-500/10 px-2 py-1 text-xs text-primary">
+              {item.category?.name?.trim() || item.categories[0]}
+            </span>
           ) : (
             <span className="text-xs text-gray-500">-</span>
           )}
@@ -423,11 +499,11 @@ export default function DataExtraPage() {
 
         <div className="w-full mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
           <SelectInput
-            value={selectedCategory}
+            value={selectedCategoryId}
             options={categoryOptions}
             className="w-full lg:w-60 -mb-1.5"
             onChange={(event) => {
-              setSelectedCategory(String(event.target.value));
+              setSelectedCategoryId(String(event.target.value));
               setPagination((prev) => ({ ...prev, currentPage: 1 }));
             }}
           />
@@ -440,7 +516,7 @@ export default function DataExtraPage() {
             onClick={() => {
               setSearchTerm("");
               setDebouncedSearchTerm("");
-              setSelectedCategory("");
+              setSelectedCategoryId("");
               setPagination((prev) => ({ ...prev, currentPage: 1 }));
             }}
           />

@@ -26,11 +26,20 @@ export interface ExtracurricularAchievement {
   updatedAt: string;
 }
 
+export interface ExtracurricularCategory {
+  id: number;
+  name: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface ExtracurricularItem {
   id: number;
   name: string;
   slug: string;
   thumbnailUrl: string;
+  categoryId: number | null;
+  category: ExtracurricularCategory | null;
   categories: string[];
   mentorName: string;
   description: string;
@@ -52,7 +61,7 @@ export interface ExtracurricularListResponse {
 export interface ExtracurricularFormValues {
   name: string;
   slug: string;
-  categories: string[];
+  categoryId: string;
   mentorName: string;
   schedule: string;
   location: string;

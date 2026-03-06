@@ -10,16 +10,22 @@ export interface PaginationMeta {
   previousPageUrl: string | null;
 }
 
+export interface ExtracurricularCategoryOption {
+  id: number;
+  name: string;
+}
+
 export interface ExtracurricularListItem {
   name: string;
-  thumbnail: string;
-  category: string[];
-  slug?: string;
+  slug: string;
+  thumbnailUrl: string;
+  categoryId: number | null;
+  category: ExtracurricularCategoryOption | null;
 }
 
 export interface ExtracurricularListResponse {
   meta: PaginationMeta;
-  items: ExtracurricularListItem[];
+  data: ExtracurricularListItem[];
 }
 
 export interface ExtracurricularGalleryItem {
@@ -47,7 +53,8 @@ export interface ExtracurricularDetail {
   name: string;
   slug: string;
   thumbnailUrl: string;
-  categories: string[];
+  isPublished: boolean;
+  category: ExtracurricularCategoryOption | null;
   mentorName: string;
   description: string;
   createdAt: string;

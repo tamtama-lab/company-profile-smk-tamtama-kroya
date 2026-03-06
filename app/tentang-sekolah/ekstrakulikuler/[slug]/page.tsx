@@ -105,25 +105,7 @@ export default function ExtracurricularDetailPage() {
     return [words[0] || "", words.slice(1).join(" ")];
   }, [detail?.name]);
 
-  const formattedCategories = useMemo(() => {
-    const categories = (detail?.categories || [])
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-    if (categories.length === 0) {
-      return "-";
-    }
-
-    if (categories.length === 1) {
-      return categories[0];
-    }
-
-    if (categories.length === 2) {
-      return `${categories[0]} & ${categories[1]}`;
-    }
-
-    return `${categories.slice(0, -1).join(", ")} & ${categories[categories.length - 1]}`;
-  }, [detail?.categories]);
+  const categoryLabel = detail?.category?.name?.trim() || "-";
 
   if (loading) {
     return (
@@ -199,9 +181,7 @@ export default function ExtracurricularDetailPage() {
 
               <div className="grid grid-cols-[7rem_1fr] items-start gap-x-2">
                 <p className="font-semibold whitespace-nowrap">Kategori</p>
-                <p className="font-normal wrap-break-word capitalize">
-                  : {formattedCategories}
-                </p>
+                <p className="font-normal wrap-break-word">: {categoryLabel}</p>
               </div>
 
               <div className="grid grid-cols-[7rem_1fr] items-start gap-x-2">

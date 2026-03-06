@@ -8,12 +8,78 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { RiFilterOffFill } from "react-icons/ri";
-import { ExtracurricularListItem, ExtracurricularListResponse } from "./type";
+import {
+  ExtracurricularCategoryOption,
+  ExtracurricularListItem,
+  ExtracurricularListResponse,
+} from "./type";
 import { toSlug } from "@/utils/resolveSlug";
 
 const ITEMS_PER_PAGE = 6;
 const CATEGORY_FILTER_DEFAULT = { value: "", label: "Semua Kategori" };
 const CATEGORY_OPTIONS_ENDPOINT = "/api/extracurriculars/categories";
+
+const getArrayFromPayload = (payload: unknown): unknown[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  const root = payload as Record<string, unknown>;
+
+  if (Array.isArray(root.data)) {
+    return root.data;
+  }
+
+  if (Array.isArray(root.items)) {
+    return root.items;
+  }
+
+  return [];
+};
+
+const toCategoryOptionArray = (
+  payload: unknown,
+): ExtracurricularCategoryOption[] => {
+  const rawItems = getArrayFromPayload(payload);
+
+  return rawItems
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const name = item.trim();
+
+        if (!name) {
+          return null;
+        }
+
+        return {
+          id: index + 1,
+          name,
+        };
+      }
+
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const root = item as Record<string, unknown>;
+      const name = typeof root.name === "string" ? root.name.trim() : "";
+      const parsedId = Number(root.id);
+
+      if (!name) {
+        return null;
+      }
+
+      return {
+        id: Number.isFinite(parsedId) && parsedId > 0 ? parsedId : index + 1,
+        name,
+      };
+    })
+    .filter((item): item is ExtracurricularCategoryOption => Boolean(item));
+};
 
 export default function ExtracurricularPage() {
   const router = useRouter();
@@ -23,7 +89,7 @@ export default function ExtracurricularPage() {
   >([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [categoryOptions, setCategoryOptions] = useState<
     Array<{ value: string | number; label: string }>
   >([CATEGORY_FILTER_DEFAULT]);
@@ -56,22 +122,30 @@ export default function ExtracurricularPage() {
         }
 
         const payload = (await response.json()) as unknown;
-        const categories = Array.isArray(payload)
-          ? payload
-              .filter((item): item is string => typeof item === "string")
-              .map((item) => item.trim())
-              .filter(Boolean)
-          : [];
+        const categories = toCategoryOptionArray(payload);
 
         if (cancelled) {
           return;
         }
 
+        const seenCategoryIds = new Set<number>();
+
         setCategoryOptions([
           CATEGORY_FILTER_DEFAULT,
-          ...Array.from(new Set(categories))
-            .sort((a, b) => a.localeCompare(b))
-            .map((category) => ({ value: category, label: category })),
+          ...categories
+            .filter((category) => {
+              if (seenCategoryIds.has(category.id)) {
+                return false;
+              }
+
+              seenCategoryIds.add(category.id);
+              return true;
+            })
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((category) => ({
+              value: String(category.id),
+              label: category.name,
+            })),
         ]);
       } catch (error) {
         console.error("Failed fetch extracurricular categories", error);
@@ -101,8 +175,8 @@ export default function ExtracurricularPage() {
         if (debouncedSearchTerm) {
           params.append("search", debouncedSearchTerm);
         }
-        if (selectedCategory) {
-          params.append("category", selectedCategory);
+        if (selectedCategoryId) {
+          params.append("categoryId", selectedCategoryId);
         }
 
         const response = await fetch(
@@ -114,7 +188,7 @@ export default function ExtracurricularPage() {
         }
 
         const result: ExtracurricularListResponse = await response.json();
-        const items = (result.items || []).slice(0, ITEMS_PER_PAGE);
+        const items = (result.data || []).slice(0, ITEMS_PER_PAGE);
 
         setExtracurriculars(items);
         setPagination({
@@ -130,7 +204,7 @@ export default function ExtracurricularPage() {
         setLoading(false);
       }
     },
-    [debouncedSearchTerm, selectedCategory],
+    [debouncedSearchTerm, selectedCategoryId],
   );
 
   useEffect(() => {
@@ -142,16 +216,16 @@ export default function ExtracurricularPage() {
   };
 
   const handleCategoryChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCategory(event.target.value);
+    setSelectedCategoryId(event.target.value);
   };
 
   const handleResetFilters = () => {
     setSearchTerm("");
     setDebouncedSearchTerm("");
-    setSelectedCategory("");
+    setSelectedCategoryId("");
   };
 
-  const filterValue = searchTerm || selectedCategory;
+  const filterValue = searchTerm || selectedCategoryId;
 
   const paginationConfig = useMemo(
     () => ({
@@ -169,13 +243,13 @@ export default function ExtracurricularPage() {
   );
 
   const renderItem = (item: ExtracurricularListItem, _: number) => {
-    const categoryLabel = item.category.join(" • ") || "-";
     const slug = item.slug || toSlug(item.name);
+    const categoryName = item.category?.name?.trim() || "";
 
     return (
       <div className="rounded-lg flex flex-col border border-gray-300 bg-white overflow-hidden">
         <Image
-          src={item.thumbnail || "https://placehold.co/1200x800/png"}
+          src={item.thumbnailUrl || "https://placehold.co/1200x800/png"}
           alt={item.name}
           width={1200}
           height={800}
@@ -189,18 +263,13 @@ export default function ExtracurricularPage() {
             {item.name}
           </p>
           <div className="flex flex-wrap gap-1 min-h-6">
-            {item.category.length > 0 ? (
-              item.category.map((category) => (
-                <span
-                  key={`${item.slug}-${category}`}
-                  className="rounded-full bg-teal-500/10 w-fit px-2 py-1 text-xs text-primary"
-                >
-                  {category}
-                </span>
-              ))
+            {categoryName ? (
+              <span className="rounded-full bg-teal-500/10 w-fit px-2 py-1 text-xs text-primary">
+                {categoryName}
+              </span>
             ) : (
               <span className="text-xs text-gray-500">-</span>
-            )}{" "}
+            )}
           </div>
           <TextButton
             variant="gray"
@@ -231,7 +300,7 @@ export default function ExtracurricularPage() {
           <SelectInput
             className="w-full!"
             options={categoryOptions}
-            value={selectedCategory}
+            value={selectedCategoryId}
             onChange={handleCategoryChange}
           />
           {filterValue && (

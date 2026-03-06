@@ -2,25 +2,78 @@ import { NextResponse } from "next/server";
 
 const API_BASE_URL = process.env.BACKEND_URL || "http://localhost:3333";
 
-const MOCK_CATEGORIES = [
-  "Kepemimpinan & Organisasi",
-  "Kejuruan & Teknologi",
-  "Olahraga",
-  "Seni & Budaya",
+interface CategoryOption {
+  id: number;
+  name: string;
+}
+
+const MOCK_CATEGORIES: CategoryOption[] = [
+  { id: 1, name: "Kejuruan & Teknologi" },
+  { id: 2, name: "Kepemimpinan & Organisasi" },
+  { id: 3, name: "Olahraga" },
+  { id: 4, name: "Seni & Budaya" },
 ];
 
-const normalizeCategories = (value: unknown): string[] => {
+const normalizeCategories = (value: unknown): CategoryOption[] => {
   if (!Array.isArray(value)) {
     return [];
   }
 
+  const seenById = new Set<number>();
+  const seenByName = new Set<string>();
+
   return value
-    .filter((item): item is string => typeof item === "string")
-    .map((item) => item.trim())
-    .filter(Boolean);
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const name = item.trim();
+
+        if (!name) {
+          return null;
+        }
+
+        return {
+          id: index + 1,
+          name,
+        };
+      }
+
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const root = item as Record<string, unknown>;
+      const name =
+        typeof root.name === "string" ? root.name.trim() : "";
+      const parsedId = Number(root.id);
+
+      if (!name) {
+        return null;
+      }
+
+      return {
+        id:
+          Number.isFinite(parsedId) && parsedId > 0
+            ? Math.floor(parsedId)
+            : index + 1,
+        name,
+      };
+    })
+    .filter((item): item is CategoryOption => Boolean(item))
+    .filter((item) => {
+      const normalizedName = item.name.toLowerCase();
+
+      if (seenById.has(item.id) || seenByName.has(normalizedName)) {
+        return false;
+      }
+
+      seenById.add(item.id);
+      seenByName.add(normalizedName);
+
+      return true;
+    });
 };
 
-const getCategoriesFromPayload = (payload: unknown): string[] => {
+const getCategoriesFromPayload = (payload: unknown): CategoryOption[] => {
   const direct = normalizeCategories(payload);
   if (direct.length > 0) {
     return direct;
@@ -42,13 +95,18 @@ const getCategoriesFromPayload = (payload: unknown): string[] => {
     return fromItems;
   }
 
+  const fromCategories = normalizeCategories(root.categories);
+  if (fromCategories.length > 0) {
+    return fromCategories;
+  }
+
   return [];
 };
 
 export async function GET() {
   try {
     const backendResponse = await fetch(
-      `${API_BASE_URL}/extracurricular/categories`,
+      `${API_BASE_URL}/extracurriculars/category-options`,
       {
         method: "GET",
         headers: {
@@ -63,7 +121,10 @@ export async function GET() {
       const categories = getCategoriesFromPayload(payload);
 
       if (categories.length > 0) {
-        return NextResponse.json(categories, { status: 200 });
+        return NextResponse.json(
+          categories.sort((a, b) => a.name.localeCompare(b.name)),
+          { status: 200 },
+        );
       }
     }
   } catch (error) {

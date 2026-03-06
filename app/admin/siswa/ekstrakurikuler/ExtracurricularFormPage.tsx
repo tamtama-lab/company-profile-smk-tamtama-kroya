@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { LuGripVertical, LuPlus, LuTrash2 } from "react-icons/lu";
 import { TextButton } from "@/components/Buttons/TextButton";
 import SelectInput from "@/components/InputForm/SelectInput";
@@ -24,7 +24,7 @@ import {
 type FormErrorState = Partial<
   Record<
     | "name"
-    | "categories"
+    | "categoryId"
     | "description"
     | "thumbnailUrl"
     | "mentorName"
@@ -42,7 +42,7 @@ type InlineActionAlert = {
 const DEFAULT_FORM_VALUES: ExtracurricularFormValues = {
   name: "",
   slug: "",
-  categories: [],
+  categoryId: "",
   mentorName: "",
   schedule: "",
   location: "",
@@ -52,6 +52,62 @@ const DEFAULT_FORM_VALUES: ExtracurricularFormValues = {
 };
 
 const CATEGORY_OPTIONS_ENDPOINT = "/api/extracurriculars/categories";
+
+interface CategoryOptionPayloadItem {
+  id: number;
+  name: string;
+}
+
+const toCategoryOptionPayload = (
+  payload: unknown,
+): CategoryOptionPayloadItem[] => {
+  const rawItems = Array.isArray(payload)
+    ? payload
+    : payload && typeof payload === "object"
+      ? Array.isArray((payload as Record<string, unknown>).data)
+        ? ((payload as Record<string, unknown>).data as unknown[])
+        : Array.isArray((payload as Record<string, unknown>).items)
+          ? ((payload as Record<string, unknown>).items as unknown[])
+          : []
+      : [];
+
+  return rawItems
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const name = item.trim();
+
+        if (!name) {
+          return null;
+        }
+
+        return {
+          id: index + 1,
+          name,
+        };
+      }
+
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const root = item as Record<string, unknown>;
+      const name = typeof root.name === "string" ? root.name.trim() : "";
+      const parsedId = Number(root.id);
+
+      if (!name) {
+        return null;
+      }
+
+      return {
+        id:
+          Number.isFinite(parsedId) && parsedId > 0
+            ? Math.floor(parsedId)
+            : index + 1,
+        name,
+      };
+    })
+    .filter((item): item is CategoryOptionPayloadItem => Boolean(item));
+};
 
 const fileToDataUrl = (file: File) =>
   new Promise<string>((resolve, reject) => {
@@ -66,37 +122,6 @@ const sortByOrder = <T extends { order: number }>(items: T[]) =>
 
 const toObject = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-
-const toArrayPayload = <T,>(value: unknown): T[] => {
-  if (Array.isArray(value)) {
-    return value as T[];
-  }
-
-  const root = toObject(value);
-  const data = root.data;
-
-  if (Array.isArray(data)) {
-    return data as T[];
-  }
-
-  return [];
-};
-
-const extractCreatedId = (payload: unknown): number | null => {
-  const root = toObject(payload);
-  const data = toObject(root.data);
-  const gallery = toObject(root.gallery);
-  const achievement = toObject(root.achievement);
-
-  const idCandidate = root.id ?? data.id ?? gallery.id ?? achievement.id;
-  const parsed = Number(idCandidate);
-
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return null;
-  }
-
-  return parsed;
-};
 
 const extractCreatedPhotoUrl = (payload: unknown): string | null => {
   const root = toObject(payload);
@@ -147,44 +172,16 @@ export default function ExtracurricularFormPage({
   const [achievementItems, setAchievementItems] = useState<
     ExtracurricularAchievementInputItem[]
   >([]);
-  const [isSyncingGalleries, setIsSyncingGalleries] = useState(false);
-  const [isSyncingAchievements, setIsSyncingAchievements] = useState(false);
   const [draggingAchievementClientId, setDraggingAchievementClientId] =
     useState<string | null>(null);
   const [newAchievementName, setNewAchievementName] = useState("");
-  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [galleryUploadAlert, setGalleryUploadAlert] =
     useState<InlineActionAlert | null>(null);
-  const [isAddingAchievement, setIsAddingAchievement] = useState(false);
   const [achievementAddAlert, setAchievementAddAlert] =
     useState<InlineActionAlert | null>(null);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
-  const canSyncNestedItems = isEditMode && Boolean(slug);
-  const isFormBusy =
-    isSubmitting || isSyncingGalleries || isSyncingAchievements;
-
-  const availableCategoryOptions = useMemo(() => {
-    const merged = new Set<string>();
-
-    categoryOptions.forEach((option) => {
-      const normalized = String(option.value).trim();
-      if (normalized) {
-        merged.add(normalized);
-      }
-    });
-
-    formValues.categories.forEach((category) => {
-      const normalized = category.trim();
-      if (normalized) {
-        merged.add(normalized);
-      }
-    });
-
-    return Array.from(merged)
-      .sort((a, b) => a.localeCompare(b))
-      .map((category) => ({ value: category, label: category }));
-  }, [categoryOptions, formValues.categories]);
+  const isFormBusy = isSubmitting;
 
   useEffect(() => {
     let cancelled = false;
@@ -201,21 +198,29 @@ export default function ExtracurricularFormPage({
         }
 
         const payload = (await response.json()) as unknown;
-        const categories = Array.isArray(payload)
-          ? payload
-              .filter((item): item is string => typeof item === "string")
-              .map((item) => item.trim())
-              .filter(Boolean)
-          : [];
+        const categories = toCategoryOptionPayload(payload);
 
         if (cancelled) {
           return;
         }
 
+        const seenIds = new Set<number>();
+
         setCategoryOptions(
-          Array.from(new Set(categories))
-            .sort((a, b) => a.localeCompare(b))
-            .map((category) => ({ value: category, label: category })),
+          categories
+            .filter((category) => {
+              if (seenIds.has(category.id)) {
+                return false;
+              }
+
+              seenIds.add(category.id);
+              return true;
+            })
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((category) => ({
+              value: String(category.id),
+              label: category.name,
+            })),
         );
       } catch (error) {
         console.error("Failed fetch extracurricular categories", error);
@@ -265,50 +270,36 @@ export default function ExtracurricularFormPage({
             detailPayload) as Partial<ExtracurricularItem>,
         );
 
-        const galleriesRes = await fetch(
-          `/api/backoffice/extracurriculars/${encodeURIComponent(slug)}/galleries`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...getAuthHeader(),
-            },
-          },
-        );
-        const achievementsRes = await fetch(
-          `/api/backoffice/extracurriculars/${encodeURIComponent(slug)}/achievements`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...getAuthHeader(),
-            },
-          },
-        );
-
-        const galleriesData = galleriesRes.ok ? await galleriesRes.json() : [];
-        const achievementsData = achievementsRes.ok
-          ? await achievementsRes.json()
-          : [];
-
-        const galleryArray = toArrayPayload<{
-          id?: number;
-          photoUrl?: string;
-          order?: number;
-        }>(galleriesData);
-        const achievementArray = toArrayPayload<{
-          id?: number;
-          name?: string;
-          order?: number;
-        }>(achievementsData);
-
         if (cancelled) {
           return;
+        }
+
+        const normalizedCategoryId =
+          detail.categoryId ?? detail.category?.id ?? null;
+        const normalizedCategoryName = detail.category?.name?.trim() || "";
+
+        if (normalizedCategoryId && normalizedCategoryName) {
+          setCategoryOptions((prev) => {
+            const categoryIdValue = String(normalizedCategoryId);
+
+            if (prev.some((option) => option.value === categoryIdValue)) {
+              return prev;
+            }
+
+            return [
+              ...prev,
+              {
+                value: categoryIdValue,
+                label: normalizedCategoryName,
+              },
+            ].sort((a, b) => a.label.localeCompare(b.label));
+          });
         }
 
         setFormValues({
           name: detail.name,
           slug: detail.slug,
-          categories:
-            detail.categories.length > 0 ? [detail.categories[0]] : [],
+          categoryId: normalizedCategoryId ? String(normalizedCategoryId) : "",
           mentorName: detail.mentorName,
           schedule: detail.schedule,
           location: detail.location,
@@ -319,7 +310,7 @@ export default function ExtracurricularFormPage({
         setThumbnailPreview(detail.thumbnailUrl);
 
         const normalizedGalleries = sortByOrder(
-          galleryArray.map((item) => ({
+          (detail.galleries || []).map((item) => ({
             clientId: createClientId("gallery-existing"),
             id: Number(item.id || 0),
             previewUrl: String(item.photoUrl || ""),
@@ -328,7 +319,7 @@ export default function ExtracurricularFormPage({
         );
 
         const normalizedAchievements = sortByOrder(
-          achievementArray.map((item) => ({
+          (detail.achievements || []).map((item) => ({
             clientId: createClientId("achievement-existing"),
             id: Number(item.id || 0),
             name: String(item.name || "").trim(),
@@ -418,405 +409,69 @@ export default function ExtracurricularFormPage({
     items: ExtracurricularAchievementInputItem[],
   ) => items.map((item, index) => ({ ...item, order: index }));
 
-  const reorderGalleriesOnServer = async (
-    targetSlug: string,
-    items: ExtracurricularGalleryInputItem[],
-  ) => {
-    const galleryIds = sortByOrder(items)
-      .map((item) => Number(item.id || 0))
-      .filter((id) => Number.isFinite(id) && id > 0);
-
-    if (galleryIds.length <= 1) {
-      return;
-    }
-
-    const reorderRes = await fetch(
-      `/api/backoffice/extracurriculars/${encodeURIComponent(targetSlug)}/galleries/reorder`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify({ galleryIds }),
-      },
-    );
-
-    if (!reorderRes.ok) {
-      const errorData = await reorderRes.json();
-      throw new Error(errorData?.message || "Gagal mengurutkan foto galeri");
-    }
-  };
-
-  const reorderAchievementsOnServer = async (
-    targetSlug: string,
-    items: ExtracurricularAchievementInputItem[],
-  ) => {
-    const achievementIds = sortByOrder(items)
-      .map((item) => Number(item.id || 0))
-      .filter((id) => Number.isFinite(id) && id > 0);
-
-    if (achievementIds.length <= 1) {
-      return;
-    }
-
-    const reorderRes = await fetch(
-      `/api/backoffice/extracurriculars/${encodeURIComponent(targetSlug)}/achievements/reorder`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify({ achievementIds }),
-      },
-    );
-
-    if (!reorderRes.ok) {
-      const errorData = await reorderRes.json();
-      throw new Error(errorData?.message || "Gagal mengurutkan prestasi");
-    }
-  };
-
-  const handleGalleryItemsChange = async (
+  const handleGalleryItemsChange = (
     nextItemsInput: ExtracurricularGalleryInputItem[],
   ) => {
     const previousItems = normalizeGalleryInputOrder(sortByOrder(galleryItems));
     const nextItems = normalizeGalleryInputOrder(sortByOrder(nextItemsInput));
-
-    if (!canSyncNestedItems || isSyncingGalleries) {
-      setGalleryItems(nextItems);
-      return;
-    }
-
-    const targetSlug = String(slug || "").trim();
+    const previousItemMap = new Map(
+      previousItems.map((item) => [item.clientId, item]),
+    );
+    const addedItemsCount = nextItems.filter(
+      (item) => !previousItemMap.has(item.clientId) && Boolean(item.file),
+    ).length;
 
     setGalleryItems(nextItems);
-    setIsSyncingGalleries(true);
 
-    let hasAddedItems = false;
-    let addedItemCount = 0;
-
-    try {
-      const fetchLatestGalleryItems = async () => {
-        const galleriesRes = await fetch(
-          `/api/backoffice/extracurriculars/${encodeURIComponent(targetSlug)}/galleries`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...getAuthHeader(),
-            },
-          },
-        );
-
-        if (!galleriesRes.ok) {
-          const errorData = await galleriesRes.json();
-          throw new Error(errorData?.message || "Gagal memuat ulang galeri");
-        }
-
-        const galleriesData = await galleriesRes.json();
-        const galleryArray = toArrayPayload<{
-          id?: number;
-          photoUrl?: string;
-          order?: number;
-        }>(galleriesData);
-
-        return sortByOrder(
-          galleryArray.map((item) => ({
-            clientId: createClientId("gallery-existing"),
-            id: Number(item.id || 0),
-            previewUrl: String(item.photoUrl || ""),
-            order: Number(item.order || 0),
-          })),
-        );
-      };
-
-      const previousItemMap = new Map(
-        previousItems.map((item) => [item.clientId, item]),
-      );
-      const nextItemMap = new Map(
-        nextItems.map((item) => [item.clientId, item]),
-      );
-
-      const removedItems = previousItems.filter(
-        (item) => !nextItemMap.has(item.clientId),
-      );
-
-      for (const removedItem of removedItems) {
-        const existingId = Number(removedItem.id || 0);
-
-        if (!Number.isFinite(existingId) || existingId <= 0) {
-          continue;
-        }
-
-        const deleteRes = await fetch(
-          `/api/backoffice/extracurriculars/${encodeURIComponent(targetSlug)}/galleries/${existingId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              ...getAuthHeader(),
-            },
-          },
-        );
-
-        if (!deleteRes.ok) {
-          const errorData = await deleteRes.json();
-          throw new Error(errorData?.message || "Gagal menghapus foto galeri");
-        }
-      }
-
-      const addedItems = nextItems.filter(
-        (item) => !previousItemMap.has(item.clientId),
-      );
-
-      hasAddedItems = addedItems.length > 0;
-      addedItemCount = addedItems.length;
-
-      if (hasAddedItems) {
-        setGalleryUploadAlert(null);
-        setIsUploadingGallery(true);
-      }
-
-      for (const addedItem of addedItems) {
-        if (!addedItem.file) {
-          continue;
-        }
-
-        const formData = new FormData();
-        formData.append("photo", addedItem.file);
-
-        const uploadRes = await fetch(
-          `/api/backoffice/extracurriculars/${encodeURIComponent(targetSlug)}/galleries`,
-          {
-            method: "POST",
-            headers: {
-              ...getAuthHeader(),
-            },
-            body: formData,
-          },
-        );
-
-        const uploadData = await uploadRes.json();
-
-        if (!uploadRes.ok) {
-          throw new Error(uploadData?.message || "Gagal upload foto galeri");
-        }
-      }
-
-      const hasAddOrDelete = removedItems.length > 0 || addedItems.length > 0;
-
-      if (hasAddOrDelete) {
-        const latestItems = await fetchLatestGalleryItems();
-        setGalleryItems(normalizeGalleryInputOrder(latestItems));
-
-        if (hasAddedItems) {
-          setGalleryUploadAlert({
-            variant: "success",
-            message: `${addedItemCount} foto berhasil ditambahkan ke galeri.`,
-          });
-        }
-
-        return;
-      }
-
-      await reorderGalleriesOnServer(targetSlug, nextItems);
-      setGalleryItems(nextItems);
-
-      if (hasAddedItems) {
-        setGalleryUploadAlert({
-          variant: "success",
-          message: `${addedItemCount} foto berhasil ditambahkan ke galeri.`,
-        });
-      }
-    } catch (error) {
-      console.error("Failed to sync galleries immediately", error);
-      setGalleryItems(previousItems);
-
-      if (hasAddedItems) {
-        setGalleryUploadAlert({
-          variant: "error",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Gagal mengunggah foto galeri",
-        });
-      }
-
-      showAlert({
-        title: "Gagal",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Gagal menyimpan perubahan galeri",
-        variant: "error",
+    if (addedItemsCount > 0) {
+      setGalleryUploadAlert({
+        variant: "success",
+        message: `${addedItemsCount} foto ditambahkan. Klik Simpan untuk menerapkan perubahan.`,
       });
-    } finally {
-      setIsUploadingGallery(false);
-      setIsSyncingGalleries(false);
+      return;
     }
+
+    setGalleryUploadAlert(null);
   };
 
-  const addAchievement = async () => {
+  const addAchievement = () => {
     const name = newAchievementName.trim();
 
-    if (!name) {
+    if (!name || isSubmitting) {
       return;
     }
 
-    if (!canSyncNestedItems || isSyncingAchievements) {
-      setAchievementItems((prev) =>
-        normalizeAchievementInputOrder([
-          ...prev,
-          {
-            clientId: createClientId("achievement-new"),
-            name,
-            order: prev.length,
-          },
-        ]),
-      );
-
-      setAchievementAddAlert({
-        variant: "success",
-        message: "Prestasi berhasil ditambahkan.",
-      });
-      setNewAchievementName("");
-      return;
-    }
-
-    const targetSlug = String(slug || "").trim();
-
-    setIsSyncingAchievements(true);
-    setIsAddingAchievement(true);
-    setAchievementAddAlert(null);
-
-    try {
-      const response = await fetch(
-        `/api/backoffice/extracurriculars/${encodeURIComponent(targetSlug)}/achievements`,
+    setAchievementItems((prev) =>
+      normalizeAchievementInputOrder([
+        ...sortByOrder(prev),
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeader(),
-          },
-          body: JSON.stringify({ name }),
-        },
-      );
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseData?.message || "Gagal menambahkan prestasi");
-      }
-
-      const createdAchievementId = extractCreatedId(responseData);
-
-      if (!createdAchievementId) {
-        throw new Error("ID prestasi tidak ditemukan dari response API");
-      }
-
-      const nextItems = normalizeAchievementInputOrder([
-        ...sortByOrder(achievementItems),
-        {
-          clientId: createClientId("achievement-existing"),
-          id: createdAchievementId,
+          clientId: createClientId("achievement-new"),
           name,
-          order: achievementItems.length,
+          order: prev.length,
         },
-      ]);
+      ]),
+    );
 
-      setAchievementItems(nextItems);
-      setNewAchievementName("");
-      setAchievementAddAlert({
-        variant: "success",
-        message: "Prestasi berhasil ditambahkan.",
-      });
-    } catch (error) {
-      console.error("Failed to add achievement immediately", error);
-
-      setAchievementAddAlert({
-        variant: "error",
-        message:
-          error instanceof Error ? error.message : "Gagal menambahkan prestasi",
-      });
-
-      showAlert({
-        title: "Gagal",
-        description:
-          error instanceof Error ? error.message : "Gagal menambahkan prestasi",
-        variant: "error",
-      });
-    } finally {
-      setIsAddingAchievement(false);
-      setIsSyncingAchievements(false);
-    }
+    setAchievementAddAlert({
+      variant: "success",
+      message: "Prestasi ditambahkan. Klik Simpan untuk menerapkan perubahan.",
+    });
+    setNewAchievementName("");
   };
 
-  const removeAchievement = async (clientId: string) => {
-    const previousItems = normalizeAchievementInputOrder(
-      sortByOrder(achievementItems),
+  const removeAchievement = (clientId: string) => {
+    setAchievementItems((prev) =>
+      normalizeAchievementInputOrder(
+        sortByOrder(prev).filter((item) => item.clientId !== clientId),
+      ),
     );
-    const removedItem = previousItems.find(
-      (item) => item.clientId === clientId,
-    );
-
-    if (!removedItem) {
-      return;
-    }
-
-    const nextItems = normalizeAchievementInputOrder(
-      previousItems.filter((item) => item.clientId !== clientId),
-    );
-
-    if (!canSyncNestedItems || isSyncingAchievements) {
-      setAchievementItems(nextItems);
-      return;
-    }
-
-    const targetSlug = String(slug || "").trim();
-
-    setAchievementItems(nextItems);
-    setIsSyncingAchievements(true);
-
-    try {
-      const removedId = Number(removedItem.id || 0);
-
-      if (Number.isFinite(removedId) && removedId > 0) {
-        const deleteRes = await fetch(
-          `/api/backoffice/extracurriculars/${encodeURIComponent(targetSlug)}/achievements/${removedId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              ...getAuthHeader(),
-            },
-          },
-        );
-
-        if (!deleteRes.ok) {
-          const errorData = await deleteRes.json();
-          throw new Error(errorData?.message || "Gagal menghapus prestasi");
-        }
-      }
-    } catch (error) {
-      console.error("Failed to delete achievement immediately", error);
-      setAchievementItems(previousItems);
-      showAlert({
-        title: "Gagal",
-        description:
-          error instanceof Error ? error.message : "Gagal menghapus prestasi",
-        variant: "error",
-      });
-    } finally {
-      setIsSyncingAchievements(false);
-    }
   };
 
   const handleAchievementDragStart = (
     event: React.DragEvent<HTMLDivElement>,
     clientId: string,
   ) => {
-    if (isSubmitting || isSyncingAchievements) {
+    if (isSubmitting) {
       return;
     }
 
@@ -828,7 +483,7 @@ export default function ExtracurricularFormPage({
   const handleAchievementDragOver = (
     event: React.DragEvent<HTMLDivElement>,
   ) => {
-    if (isSubmitting || isSyncingAchievements) {
+    if (isSubmitting) {
       return;
     }
 
@@ -836,13 +491,13 @@ export default function ExtracurricularFormPage({
     event.dataTransfer.dropEffect = "move";
   };
 
-  const handleAchievementDrop = async (
+  const handleAchievementDrop = (
     event: React.DragEvent<HTMLDivElement>,
     targetClientId: string,
   ) => {
     event.preventDefault();
 
-    if (isSubmitting || isSyncingAchievements) {
+    if (isSubmitting) {
       return;
     }
 
@@ -876,29 +531,6 @@ export default function ExtracurricularFormPage({
     const nextItems = normalizeAchievementInputOrder(reorderedItems);
 
     setAchievementItems(nextItems);
-
-    if (!canSyncNestedItems) {
-      return;
-    }
-
-    const targetSlug = String(slug || "").trim();
-
-    setIsSyncingAchievements(true);
-
-    try {
-      await reorderAchievementsOnServer(targetSlug, nextItems);
-    } catch (error) {
-      console.error("Failed to reorder achievement immediately", error);
-      setAchievementItems(previousItems);
-      showAlert({
-        title: "Gagal",
-        description:
-          error instanceof Error ? error.message : "Gagal mengurutkan prestasi",
-        variant: "error",
-      });
-    } finally {
-      setIsSyncingAchievements(false);
-    }
   };
 
   const handleAchievementDragEnd = () => {
@@ -914,8 +546,8 @@ export default function ExtracurricularFormPage({
     if (!formValues.mentorName.trim()) {
       nextErrors.mentorName = "Nama pembina wajib diisi";
     }
-    if (formValues.categories.length === 0) {
-      nextErrors.categories = "Kategori minimal 1";
+    if (!formValues.categoryId.trim()) {
+      nextErrors.categoryId = "Kategori wajib dipilih";
     }
     if (!formValues.schedule.trim()) {
       nextErrors.schedule = "Jadwal wajib diisi";
@@ -1030,25 +662,29 @@ export default function ExtracurricularFormPage({
 
     try {
       const finalThumbnailUrl = await uploadThumbnailIfNeeded();
+      const parsedCategoryId = Number(formValues.categoryId);
+
+      if (!Number.isFinite(parsedCategoryId) || parsedCategoryId <= 0) {
+        throw new Error("Kategori ekstrakurikuler tidak valid");
+      }
+
+      const galleriesPayload = await getCreatePayloadGalleries();
+      const achievementsPayload = getCreatePayloadAchievements();
 
       const basePayload = {
         name: formValues.name.trim(),
         thumbnailUrl: finalThumbnailUrl,
-        categories: formValues.categories,
+        categoryId: Math.floor(parsedCategoryId),
         mentorName: formValues.mentorName.trim(),
         description: formValues.description.trim(),
         schedule: formValues.schedule.trim(),
         location: formValues.location.trim(),
         isPublished: formValues.isPublished,
+        galleries: galleriesPayload,
+        achievements: achievementsPayload,
       };
 
-      const payload = isEditMode
-        ? basePayload
-        : {
-            ...basePayload,
-            galleries: await getCreatePayloadGalleries(),
-            achievements: getCreatePayloadAchievements(),
-          };
+      const payload = basePayload;
 
       const endpoint = isEditMode
         ? `/api/backoffice/extracurriculars/${encodeURIComponent(slug || formValues.slug)}`
@@ -1177,21 +813,21 @@ export default function ExtracurricularFormPage({
 
             <SelectInput
               label="Kategori"
-              value={formValues.categories[0] || ""}
-              options={availableCategoryOptions}
+              value={formValues.categoryId}
+              options={categoryOptions}
               placeholder="Pilih kategori"
               onChange={(event) => {
-                const nextCategory = String(event.target.value || "").trim();
+                const nextCategoryId = String(event.target.value || "").trim();
 
                 setFormValues((prev) => ({
                   ...prev,
-                  categories: nextCategory ? [nextCategory] : [],
+                  categoryId: nextCategoryId,
                 }));
-                setFormErrors((prev) => ({ ...prev, categories: undefined }));
+                setFormErrors((prev) => ({ ...prev, categoryId: undefined }));
               }}
               isMandatory
               disabled={isSubmitting}
-              error={formErrors.categories}
+              error={formErrors.categoryId}
             />
 
             <FormInput
@@ -1285,8 +921,7 @@ export default function ExtracurricularFormPage({
               label="Foto Kegiatan"
               items={galleryItems}
               onChange={handleGalleryItemsChange}
-              disabled={isSubmitting || isSyncingGalleries}
-              isLoadingAddButton={isUploadingGallery}
+              disabled={isSubmitting}
               maxItems={20}
               maxSizeInMB={5}
               onValidationError={(message) => {
@@ -1323,7 +958,7 @@ export default function ExtracurricularFormPage({
               {sortByOrder(achievementItems).map((item) => (
                 <div
                   key={item.clientId}
-                  draggable={!isSubmitting && !isSyncingAchievements}
+                  draggable={!isSubmitting}
                   onDragStart={(event) =>
                     handleAchievementDragStart(event, item.clientId)
                   }
@@ -1333,7 +968,7 @@ export default function ExtracurricularFormPage({
                   }
                   onDragEnd={handleAchievementDragEnd}
                   className={`flex items-center gap-2 border border-gray-300 rounded-sm px-2 py-2 ${
-                    isSubmitting || isSyncingAchievements ? "" : "cursor-move"
+                    isSubmitting ? "" : "cursor-move"
                   } ${
                     draggingAchievementClientId === item.clientId
                       ? "opacity-60"
@@ -1350,7 +985,7 @@ export default function ExtracurricularFormPage({
                     variant="outline-danger"
                     icon={<LuTrash2 className="text-md" />}
                     className="p-1! text-md"
-                    disabled={isSubmitting || isSyncingAchievements}
+                    disabled={isSubmitting}
                     onClick={() => removeAchievement(item.clientId)}
                   />
                 </div>
@@ -1363,7 +998,7 @@ export default function ExtracurricularFormPage({
                 onChange={(event) => setNewAchievementName(event.target.value)}
                 placeholder="Tambah prestasi..."
                 className="w-full rounded-sm border border-gray-300 px-3 py-2 text-sm"
-                disabled={isSubmitting || isSyncingAchievements}
+                disabled={isSubmitting}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
                     event.preventDefault();
@@ -1373,14 +1008,8 @@ export default function ExtracurricularFormPage({
               />
             </div>
 
-            {(isAddingAchievement || achievementAddAlert) && (
+            {achievementAddAlert && (
               <div className="space-y-2">
-                {isAddingAchievement && (
-                  <div className="h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
-                    <div className="h-full w-2/5 rounded-full bg-primary animate-pulse" />
-                  </div>
-                )}
-
                 {achievementAddAlert && (
                   <div
                     className={`rounded-sm border px-3 py-2 text-sm ${
@@ -1401,11 +1030,7 @@ export default function ExtracurricularFormPage({
               icon={<LuPlus className="text-sm" />}
               text="Tambah Prestasi"
               className="py-1.5!"
-              disabled={
-                isSubmitting ||
-                isSyncingAchievements ||
-                !newAchievementName.trim()
-              }
+              disabled={isSubmitting || !newAchievementName.trim()}
               onClick={addAchievement}
             />
           </div>

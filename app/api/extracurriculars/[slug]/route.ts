@@ -1,12 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   MockAchievementItem,
-  MockExtracurricularDetail,
   MockGalleryItem,
   MOCK_EXTRACURRICULARS,
 } from "../mockData";
 
 const API_BASE_URL = process.env.BACKEND_URL || "http://localhost:3333";
+const DEFAULT_THUMBNAIL_URL = "https://placehold.co/1200x800/png";
+
+const MOCK_CATEGORY_OPTIONS = [
+  { id: 1, name: "Kejuruan & Teknologi" },
+  { id: 2, name: "Kepemimpinan & Organisasi" },
+  { id: 3, name: "Olahraga" },
+  { id: 4, name: "Seni & Budaya" },
+];
+
+interface ExtracurricularCategory {
+  id: number;
+  name: string;
+}
+
+interface PublicExtracurricularDetail {
+  id: number;
+  name: string;
+  slug: string;
+  thumbnailUrl: string;
+  mentorName: string;
+  description: string;
+  schedule: string;
+  location: string;
+  isPublished: boolean;
+  category: ExtracurricularCategory | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  galleries: MockGalleryItem[];
+  achievements: MockAchievementItem[];
+}
 
 interface BackendGalleryItem {
   id?: number;
@@ -32,12 +62,20 @@ interface BackendExtracurricularDetail {
   slug?: string;
   thumbnailUrl?: string;
   thumbnail?: string;
+  categoryId?: number | string;
+  category?:
+    | {
+        id?: number | string;
+        name?: string;
+      }
+    | string[]
+    | string;
   categories?: string[] | string;
-  category?: string[] | string;
   mentorName?: string;
   location?: string;
   schedule?: string;
   description?: string;
+  isPublished?: boolean | number | string;
   createdAt?: string;
   updatedAt?: string;
   deletedAt?: string | null;
@@ -70,6 +108,95 @@ const toCategoryArray = (value: unknown): string[] => {
   }
 
   return [];
+};
+
+const toCategoryId = (value: unknown): number | null => {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return Math.floor(parsed);
+};
+
+const normalizeBoolean = (value: unknown): boolean => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    return value === 1;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "true" || normalized === "1";
+  }
+
+  return false;
+};
+
+const findCategoryByName = (name: string): ExtracurricularCategory | null => {
+  const normalizedName = name.trim().toLowerCase();
+
+  if (!normalizedName) {
+    return null;
+  }
+
+  const matched = MOCK_CATEGORY_OPTIONS.find(
+    (item) => item.name.trim().toLowerCase() === normalizedName,
+  );
+
+  return matched ? { ...matched } : null;
+};
+
+const resolveCategory = (
+  item: BackendExtracurricularDetail,
+): ExtracurricularCategory | null => {
+  const rawCategoryId = toCategoryId(item.categoryId);
+
+  if (item.category && typeof item.category === "object" && !Array.isArray(item.category)) {
+    const root = item.category as Record<string, unknown>;
+    const categoryName =
+      typeof root.name === "string" ? root.name.trim() : "";
+
+    if (categoryName) {
+      const categoryIdFromObject = toCategoryId(root.id);
+      const matchedCategory = findCategoryByName(categoryName);
+      const resolvedCategoryId =
+        rawCategoryId ?? categoryIdFromObject ?? matchedCategory?.id ?? 0;
+
+      return {
+        id: resolvedCategoryId,
+        name: categoryName,
+      };
+    }
+  }
+
+  const categoryNames = toCategoryArray(item.categories || item.category);
+
+  if (categoryNames.length > 0) {
+    const primaryCategoryName = categoryNames[0];
+    const matchedCategory = findCategoryByName(primaryCategoryName);
+
+    return {
+      id: rawCategoryId ?? matchedCategory?.id ?? 0,
+      name: primaryCategoryName,
+    };
+  }
+
+  if (rawCategoryId) {
+    const matchedById = MOCK_CATEGORY_OPTIONS.find(
+      (itemValue) => itemValue.id === rawCategoryId,
+    );
+
+    if (matchedById) {
+      return { ...matchedById };
+    }
+  }
+
+  return null;
 };
 
 const slugify = (value: string) =>
@@ -118,7 +245,7 @@ const normalizeAchievement = (
 
 const normalizeDetail = (
   item: BackendExtracurricularDetail,
-): MockExtracurricularDetail => {
+): PublicExtracurricularDetail => {
   const id = Number(item.id || 0);
   const name = item.name || "Tanpa Nama";
   const slug = item.slug || slugify(name);
@@ -128,12 +255,13 @@ const normalizeDetail = (
     name,
     slug,
     thumbnailUrl:
-      item.thumbnailUrl || item.thumbnail || "https://placehold.co/1200x800/png",
-    categories: toCategoryArray(item.categories || item.category),
+      item.thumbnailUrl || item.thumbnail || DEFAULT_THUMBNAIL_URL,
     mentorName: item.mentorName || "-",
     location: item.location || "Location belum tersedia.",
     schedule: item.schedule || "Jadwal belum tersedia.",
     description: item.description || "Deskripsi belum tersedia.",
+    isPublished: normalizeBoolean(item.isPublished ?? true),
+    category: resolveCategory(item),
     createdAt: item.createdAt || new Date().toISOString(),
     updatedAt: item.updatedAt || new Date().toISOString(),
     deletedAt: item.deletedAt ?? null,
@@ -211,5 +339,5 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.json(fallbackData, { status: 200 });
+  return NextResponse.json(normalizeDetail(fallbackData), { status: 200 });
 }
