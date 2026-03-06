@@ -413,7 +413,7 @@ export default function DataExtraPage() {
           perPage: pageSize,
         }));
       },
-      showSizeChanger: false,
+      showSizeChanger: true,
       onShowSizeChange: (_page: number, pageSize: number) => {
         setPagination((prev) => ({
           ...prev,
@@ -434,7 +434,7 @@ export default function DataExtraPage() {
         height={800}
         loading="lazy"
         unoptimized
-        className="w-full h-44 object-cover border-b border-gray-200"
+        className="w-full h-58 object-cover border-b border-gray-200"
       />
       <div className="flex-1 p-3 flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
@@ -549,7 +549,8 @@ export default function DataExtraPage() {
           loading={loading}
           emptyText="Data ekstrakurikuler belum tersedia"
           showNumberInfo
-          showSizeChanger={false}
+          pageSizeOptions={[6, 12, 24]}
+          showSizeChanger={true}
           pagination={paginationConfig}
         />
       </div>

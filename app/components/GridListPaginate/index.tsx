@@ -22,6 +22,7 @@ interface GridListPaginateProps<T extends object> {
   emptyText?: string;
   showSizeChanger?: boolean;
   showNumberInfo?: boolean;
+  pageSizeOptions?: number[];
 }
 
 export default function GridListPaginate<T extends object>({
@@ -31,6 +32,7 @@ export default function GridListPaginate<T extends object>({
   pagination = false,
   loading = false,
   showSizeChanger = true,
+  pageSizeOptions = [9, 18, 27, 36],
   showNumberInfo = true,
   emptyText = "Tidak ada data",
 }: GridListPaginateProps<T>) {
@@ -39,7 +41,7 @@ export default function GridListPaginate<T extends object>({
     ? pagination.pageSize || defaultPageSize
     : defaultPageSize;
   const defaultPageSizeOptions =
-    viewMode === "grid" ? [9, 18, 27, 36] : [10, 20, 50, 100];
+    viewMode === "grid" ? pageSizeOptions : [10, 20, 50, 100];
 
   const totalPages = pagination
     ? Math.max(1, Math.ceil(pagination.total / effectivePageSize))

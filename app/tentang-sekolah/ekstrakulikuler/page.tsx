@@ -255,7 +255,7 @@ export default function ExtracurricularPage() {
           height={800}
           loading="lazy"
           unoptimized
-          className="w-full h-58 aspect-1.5/1 bg-gray-300 object-cover"
+          className="w-full h-58 aspect-video bg-gray-300 object-cover"
         />
 
         <div className="w-full flex flex-col px-3 py-2 gap-4">
