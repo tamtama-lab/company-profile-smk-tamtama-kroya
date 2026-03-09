@@ -475,14 +475,20 @@ export default function DataPrestasiSiswaPage() {
                 </span>{" "}
                 {item.organizerName || "-"}
               </p>
-              <p>
+              <span className="font-medium text-gray-700 col-span-2 line-clamp-1">
+                <p className="font-medium text-gray-700">
+                  {item.description || "-"}
+                </p>
+              </span>
+
+              {/* <p>
                 <span className="font-medium text-gray-700">Tanggal:</span>{" "}
                 {formatCompetitionDate(item.competitionDate || "")}
               </p>
               <p>
                 <span className="font-medium text-gray-700">Peserta:</span>{" "}
                 {item.participantName || "-"}
-              </p>
+              </p> */}
             </div>
           </div>
         </div>
@@ -521,8 +527,8 @@ export default function DataPrestasiSiswaPage() {
     <div className="w-full min-h-[calc(100vh-4px)] bg-gray-100 p-4">
       <div className="h-fit w-full rounded-md bg-white px-4 py-2 drop-shadow-sm">
         <TitleSection
-          title="Data Prestasi Siswa"
-          subtitle="Berisi data prestasi siswa SMK Tamtama Kroya."
+          title="Data Prestasi Sekolah SMK Tamtama Kroya"
+          subtitle="Halaman ini akan menampilkan daftar prestasi yang diraih oleh SMK Tamtama Kroya yang dapat diubah"
         />
 
         <div className="mb-3 w-full">
