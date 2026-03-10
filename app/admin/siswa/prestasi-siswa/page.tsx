@@ -26,7 +26,6 @@ const CATEGORY_OPTIONS_ENDPOINT = "/api/school-achievements/category-options";
 
 const COMPETITION_LEVEL_FILTER_OPTIONS = [
   { value: "", label: "Semua Tingkat" },
-  { value: "nasional", label: "Nasional" },
   { value: "provinsi", label: "Provinsi" },
   { value: "daerah", label: "Daerah" },
   { value: "kabupaten", label: "Kabupaten" },
