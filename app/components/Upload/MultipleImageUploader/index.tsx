@@ -23,16 +23,33 @@ interface MultipleImageUploaderProps {
   className?: string;
   maxItems?: number;
   maxSizeInMB?: number;
+  allowedMimeTypes?: string[];
   onValidationError?: (message: string) => void;
 }
 
 const MAX_SIZE_DEFAULT = 5;
+const DEFAULT_ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/jpg"];
 
 const normalizeOrder = (items: MultipleImageItem[]) =>
   items.map((item, index) => ({ ...item, order: index }));
 
-const isAllowedImageMime = (mimeType: string) =>
-  ["image/png", "image/jpeg", "image/jpg"].includes(mimeType.toLowerCase());
+const normalizeAllowedMimeTypes = (mimeTypes?: string[]) => {
+  const source = Array.isArray(mimeTypes) ? mimeTypes : [];
+  const normalized = source
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (normalized.length === 0) {
+    return DEFAULT_ALLOWED_MIME_TYPES;
+  }
+
+  return Array.from(new Set(normalized));
+};
+
+const formatMimeLabel = (mimeType: string) => {
+  const token = mimeType.toLowerCase().split("/")[1] || mimeType;
+  return token.toUpperCase();
+};
 
 const readFileAsDataUrl = (file: File) =>
   new Promise<string>((resolve, reject) => {
@@ -56,10 +73,33 @@ export default function MultipleImageUploader({
   className = "",
   maxItems,
   maxSizeInMB = MAX_SIZE_DEFAULT,
+  allowedMimeTypes,
   onValidationError,
 }: MultipleImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [draggingClientId, setDraggingClientId] = useState<string | null>(null);
+
+  const normalizedAllowedMimeTypes = useMemo(
+    () => normalizeAllowedMimeTypes(allowedMimeTypes),
+    [allowedMimeTypes],
+  );
+
+  const acceptMimeValue = useMemo(
+    () => normalizedAllowedMimeTypes.join(","),
+    [normalizedAllowedMimeTypes],
+  );
+
+  const allowedFormatsLabel = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          normalizedAllowedMimeTypes.map((mimeType) =>
+            formatMimeLabel(mimeType),
+          ),
+        ),
+      ).join(", "),
+    [normalizedAllowedMimeTypes],
+  );
 
   const canAddMore = !maxItems || items.length < maxItems;
 
@@ -165,8 +205,10 @@ export default function MultipleImageUploader({
       const nextImages: MultipleImageItem[] = [];
 
       for (const file of limitedFiles) {
-        if (!isAllowedImageMime(file.type)) {
-          onValidationError?.("Format file harus png, jpg, atau jpeg");
+        if (!normalizedAllowedMimeTypes.includes(file.type.toLowerCase())) {
+          onValidationError?.(
+            `Format file harus ${allowedFormatsLabel.toLowerCase()}`,
+          );
           continue;
         }
 
@@ -203,7 +245,7 @@ export default function MultipleImageUploader({
       <input
         ref={inputRef}
         type="file"
-        accept="image/png,image/jpeg,image/jpg"
+        accept={acceptMimeValue}
         multiple
         className="hidden"
         disabled={disabled || isLoadingAddButton || !canAddMore}
@@ -275,7 +317,7 @@ export default function MultipleImageUploader({
       </div>
 
       <p className="mt-2 text-xs text-gray-500">
-        Format: JPG, JPEG, PNG • Maksimal {maxSizeInMB}MB per file
+        Format: {allowedFormatsLabel} • Maksimal {maxSizeInMB}MB per file
         {maxItems ? ` • Maksimal ${maxItems} foto` : ""}
       </p>
 
