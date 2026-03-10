@@ -6,6 +6,11 @@ import GridListPaginate from "@/components/GridListPaginate";
 import SelectInput from "@/components/InputForm/SelectInput";
 import { BaseModal } from "@/components/Modal/BaseModal";
 import { TitleSection } from "@/components/TitleSection/index";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import Toggle from "@/components/ui/toggle";
 import { useAlert } from "@/components/ui/alert";
 import { getAuthHeader } from "@/utils/auth";
@@ -23,6 +28,7 @@ import {
 
 const CATEGORY_FILTER_DEFAULT = { value: "", label: "Semua Kategori" };
 const CATEGORY_OPTIONS_ENDPOINT = "/api/school-achievements/category-options";
+const DESCRIPTION_TOOLTIP_CHARACTER_LIMIT = 80;
 
 const COMPETITION_LEVEL_FILTER_OPTIONS = [
   { value: "", label: "Semua Tingkat" },
@@ -436,83 +442,114 @@ export default function DataPrestasiSiswaPage() {
     item: SchoolAchievementItem,
     _: number,
     __: "grid" | "list",
-  ) => (
-    <div className="rounded-lg border border-gray-300 bg-white p-3 shadow-2xs">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 flex-1 items-start gap-3">
-          <Image
-            src={item.coverPhotoUrl || "https://placehold.co/1200x800/png"}
-            alt={item.title}
-            width={320}
-            height={200}
-            loading="lazy"
-            unoptimized
-            className="h-24 w-34 shrink-0 rounded-md border border-gray-200 object-cover"
-          />
+  ) => {
+    const descriptionText = item.description?.trim() || "-";
+    const shouldShowDescriptionTooltip =
+      descriptionText !== "-" &&
+      descriptionText.length > DESCRIPTION_TOOLTIP_CHARACTER_LIMIT;
 
-          <div className="min-w-0 flex-1">
-            <p className="line-clamp-2 text-base font-semibold text-gray-800">
-              {item.title}
-            </p>
+    return (
+      <div className="rounded-lg border border-gray-300 bg-white p-3 shadow-2xs">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <Image
+              src={item.coverPhotoUrl || "https://placehold.co/1200x800/png"}
+              alt={item.title}
+              width={320}
+              height={200}
+              loading="lazy"
+              unoptimized
+              className="h-24 w-34 shrink-0 rounded-md border border-gray-200 object-cover"
+            />
 
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-teal-500/10 px-2 py-1 text-xs text-primary">
-                {item.category || "Tanpa Kategori"}
-              </span>
-              <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700">
-                {competitionLevelLabel(item.competitionLevel || "")}
-              </span>
-            </div>
-
-            <div className="mt-2 grid grid-cols-1 gap-1 text-sm text-gray-600 sm:grid-cols-2">
-              <p>
-                <span className="font-medium text-gray-700">Tempat:</span>{" "}
-                {item.placeName || "-"}
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-2 text-base font-semibold text-gray-800">
+                {item.title}
               </p>
-              <p>
-                <span className="font-medium text-gray-700">
-                  Penyelenggara:
-                </span>{" "}
-                {item.organizerName || "-"}
-              </p>
-              <span className="font-medium text-gray-700 col-span-2 line-clamp-1">
-                <p className="font-medium text-gray-700">
-                  {item.description || "-"}
-                </p>
-              </span>
+
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-teal-500/10 px-2 py-1 text-xs text-primary">
+                  {item.category || "Tanpa Kategori"}
+                </span>
+                <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700">
+                  {competitionLevelLabel(item.competitionLevel || "")}
+                </span>
+              </div>
+
+              <div className="mt-2 flex flex-col gap-2 text-sm text-gray-600 sm:flex-row sm:items-stretch">
+                <div className="min-w-0 flex-1">
+                  {shouldShowDescriptionTooltip ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p className="mt-0 truncate text-gray-600 cursor-help">
+                          {descriptionText}
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="bottom"
+                        align="start"
+                        className="max-w-xs border border-gray-400 bg-white text-black font-normal shadow-md sm:max-w-sm text-sm [&>svg]:border-gray-200 [&>svg]:fill-white"
+                      >
+                        <p className="whitespace-normal wrap-break-word">
+                          {descriptionText}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <p className="mt-0.5 truncate text-gray-600">
+                      {descriptionText}
+                    </p>
+                  )}
+                </div>
+
+                <div className="h-px w-full bg-gray-200 sm:h-auto sm:w-px" />
+
+                <div className="flex-1 space-y-0.5">
+                  <p>
+                    <span className="font-medium text-gray-700">Tempat:</span>{" "}
+                    {item.placeName || "-"}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-700">
+                      Penyelenggara:
+                    </span>{" "}
+                    {item.organizerName || "-"}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center justify-end gap-2 lg:ml-3">
-          <Toggle
-            size="md"
-            showIcon
-            enabled={Boolean(item.isPublished)}
-            disabled={Boolean(togglingBySlug[item.slug])}
-            onChange={(nextValue) => handleTogglePublish(item, nextValue)}
-          />
+          <div className="flex items-center justify-end gap-2 lg:ml-3">
+            <Toggle
+              size="md"
+              showIcon
+              enabled={Boolean(item.isPublished)}
+              disabled={Boolean(togglingBySlug[item.slug])}
+              onChange={(nextValue) => handleTogglePublish(item, nextValue)}
+            />
 
-          <TextButton
-            icon={<LuPen className="text-base" />}
-            variant="outline-info"
-            className="w-fit border px-2! py-1 text-xs"
-            onClick={() =>
-              router.push(
-                `/admin/siswa/prestasi-siswa/edit/${encodeURIComponent(item.slug)}`,
-              )
-            }
-          />
-          <TextButton
-            icon={<LuTrash2 className="text-base" />}
-            variant="outline-danger"
-            className="w-fit border px-2! py-1 text-xs"
-            onClick={() => openDeleteModal(item.slug)}
-          />
+            <TextButton
+              icon={<LuPen className="text-base" />}
+              variant="outline-info"
+              className="w-fit border px-2! py-1 text-xs"
+              onClick={() =>
+                router.push(
+                  `/admin/siswa/prestasi-siswa/edit/${encodeURIComponent(item.slug)}`,
+                )
+              }
+            />
+            <TextButton
+              icon={<LuTrash2 className="text-base" />}
+              variant="outline-danger"
+              className="w-fit border px-2! py-1 text-xs"
+              onClick={() => openDeleteModal(item.slug)}
+            />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="w-full min-h-[calc(100vh-4px)] bg-gray-100 p-4">
