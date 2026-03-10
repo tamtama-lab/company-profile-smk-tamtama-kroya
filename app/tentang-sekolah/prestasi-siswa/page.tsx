@@ -355,7 +355,6 @@ export default function SchoolAchievementPage() {
 
             <div className="mt-2 flex flex-col gap-2 text-sm text-gray-600 sm:flex-row sm:items-stretch">
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-gray-700">Deskripsi:</p>
                 {shouldShowDescriptionTooltip ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
