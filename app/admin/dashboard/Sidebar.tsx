@@ -21,7 +21,7 @@ import { MdExpandMore, MdSportsTennis } from "react-icons/md";
 import { LuFilePenLine, LuListChecks, LuTrophy } from "react-icons/lu";
 import { TbMessageUser } from "react-icons/tb";
 import { FaChalkboardTeacher } from "react-icons/fa";
-import { FaGraduationCap } from "react-icons/fa6";
+import { FaGraduationCap, FaHandHoldingHeart } from "react-icons/fa6";
 
 const sidebarItems = [
   {
@@ -76,6 +76,11 @@ const sidebarItems = [
         icon: MdSportsTennis,
         label: "Ekstrakurikuler",
         href: "/admin/siswa/ekstrakurikuler",
+      },
+      {
+        icon: FaHandHoldingHeart,
+        label: "Fasilitas Sekolah",
+        href: "/admin/siswa/fasilitas",
       },
     ],
   },
