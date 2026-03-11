@@ -63,6 +63,9 @@ const parseCategoryId = (value: unknown): number | null => {
 const toStringValue = (value: unknown): string =>
   typeof value === "string" ? value.trim() : "";
 
+const hasOwnProperty = (value: object, key: string) =>
+  Object.prototype.hasOwnProperty.call(value, key);
+
 const normalizeBoolean = (value: unknown): boolean => {
   if (typeof value === "boolean") {
     return value;
@@ -109,23 +112,31 @@ const normalizeCategory = (
   };
 };
 
-const normalizeItem = (value: unknown): SchoolFacilityListItem | null => {
+const normalizeItem = (
+  value: unknown,
+  index: number,
+): SchoolFacilityListItem | null => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
   }
 
   const root = value as Record<string, unknown>;
   const normalizedTitle = toStringValue(root.title) || "Tanpa Judul";
+  const description = toStringValue(root.description);
+  const parsedId = Number(root.id);
+  const hasExplicitPublishedState = hasOwnProperty(root, "isPublished");
 
   return {
-    id: Number(root.id || 0),
+    id: Number.isFinite(parsedId) && parsedId > 0 ? parsedId : index + 1,
     title: normalizedTitle,
-    summary: toStringValue(root.summary),
+    summary: toStringValue(root.summary) || description,
     slug: toStringValue(root.slug) || toSlug(normalizedTitle),
-    description: toStringValue(root.description),
+    description,
     coverPhotoUrl: toStringValue(root.coverPhotoUrl) || DEFAULT_COVER_URL,
     galleryDescription: toStringValue(root.galleryDescription),
-    isPublished: normalizeBoolean(root.isPublished),
+    isPublished: hasExplicitPublishedState
+      ? normalizeBoolean(root.isPublished)
+      : true,
     category: normalizeCategory(root.category, root.categoryId),
     createdAt: toStringValue(root.createdAt),
     updatedAt: toStringValue(root.updatedAt),
@@ -226,7 +237,7 @@ export async function GET(request: NextRequest) {
             : [];
 
       const normalizedItems = rawItems
-        .map((item) => normalizeItem(item))
+        .map((item, index) => normalizeItem(item, index))
         .filter((item): item is SchoolFacilityListItem => Boolean(item))
         .filter((item) => item.isPublished === isPublished);
 

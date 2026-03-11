@@ -298,7 +298,11 @@ export default function SchoolFacilityPage() {
     [fetchFacilities, pagination.currentPage, pagination.total],
   );
 
-  const renderItem = (item: SchoolFacilityListItem, _: number) => {
+  const renderItem = (
+    item: SchoolFacilityListItem,
+    _: number,
+    mode: "grid" | "list",
+  ) => {
     const slug = item.slug?.trim() || toSlug(item.title);
     const categoryName = item.category?.name?.trim() || "";
     const summaryText =
@@ -306,8 +310,65 @@ export default function SchoolFacilityPage() {
       item.description?.trim() ||
       "Informasi fasilitas akan diperbarui segera.";
 
+    if (mode === "list") {
+      return (
+        <article className="w-full rounded-lg border border-gray-200 bg-white p-3 transition duration-300 sm:p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="relative h-44 overflow-hidden rounded-xl bg-gray-100 sm:h-28 sm:w-48 sm:shrink-0">
+              <Image
+                src={item.coverPhotoUrl || "https://placehold.co/1200x800/png"}
+                alt={item.title}
+                width={1200}
+                height={800}
+                loading="lazy"
+                unoptimized
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="mt-3 flex flex-col gap-2">
+                <h2 className="line-clamp-2 text-xl font-semibold text-primary">
+                  {item.title}
+                </h2>
+                {categoryName ? (
+                  <Badge
+                    variant={resolveCategoryBadgeVariant(item.category)}
+                    className="w-fit px-3 py-1 text-[10px]! font-semibold tracking-[0.14em] uppercase"
+                  >
+                    {categoryName}
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="gray"
+                    className="w-fit px-3 py-1 text-[10px]! font-semibold tracking-[0.14em] uppercase"
+                  >
+                    Tanpa Kategori
+                  </Badge>
+                )}
+                <p className="line-clamp-3 text-sm leading-relaxed text-gray-600">
+                  {summaryText}
+                </p>
+              </div>
+            </div>
+
+            <div className="sm:ml-auto sm:shrink-0">
+              <TextButton
+                variant="gray"
+                text="Lihat Detail"
+                className="w-fit rounded-full! text-sm!"
+                onClick={() =>
+                  router.push(`/tentang-sekolah/fasilitas/${slug}`)
+                }
+              />
+            </div>
+          </div>
+        </article>
+      );
+    }
+
     return (
-      <article className="group flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <article className="group flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
         <div className="relative h-64 overflow-hidden bg-gray-100 sm:h-72">
           <Image
             src={item.coverPhotoUrl || "https://placehold.co/1200x800/png"}
@@ -316,33 +377,32 @@ export default function SchoolFacilityPage() {
             height={800}
             loading="lazy"
             unoptimized
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition duration-500"
           />
         </div>
 
         <div className="flex min-h-64 flex-col gap-4 p-5 sm:min-h-72">
-          <div className="flex min-h-7 flex-wrap gap-2">
-            {categoryName ? (
-              <Badge
-                variant={resolveCategoryBadgeVariant(item.category)}
-                className="px-3 py-1 text-[11px] font-semibold tracking-[0.14em] uppercase"
-              >
-                {categoryName}
-              </Badge>
-            ) : (
-              <Badge
-                variant="gray"
-                className="px-3 py-1 text-[11px] font-semibold tracking-[0.14em] uppercase"
-              >
-                Tanpa Kategori
-              </Badge>
-            )}
-          </div>
-
           <div className="flex flex-col gap-3">
             <h2 className="line-clamp-2 text-xl font-semibold text-primary">
               {item.title}
             </h2>
+            <div className="flex min-h-7 flex-wrap gap-2">
+              {categoryName ? (
+                <Badge
+                  variant={resolveCategoryBadgeVariant(item.category)}
+                  className="px-3 py-1 text-xs! font-semibold tracking-[0.14em] uppercase"
+                >
+                  {categoryName}
+                </Badge>
+              ) : (
+                <Badge
+                  variant="gray"
+                  className="px-3 py-1 text-xs! font-semibold tracking-[0.14em] uppercase"
+                >
+                  Tanpa Kategori
+                </Badge>
+              )}
+            </div>
             <p className="line-clamp-4 text-sm leading-relaxed text-gray-600">
               {summaryText}
             </p>
@@ -413,7 +473,7 @@ export default function SchoolFacilityPage() {
           showSizeChanger={false}
           showNumberInfo={false}
           renderItem={renderItem}
-          viewMode="grid"
+          viewMode="list"
           loading={loading}
           emptyText="Data fasilitas sekolah belum tersedia"
           pagination={paginationConfig}

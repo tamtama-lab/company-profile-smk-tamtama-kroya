@@ -144,7 +144,7 @@ export default function SchoolFacilityDetailPage() {
           <TextButton
             variant="outline"
             text="Kembali ke daftar fasilitas"
-            onClick={() => router.push("/tentang-sekolah/fasilitas-sekolah")}
+            onClick={() => router.push("/tentang-sekolah/fasilitas")}
           />
         </div>
       </main>
@@ -153,7 +153,7 @@ export default function SchoolFacilityDetailPage() {
 
   return (
     <DetailContentLayout
-      backPath="/tentang-sekolah/fasilitas-sekolah"
+      backPath="/tentang-sekolah/fasilitas"
       title={detail.title}
       subtitle="SMK Tamtama Kroya"
       heroImageUrl={detail.coverPhotoUrl || "https://placehold.co/1200x800/png"}
