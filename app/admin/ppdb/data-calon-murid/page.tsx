@@ -343,7 +343,7 @@ export default function AdminProspectiveStudentPage() {
 
     const loadMajorOptions = async () => {
       try {
-        const response = await fetch(`/api/majors/options`, {
+        const response = await fetch(`/api/alumni/major-options`, {
           headers: {
             "Content-Type": "application/json",
             ...getAuthHeader(),
@@ -559,65 +559,60 @@ export default function AdminProspectiveStudentPage() {
         />
         <div className="w-full h-fit bg-white rounded-md drop-shadow-sm">
           <div className="p-6 max-sm:p-2 border-b border-gray-200">
-            <div className="flex w-auto flex-wrap flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-3">
-              <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:w-auto lg:items-center">
-                <SelectInput
-                  value={selectedYearId}
-                  onChange={(e) => {
-                    setSelectedYearId(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  options={[
-                    { value: "", label: "Seluruh Tahun Ajaran" },
-                    ...yearsOptions,
-                  ]}
-                  placeholder={"Pilih Tahun Ajaran "}
-                  isMandatory
-                  className="w-full lg:w-46"
-                />
-                <SelectInput
-                  className="w-full lg:w-52"
-                  value={selectAuthored}
-                  onChange={(e) => {
-                    setSelectedAuthor(e.target.value as "" | "true" | "false");
-                    setCurrentPage(1);
-                  }}
-                  options={
-                    registrationTypeOptions.length > 0
-                      ? registrationTypeOptions
-                      : [
-                          { value: "", label: "Semua Jenis Pendaftaran" },
-                          { value: "true", label: "Oleh Guru" },
-                          { value: "false", label: "Mandiri" },
-                        ]
-                  }
-                  placeholder={"Pilih Jenis Pendaftaran "}
-                  isMandatory
-                />
-                <SelectInput
-                  value={selectedBatchId}
-                  onChange={(e) => {
-                    setSelectedBatchId(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  options={[
-                    { value: "", label: "Semua Gelombang" },
-                    ...batches,
-                  ]}
-                  placeholder="Pilih Gelombang"
-                  className="w-full lg:w-42"
-                />
-                <SelectInput
-                  value={selectedMajor}
-                  onChange={(e) => {
-                    setSelectedMajor(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  options={[{ value: "", label: "Semua Jurusan" }, ...majors]}
-                  placeholder="Pilih Jurusan"
-                  className="w-full lg:w-35"
-                />
-              </div>
+            <div className="flex w-auto flex-wrap flex-col gap-4 lg:flex-row lg:items-center lg:justify-end mb-3">
+              <SelectInput
+                value={selectedYearId}
+                onChange={(e) => {
+                  setSelectedYearId(e.target.value);
+                  setCurrentPage(1);
+                }}
+                options={[
+                  { value: "", label: "Seluruh Tahun Ajaran" },
+                  ...yearsOptions,
+                ]}
+                placeholder={"Pilih Tahun Ajaran "}
+                isMandatory
+                className="w-full lg:w-46"
+              />
+              <SelectInput
+                className="w-full lg:w-52"
+                value={selectAuthored}
+                onChange={(e) => {
+                  setSelectedAuthor(e.target.value as "" | "true" | "false");
+                  setCurrentPage(1);
+                }}
+                options={
+                  registrationTypeOptions.length > 0
+                    ? registrationTypeOptions
+                    : [
+                        { value: "", label: "Semua Jenis Pendaftaran" },
+                        { value: "true", label: "Oleh Guru" },
+                        { value: "false", label: "Mandiri" },
+                      ]
+                }
+                placeholder={"Pilih Jenis Pendaftaran "}
+                isMandatory
+              />
+              <SelectInput
+                value={selectedBatchId}
+                onChange={(e) => {
+                  setSelectedBatchId(e.target.value);
+                  setCurrentPage(1);
+                }}
+                options={[{ value: "", label: "Semua Gelombang" }, ...batches]}
+                placeholder="Pilih Gelombang"
+                className="w-full lg:w-42"
+              />
+              <SelectInput
+                value={selectedMajor}
+                onChange={(e) => {
+                  setSelectedMajor(e.target.value);
+                  setCurrentPage(1);
+                }}
+                options={[{ value: "", label: "Semua Jurusan" }, ...majors]}
+                placeholder="Pilih Jurusan"
+                className="w-full lg:w-35"
+              />
               <TextButton
                 variant="outline"
                 text="Reset Filter"
