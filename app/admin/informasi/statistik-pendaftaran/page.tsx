@@ -25,6 +25,7 @@ import {
   transformFromApiFormat,
   transformRecentRegistrations,
 } from "@/utils/transformRegistrationData";
+import DownloadDropdown from "@/components/Dropdown/DownloadDropdown";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -555,6 +556,10 @@ export default function AdminStatisticPage() {
           <div className="p-6 max-sm:p-2 border-b border-gray-200">
             {/* Search Filter */}
             <div className="w-full flex flex-col justify-end sm:flex-row gap-3 mb-4">
+              <DownloadDropdown
+                onDownloadExcel={() => {}}
+                onDownloadPdf={() => {}}
+              />
               <SelectInput
                 value={selectedYearId}
                 onChange={(e) => {

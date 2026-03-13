@@ -22,6 +22,7 @@ import {
   transformFromApiFormat,
   transformRecentRegistrations,
 } from "@/utils/transformRegistrationData";
+import DownloadDropdown from "@/components/Dropdown/DownloadDropdown";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { IoMdRefresh } from "react-icons/io";
@@ -558,8 +559,12 @@ export default function AdminProspectiveStudentPage() {
           subtitle="Menampilkan halaman daftar lengkap calon murid tahun ajaran saat ini"
         />
         <div className="w-full h-fit bg-white rounded-md drop-shadow-sm">
-          <div className="p-6 max-sm:p-2 border-b border-gray-200">
+          <div className="p-2 max-sm:p-2 border-b border-gray-200">
             <div className="flex w-auto flex-wrap flex-col gap-4 lg:flex-row lg:items-center lg:justify-end mb-3">
+              <DownloadDropdown
+                onDownloadExcel={() => {}}
+                onDownloadPdf={() => {}}
+              />
               <SelectInput
                 value={selectedYearId}
                 onChange={(e) => {
@@ -572,7 +577,7 @@ export default function AdminProspectiveStudentPage() {
                 ]}
                 placeholder={"Pilih Tahun Ajaran "}
                 isMandatory
-                className="w-full lg:w-46"
+                className="w-full lg:w-44"
               />
               <SelectInput
                 className="w-full lg:w-52"
@@ -601,7 +606,7 @@ export default function AdminProspectiveStudentPage() {
                 }}
                 options={[{ value: "", label: "Semua Gelombang" }, ...batches]}
                 placeholder="Pilih Gelombang"
-                className="w-full lg:w-42"
+                className="w-full lg:w-40"
               />
               <SelectInput
                 value={selectedMajor}
@@ -615,17 +620,19 @@ export default function AdminProspectiveStudentPage() {
               />
               <TextButton
                 variant="outline"
-                text="Reset Filter"
+                text="Reset"
                 disabled={loadingStates}
-                className="w-full font-normal px-2! py-1.5! rouned-md! sm:col-span-2 lg:w-auto mb-2 shrink-0"
+                className="w-full font-normal text-sm! px-2! py-1.5! rouned-md! sm:col-span-2 lg:w-auto mb-2 shrink-0"
                 isLoading={loadingStates}
                 icon={<IoMdRefresh className="text-lg shrink-0" />}
                 onClick={handleResetFilters}
               />
               <Search
-                className="w-full mb-2 lg:max-w-2xs lg:w-full"
+                className="w-full mb-2 lg:max-w-58 lg:w-full"
                 searchTerm={searchTerm}
                 handleSearchChange={handleSearchChange}
+                placeholder="nama / no daftar / sekolah
+"
               />
             </div>
             <ReusableTable
