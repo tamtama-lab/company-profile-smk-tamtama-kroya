@@ -30,6 +30,7 @@ import DownloadDropdown from "@/components/Dropdown/DownloadDropdown";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { IoMdRefresh } from "react-icons/io";
 import { LuEye, LuPen, LuTrash2 } from "react-icons/lu";
 
 const PRIORITY_MAJORS = ["TKR", "DKV", "TITL", "TP"] as const;
@@ -290,6 +291,15 @@ export default function AdminStatisticPage() {
     fetchStudents(currentPage, debouncedSearchTerm, limit);
   }, [currentPage, debouncedSearchTerm, fetchStudents, limit]);
 
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setDebouncedSearchTerm("");
+    setSelectedBatchId("");
+    setSelectedAuthor("");
+    setSelectedYearId("");
+    setCurrentPage(1);
+  };
+
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1); // Reset to first page when searching
@@ -431,6 +441,13 @@ export default function AdminStatisticPage() {
             academicYearId: selectedYearId,
             authored: selectAuthored,
           },
+        });
+
+        showAlert({
+          title: "Berhasil",
+          description: `${type === "pdf" ? "PDF" : "Excel"} Data Pendaftar Sekolah  berhasil diunduh.`,
+          variant: "success",
+          autoDismissMs: 2500,
         });
       } catch (error) {
         console.error(`Failed to export ${type}:`, error);
@@ -644,8 +661,17 @@ export default function AdminStatisticPage() {
                 placeholder="Pilih Gelombang"
                 className="w-full sm:w-48"
               />
+              <TextButton
+                variant="outline"
+                text="Reset Filter"
+                disabled={loadingStates || isExporting}
+                className="w-full font-normal text-sm! px-2! py-2! rounded-sm! sm:w-auto"
+                isLoading={loadingStates || isExporting}
+                icon={<IoMdRefresh className="text-lg shrink-0" />}
+                onClick={handleResetFilters}
+              />
               <Search
-                className="w-full lg:max-w-sm"
+                className="w-full lg:max-w-2xs"
                 searchTerm={searchTerm}
                 handleSearchChange={handleSearchChange}
               />

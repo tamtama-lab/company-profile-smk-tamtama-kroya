@@ -362,10 +362,7 @@ export default function AdminProspectiveStudentPage() {
 
         const data = await response.json();
         const majorOpts = (data || []).map(
-          (
-            major: { name: string; abbreviation: string },
-            index: number,
-          ) => ({
+          (major: { name: string; abbreviation: string }, index: number) => ({
             value: major.abbreviation,
             label: formatMajorLabel(
               {
@@ -463,6 +460,13 @@ export default function AdminProspectiveStudentPage() {
             authored: selectAuthored,
             majorCode: selectedMajor,
           },
+        });
+
+        showAlert({
+          title: "Berhasil",
+          description: `${type === "pdf" ? "PDF" : "Excel"} Data Calon Murid berhasil diunduh.`,
+          variant: "success",
+          autoDismissMs: 2500,
         });
       } catch (error) {
         console.error(`Failed to export ${type}:`, error);
