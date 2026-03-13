@@ -193,8 +193,8 @@ export default function LayoutWrapper({
       ) : (
         <div className="relative">
           {shouldRenderLandingBreadcrumb ? (
-            <div className="pointer-events-none absolute inset-x-0 top-24 z-40">
-              <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10">
+            <div className="relative z-40 border-b border-gray-100 bg-white/95 backdrop-blur-sm md:pointer-events-none md:absolute md:inset-x-0 md:top-24 md:border-none md:bg-transparent md:backdrop-blur-none">
+              <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-10 md:py-0">
                 <Breadcrumb
                   className="pointer-events-auto w-fit"
                   items={landingBreadcrumbItems}
