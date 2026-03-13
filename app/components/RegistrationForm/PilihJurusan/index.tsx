@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -31,7 +31,25 @@ interface PilihJurusanProps {
   onValidationError?: (message: string) => void;
 }
 
-const jurusanDataList = [
+interface JurusanItem {
+  label: string;
+  value: string;
+  image: string;
+  prospects: string[];
+}
+
+interface MajorsApiItem {
+  name?: string;
+  abbreviation?: string;
+  summary?: string;
+  photoUrl?: string;
+}
+
+interface MajorsApiResponse {
+  items?: MajorsApiItem[];
+}
+
+const DEFAULT_JURUSAN_DATA_LIST: JurusanItem[] = [
   {
     label: "Teknik Kendaraan Ringan (TKR)",
     value: "TKR",
@@ -83,6 +101,10 @@ const jurusanDataList = [
   },
 ];
 
+const DEFAULT_JURUSAN_MAP = new Map(
+  DEFAULT_JURUSAN_DATA_LIST.map((item) => [item.value.toUpperCase(), item]),
+);
+
 export const PilihJurusan: React.FC<PilihJurusanProps> = ({
   onNext,
   onPrev,
@@ -91,6 +113,87 @@ export const PilihJurusan: React.FC<PilihJurusanProps> = ({
   isTeacherMode,
 }) => {
   const { showAlert } = useAlert();
+  const [jurusanDataList, setJurusanDataList] = useState<JurusanItem[]>(
+    DEFAULT_JURUSAN_DATA_LIST,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchMajorsFromBackend = async () => {
+      try {
+        const response = await fetch("/api/majors?page=1&perPage=50", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch majors options");
+        }
+
+        const payload = (await response.json()) as MajorsApiResponse;
+        const backendItems = Array.isArray(payload?.items) ? payload.items : [];
+
+        if (backendItems.length === 0) {
+          if (!cancelled) {
+            setJurusanDataList(DEFAULT_JURUSAN_DATA_LIST);
+          }
+          return;
+        }
+
+        const mappedItems = backendItems
+          .map((item) => {
+            const abbreviation = String(item.abbreviation || "")
+              .trim()
+              .toUpperCase();
+            const name = String(item.name || "").trim();
+
+            if (!abbreviation || !name) {
+              return null;
+            }
+
+            const fallback = DEFAULT_JURUSAN_MAP.get(abbreviation);
+            const summary = String(item.summary || "").trim();
+            const image =
+              String(item.photoUrl || "").trim() ||
+              fallback?.image ||
+              "https://placehold.co/1200x800/png";
+
+            return {
+              label: `${name} (${abbreviation})`,
+              value: abbreviation,
+              image,
+              prospects:
+                fallback?.prospects ||
+                (summary ? [summary] : ["Prospek lulusan sedang diperbarui."]),
+            } as JurusanItem;
+          })
+          .filter((item): item is JurusanItem => Boolean(item));
+
+        const uniqueMappedItems = Array.from(
+          new Map(mappedItems.map((item) => [item.value, item])).values(),
+        );
+
+        if (!cancelled) {
+          setJurusanDataList(
+            uniqueMappedItems.length > 0
+              ? uniqueMappedItems
+              : DEFAULT_JURUSAN_DATA_LIST,
+          );
+        }
+      } catch (error) {
+        console.error("Failed fetch majors for registration", error);
+        if (!cancelled) {
+          setJurusanDataList(DEFAULT_JURUSAN_DATA_LIST);
+        }
+      }
+    };
+
+    fetchMajorsFromBackend();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const form = useForm<PilihJurusanForm>({
     resolver: zodResolver(pilihJurusanSchema),

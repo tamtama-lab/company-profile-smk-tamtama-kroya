@@ -9,6 +9,7 @@ import {
   Legend,
   Title,
 } from "chart.js";
+import { getMajorColor } from "@/utils/majorColors";
 
 ChartJS.register(PieController, ArcElement, Tooltip, Legend, Title);
 
@@ -17,6 +18,7 @@ type DataPoint = {
   count?: number;
   label?: string;
   name?: string;
+  major?: string;
   [key: string]: unknown;
 };
 
@@ -29,28 +31,14 @@ export default function PieChart({ data }: { data: DataPoint[] }) {
     if (!ctx) return;
 
     const labels = data.map(
-      (d: DataPoint, i: number) => d.label || d.major || `Data ${i + 1}`,
+      (d: DataPoint, i: number) =>
+        d.label || d.major || d.name || `Data ${i + 1}`,
     );
 
     const values = data.map((d: DataPoint) => Number(d.count ?? 0));
 
-    const getColorByLabel = (title: string) => {
-      switch (title) {
-        case "TKR":
-          return "#FF0000";
-        case "DKV":
-          return "#2369D1";
-        case "TITL":
-          return "#4D4FA4";
-        case "TP":
-          return "#5DB1F6";
-        default:
-          return "#FF0000";
-      }
-    };
-
-    const backgroundColors = labels.map((label) =>
-      getColorByLabel(String(label)),
+    const backgroundColors = labels.map((label, index) =>
+      getMajorColor(String(label), index),
     );
 
     if (chartRef.current) {

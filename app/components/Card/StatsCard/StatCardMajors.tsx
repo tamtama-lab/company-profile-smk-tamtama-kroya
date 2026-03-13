@@ -4,6 +4,7 @@ import { FaGear } from "react-icons/fa6";
 import { FiUsers } from "react-icons/fi";
 import { LiaCarSideSolid } from "react-icons/lia";
 import { MdOutlineColorLens } from "react-icons/md";
+import { getMajorColor } from "@/utils/majorColors";
 
 export type MajorData = {
   major: string;
@@ -26,24 +27,32 @@ export default function StatsMajorCard({
   ];
 
   const hexToRgb = (hex: string) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
+    const normalizedHex = hex.replace("#", "").trim();
+    if (!/^[0-9a-fA-F]{6}$/.test(normalizedHex)) {
+      return "59, 130, 246";
+    }
+
+    const r = parseInt(normalizedHex.slice(0, 2), 16);
+    const g = parseInt(normalizedHex.slice(2, 4), 16);
+    const b = parseInt(normalizedHex.slice(4, 6), 16);
     return `${r}, ${g}, ${b}`;
   };
 
-  const getCardStyle = (major: string): { color: string; Icon?: IconType } => {
+  const getCardStyle = (
+    major: string,
+    index: number,
+  ): { color: string; Icon?: IconType } => {
     switch (major) {
       case "TKR":
-        return { color: "#FF0000", Icon: LiaCarSideSolid };
+        return { color: getMajorColor(major, index), Icon: LiaCarSideSolid };
       case "DKV":
-        return { color: "#2369D1", Icon: MdOutlineColorLens };
+        return { color: getMajorColor(major, index), Icon: MdOutlineColorLens };
       case "TITL":
-        return { color: "#4D4FA4", Icon: BsLightningCharge };
+        return { color: getMajorColor(major, index), Icon: BsLightningCharge };
       case "TP":
-        return { color: "#5DB1F6", Icon: FaGear };
+        return { color: getMajorColor(major, index), Icon: FaGear };
       default:
-        return { color: "bg-white text-primary", Icon: FiUsers };
+        return { color: getMajorColor(major, index), Icon: FiUsers };
     }
   };
 
@@ -52,16 +61,20 @@ export default function StatsMajorCard({
       className={`w-full grid grid-cols-5 max-md:grid-cols-2 max-sm:grid-cols-2 gap-3 mb-4`}
     >
       {dataWithTotal.map((item, idx) => {
-        const { color, Icon } = getCardStyle(item.major);
+        const { color, Icon } = getCardStyle(item.major, idx);
         const isFirst = idx === 0;
         const textColor = isFirst ? "white" : color;
         return (
           <div
             key={item.major}
-            style={{
-              backgroundColor: `rgba(${hexToRgb(color)}, 0.05)`,
-              border: `2px solid ${color}`,
-            }}
+            style={
+              isFirst
+                ? undefined
+                : {
+                    backgroundColor: `rgba(${hexToRgb(color)}, 0.05)`,
+                    border: `2px solid ${color}`,
+                  }
+            }
             className={`w-full  ${idx === 0 ? "bg-white text-primary max-md:col-span-2 max-sm:col-span-2 shadow-sm" : ""} flex flex-col justify-between  p-6 rounded-md h-42`}
           >
             <div

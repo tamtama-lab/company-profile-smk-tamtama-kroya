@@ -385,6 +385,7 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
                     {...field}
                     label="NISN (Nomor Induk Siswa Nasional)"
                     minLength={10}
+                    limit={10}
                     placeholder={
                       "Masukkan NISN " +
                       (isTeacherMode ? "Calon Murid" : "Anda")
