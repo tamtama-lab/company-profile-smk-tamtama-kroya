@@ -21,7 +21,11 @@ export const HeroSection: React.FC = () => {
           <div className="w-full h-full flex-col space-y-4">
             <ScrollAnimationWrapper className="relative max-sm:ml-10">
               <h2 className="text-xl max-sm:text-lg">Selamat Datang di</h2>
-              <ScrollAnimationWrapper className="absolute -left-12 -top-1">
+              <ScrollAnimationWrapper
+                delay={1}
+                duration={1}
+                className="absolute -left-12 -top-1"
+              >
                 <GiGraduateCap size={40} color="#014921" />
               </ScrollAnimationWrapper>
             </ScrollAnimationWrapper>
