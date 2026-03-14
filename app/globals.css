@@ -300,6 +300,29 @@ input[type="number"] {
     background: transparent;
 }
 
+@keyframes heroFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-2rem);
+    }
+}
+
+.animate-hero-float {
+    animation: heroFloat 3.5s ease-in-out infinite;
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-hero-float {
+        animation: none;
+    }
+}
+
 .gallery-thin-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 9999px;

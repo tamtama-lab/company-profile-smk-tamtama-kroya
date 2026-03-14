@@ -21,11 +21,7 @@ export const HeroSection: React.FC = () => {
           <div className="w-full h-full flex-col space-y-4">
             <ScrollAnimationWrapper className="relative max-sm:ml-10">
               <h2 className="text-xl max-sm:text-lg">Selamat Datang di</h2>
-              <ScrollAnimationWrapper
-                delay={1}
-                duration={1}
-                className="absolute -left-12 -top-1"
-              >
+              <ScrollAnimationWrapper className="absolute -left-12 -top-1">
                 <GiGraduateCap size={40} color="#014921" />
               </ScrollAnimationWrapper>
             </ScrollAnimationWrapper>
@@ -64,14 +60,18 @@ export const HeroSection: React.FC = () => {
           </div>
         </div>
         {/* Image Section */}
-        <ScrollAnimationWrapper className="w-[36%] max-sm:mt-6 max-sm:w-full h-fit flex items-center justify-center">
+        <ScrollAnimationWrapper
+          delay={1}
+          duration={1.5}
+          className="w-[36%] max-sm:mt-6 max-sm:w-full h-fit flex items-center justify-center"
+        >
           <Image
             src="/ppdb/hero-image.png"
             alt="Hero Image"
             width={500}
             height={600}
             priority
-            className="w-fit h-fit rounded-lg"
+            className="w-fit h-fit rounded-lg animate-hero-float"
           />
         </ScrollAnimationWrapper>
       </div>
