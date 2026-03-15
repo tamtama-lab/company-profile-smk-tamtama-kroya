@@ -16,7 +16,7 @@ export const TabsStep: React.FC<TabsStepProps> = ({
   onTabChange,
 }) => {
   return (
-    <div className="w-full relative min-h-fit h-20 mt-10 flex flex-col border border-transparent">
+    <div className="w-full relative min-h-fit h-20 mt-10 flex flex-col border-transparent">
       <div className="w-full relative h-fit">
         <div className="absolute w-full h-full flex items-center justify-between flex-row space-x-6 z-10 px-20 max-sm:px-5">
           {tabs.map((step, index) => (
@@ -51,7 +51,7 @@ export const TabsStep: React.FC<TabsStepProps> = ({
         <div className="w-full h-0.5 max-sm:h-[0.3] absolute bg-gray-200"></div>
       </div>
       {activeTab && (
-        <div className="w-full mt-20 min-h-125 flex flex-col justify-start p-10 max-sm:p-4 items-center rounded-3xl max-sm:rounded-lg border bg-white border-gray-300">
+        <div className="w-full mt-20 min-h-125 flex flex-col justify-start p-10 max-sm:p-4 items-center rounded-3xl max-sm:rounded-lg bg-white border-gray-300">
           {/* header */}
           <div className="w-full flex flex-row justify-between items-center border-b border-gray-300 pb-2 mb-10 max-sm:mb-4">
             <h1 className="text-xl max-sm:text-lg text-primary font-semibold">

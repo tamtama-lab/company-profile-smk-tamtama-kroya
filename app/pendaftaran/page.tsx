@@ -483,7 +483,7 @@ export default function RegistrationPage() {
 
   return (
     <main className="min-h-screen bg-linear-to-b from-white to-gray-50 mt-10 max-sm:mt-16">
-      <div className="w-full p-5 sm:border max-sm:p-5 md:p-10 lg:p-14 xl:p-20 flex flex-col items-center gap-6">
+      <div className="w-full p-5 max-sm:p-5 md:p-10 lg:p-14 xl:p-20 flex flex-col items-center gap-6">
         <div className="w-full border-b border-gray-200 pb-3">
           <Breadcrumb
             items={[
