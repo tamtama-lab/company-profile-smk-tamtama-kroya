@@ -27,7 +27,7 @@ export const HeroSection: React.FC = () => {
             </ScrollAnimationWrapper>
             <ScrollAnimationWrapper>
               <h1 className="text-3xl max-sm:text-2xl text-left text-[#2D2D2D] font-semibold">
-                Portal Penerimaan Peserta Didik Baru (PPDB) SMK Tamtama Kroya{" "}
+                Portal Penerimaan Peserta Didik Baru (SPMB) SMK Tamtama Kroya{" "}
                 {getAcademicYear()}
               </h1>
             </ScrollAnimationWrapper>
@@ -66,7 +66,7 @@ export const HeroSection: React.FC = () => {
           className="w-[36%] max-sm:mt-6 max-sm:w-full h-fit flex items-center justify-center"
         >
           <Image
-            src="/ppdb/hero-image.png"
+            src="/spmb/hero-image.png"
             alt="Hero Image"
             width={500}
             height={600}

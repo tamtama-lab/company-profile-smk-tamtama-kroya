@@ -666,8 +666,7 @@ export default function DataFasilitasPage() {
 
           <TextButton
             variant="primary"
-            text="Tambah Fasilitas"
-            icon={<LuPlus className="text-base" />}
+            text="Tambah Data"
             className="w-full sm:w-auto"
             onClick={() => router.push("/admin/siswa/fasilitas/tambah")}
           />

@@ -66,7 +66,7 @@ export default function AdminHeader({
                 <h1 className="text-sm text-primary sm:text-base font-bold">
                   SMK TAMTAMA KROYA
                 </h1>
-                <p className="text-xs sm:text-sm">PPDB {getAcademicYear()}</p>
+                <p className="text-xs sm:text-sm">SPMB {getAcademicYear()}</p>
               </div>
             </div>
             <button

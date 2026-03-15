@@ -37,7 +37,7 @@ import {
   type PreviewCommitteeOverride,
 } from "./types";
 
-export default function PanitiaPpdbPage() {
+export default function PanitiaSpmbPage() {
   const { showAlert } = useAlert();
 
   const [displayPreview, setDisplayPreview] = useState(true);
@@ -384,7 +384,7 @@ export default function PanitiaPpdbPage() {
 
       showAlert({
         title: "Berhasil",
-        description: "Data panitia PPDB berhasil disimpan",
+        description: "Data panitia SPMB berhasil disimpan",
         variant: "success",
       });
 
@@ -442,7 +442,7 @@ export default function PanitiaPpdbPage() {
             blob = await generatePendaftaranUlangPdfBlob({
               registration,
               committee: {
-                name: effectivePreviewData.name || "Panitia PPDB",
+                name: effectivePreviewData.name || "Panitia SPMB",
                 position: effectivePreviewData.position || "Ketua",
                 title: "Panitia Sistem Penerimaan Murid Baru",
                 nip: toNullableString(effectivePreviewData.nip),
@@ -593,13 +593,13 @@ export default function PanitiaPpdbPage() {
     <div className="w-full min-h-[calc(100vh-4px)] bg-gray-100 p-4">
       <div className="h-full">
         <TitleSection
-          title="Pengaturan Panitia PPDB"
-          subtitle="Halaman ini digunakan untuk mengatur nama panitia yang bertanggung jawab pada PPDB di periode tertentu"
+          title="Pengaturan Panitia SPMB"
+          subtitle="Halaman ini digunakan untuk mengatur nama panitia yang bertanggung jawab pada SPMB di periode tertentu"
         />
 
         <div className="w-full h-fit bg-white rounded-md drop-shadow-sm p-4">
           <div className="w-full flex flex-row justify-between p-3">
-            <h2 className="text-lg font-semibold">Edit Panitia PPDB</h2>
+            <h2 className="text-lg font-semibold">Edit Panitia SPMB</h2>
             <TextButton
               variant="outline"
               isLoading={isBusy || isGeneratingInlinePreview}
@@ -819,7 +819,7 @@ export default function PanitiaPpdbPage() {
                   </div>
                 ) : inlinePdfPreviewUrl ? (
                   <iframe
-                    title="Preview PDF Panitia PPDB"
+                    title="Preview PDF Panitia SPMB"
                     src={`${inlinePdfPreviewUrl}#zoom=page-fit&view=FitH`}
                     className="w-full h-full border border-gray-200 rounded-md"
                   />

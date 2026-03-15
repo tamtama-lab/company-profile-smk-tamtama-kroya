@@ -7,9 +7,9 @@ import React from "react";
 export const Header: React.FC = () => {
   const pathname = usePathname();
 
-  const ppdbRoutes = ["/ppdb", "/"];
+  const spmbRoutes = ["/spmb", "/"];
 
-  const isPPDBRoute = ppdbRoutes.some((route) => pathname.startsWith(route));
+  const isSPMBRoute = spmbRoutes.some((route) => pathname.startsWith(route));
   // const isScrolling = document > 0;
 
   return (
@@ -24,12 +24,12 @@ export const Header: React.FC = () => {
               height={40}
             />
           </Link>
-          {isPPDBRoute && (
+          {isSPMBRoute && (
             <div className="hidden sm:flex flex-col ml-3">
               <h1 className="text-sm sm:text-base font-bold">
                 SMK Tamtama Kroya
               </h1>
-              <p className="text-xs sm:text-sm">PPDB {getAcademicYear()}</p>
+              <p className="text-xs sm:text-sm">SPMB {getAcademicYear()}</p>
             </div>
           )}
         </div>

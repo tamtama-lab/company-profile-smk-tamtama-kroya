@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import z from "zod";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TextButton } from "@/components/Buttons/TextButton";
 import { TitleSection } from "@/components/TitleSection";
@@ -16,29 +17,14 @@ import { FormInput } from "@/components/ui/form-input";
 import { useAlert } from "@/components/ui/alert";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import z from "zod";
 import { getAuthHeader } from "@/utils/auth";
 import { transformAdonisValidationErrors } from "@/utils/adonisErrorTranslator";
+import { formatMajorLabel } from "@/utils/majorMetadata";
 import PhotoUpload from "@/components/Upload/PhotoUpload";
-import Toggle from "@/components/ui/toggle";
+import { SectionCard } from "@/components/Card/SectionCard";
 import SelectInput from "@/components/InputForm/SelectInput";
 import { SearchableSelect } from "@/components/InputForm/SelectInput/SearchableSelect";
-import { SectionCard } from "@/components/Card/SectionCard";
-
-interface AlumniDetail {
-  id: number;
-  name: string;
-  major: string;
-  generationYear: number;
-  photoUrl: string;
-  currentJob: string;
-  isPublished: boolean;
-}
-
-const CURRENT_YEAR = new Date().getFullYear();
-const YEAR_MIN = 1977;
-const YEAR_MAX = CURRENT_YEAR - 1;
-const YEAR_OPTIONS_LIMIT = 10;
+import { YEAR_MAX, YEAR_MIN, YEAR_OPTIONS_LIMIT } from "../type";
 
 const AlumniSchema = z.object({
   name: z.string().min(1, "Nama alumni harus diisi"),
@@ -57,17 +43,14 @@ const AlumniSchema = z.object({
   currentJob: z.string().min(1, "Pekerjaan saat ini harus diisi"),
 });
 
-export default function AdminEditAlumniPage() {
+export default function AdminAddAlumniPage() {
   const router = useRouter();
-  const params = useParams();
   const { showAlert } = useAlert();
-  const alumniId = params.id as string;
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const [isPublished, setIsPublished] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingAlumni, setIsLoadingAlumni] = useState(true);
   const [majorOptions, setMajorOptions] = useState<
     Array<{ value: string | number; label: string }>
   >([]);
@@ -114,9 +97,15 @@ export default function AdminEditAlumniPage() {
 
         const data = await response.json();
         const mappedMajors = (data.majors || []).map(
-          (major: { name: string; abbreviation: string }) => ({
+          (major: { name: string; abbreviation: string }, index: number) => ({
             value: major.abbreviation,
-            label: `Jurusan ${major.name} (${major.abbreviation})`,
+            label: formatMajorLabel(
+              {
+                name: major.name,
+                abbreviation: major.abbreviation,
+              },
+              index,
+            ),
           }),
         );
 
@@ -146,51 +135,10 @@ export default function AdminEditAlumniPage() {
     };
   }, [showAlert]);
 
-  const fetchAlumniData = useCallback(async () => {
-    setIsLoadingAlumni(true);
-    try {
-      const response = await fetch(`/api/backoffice/alumni/${alumniId}`, {
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch alumni data");
-      }
-
-      const payload = await response.json();
-      const data: AlumniDetail = payload.data ?? payload;
-
-      form.reset({
-        name: data.name,
-        major: data.major,
-        generationYear: String(data.generationYear),
-        currentJob: data.currentJob,
-      });
-
-      setPhotoPreview(data.photoUrl || "");
-      setIsPublished(Boolean(data.isPublished));
-    } catch (error) {
-      console.error("Error fetching alumni data:", error);
-      showAlert({
-        title: "Gagal",
-        description: "Gagal memuat data alumni",
-        variant: "error",
-      });
-    } finally {
-      setIsLoadingAlumni(false);
-    }
-  }, [alumniId, allYearOptions, form, showAlert]);
-
-  useEffect(() => {
-    fetchAlumniData();
-  }, [fetchAlumniData]);
-
   const handlePhotoChange = (file: File | null) => {
     if (!file) {
       setPhotoFile(null);
+      setPhotoPreview("");
       return;
     }
     setPhotoFile(file);
@@ -224,7 +172,7 @@ export default function AdminEditAlumniPage() {
       const data = await response.json();
       return data.photoUrl;
     } catch (error) {
-      console.error("Error uploading alumni photo:", error);
+      console.error("Error uploading lulusan photo:", error);
       showAlert({
         title: "Gagal",
         description: "Gagal mengunggah foto",
@@ -235,22 +183,26 @@ export default function AdminEditAlumniPage() {
   };
 
   const onSubmit = async (values: z.infer<typeof AlumniSchema>) => {
+    if (!photoFile) {
+      showAlert({
+        title: "Validasi",
+        description: "Foto lulusan harus diunggah",
+        variant: "error",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      let photoUrl = photoPreview;
-
-      if (photoFile) {
-        const uploadedUrl = await uploadPhoto(photoFile);
-        if (!uploadedUrl) {
-          setIsLoading(false);
-          return;
-        }
-        photoUrl = uploadedUrl;
+      const photoUrl = await uploadPhoto(photoFile);
+      if (!photoUrl) {
+        setIsLoading(false);
+        return;
       }
 
-      const response = await fetch(`/api/backoffice/alumni/${alumniId}`, {
-        method: "PUT",
+      const response = await fetch("/api/backoffice/alumni", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...getAuthHeader(),
@@ -288,21 +240,21 @@ export default function AdminEditAlumniPage() {
           return;
         }
 
-        throw new Error(errorData.message || "Gagal mengubah data alumni");
+        throw new Error(errorData.message || "Gagal menambah lulusan");
       }
 
       showAlert({
         title: "Berhasil",
-        description: "Data alumni berhasil diperbarui",
+        description: "Data lulusan berhasil ditambahkan",
         variant: "success",
       });
-      router.push("/admin/siswa/data-alumni");
+      router.push("/admin/siswa/data-lulusan");
     } catch (error) {
-      console.error("Error updating alumni:", error);
+      console.error("Error creating lulusan:", error);
       showAlert({
         title: "Gagal",
         description:
-          error instanceof Error ? error.message : "Gagal mengubah data alumni",
+          error instanceof Error ? error.message : "Gagal menambah lulusan",
         variant: "error",
       });
     } finally {
@@ -310,31 +262,20 @@ export default function AdminEditAlumniPage() {
     }
   };
 
-  if (isLoadingAlumni) {
-    return (
-      <div className="w-full min-h-[calc(100vh-4px)] bg-gray-100 p-4">
-        <div className="h-full">
-          <div className="flex justify-center items-center h-64">
-            <p className="text-gray-500">Memuat data alumni...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full min-h-[calc(100vh-4px)] bg-gray-100 p-4">
       <div className="h-full">
         <TitleSection
-          title="Edit Alumni"
-          subtitle="Perbarui informasi data alumni."
+          title="Tambah Lulusan"
+          subtitle="Tambahkan data lulusan baru SMK Tamtama Kroya."
         />
         <SectionCard
-          title="Edit Data Alumni"
-          saveButtonText="Simpan Perubahan"
+          title="Tambah Data Lulusan"
+          saveButtonText="Simpan Data"
           className="w-full"
           cardFooter={false}
         >
+          {" "}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full p-6">
               <div className="grid grid-cols-2 gap-x-5 max-sm:grid-cols-1 gap-y-5">
@@ -346,8 +287,8 @@ export default function AdminEditAlumniPage() {
                       <FormControl>
                         <FormInput
                           {...field}
-                          label="Nama Lengkap Alumni"
-                          placeholder="Masukkan nama alumni"
+                          label="Nama Lengkap Lulusan"
+                          placeholder="Masukkan nama lulusan"
                           isMandatory
                           error={form.formState.errors.name?.message}
                         />
@@ -356,7 +297,6 @@ export default function AdminEditAlumniPage() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="currentJob"
@@ -365,8 +305,8 @@ export default function AdminEditAlumniPage() {
                       <FormControl>
                         <FormInput
                           {...field}
-                          label="Lokasi Alumni Bekerja Saat Ini"
-                          placeholder="Masukkan pekerjaan saat ini"
+                          label=" Lokasi Lulusan Bekerja Saat Ini"
+                          placeholder="Masukkan nama tempat lulusan bekerja"
                           isMandatory
                           error={form.formState.errors.currentJob?.message}
                         />
@@ -384,8 +324,8 @@ export default function AdminEditAlumniPage() {
                       <FormControl>
                         <SelectInput
                           {...field}
+                          label="Jurusan Lulusan"
                           options={majorOptions}
-                          label="Jurusan Alumni"
                           placeholder="Pilih jurusan"
                           disabled={isLoadingMajors || isLoading}
                           isMandatory
@@ -410,9 +350,9 @@ export default function AdminEditAlumniPage() {
                     });
                   }}
                   disabled={isLoading}
-                  label="Foto Alumni"
+                  label="Foto Lulusan"
                   maxSizeInMB={5}
-                  isMandatory={false}
+                  isMandatory={true}
                 />
 
                 <FormField
@@ -423,9 +363,9 @@ export default function AdminEditAlumniPage() {
                       <FormControl>
                         <SearchableSelect
                           {...field}
+                          label="Tahun Angkatan Lulusan"
                           options={allYearOptions}
                           maxDisplayOptions={YEAR_OPTIONS_LIMIT}
-                          label="Tahun Angkatan Alumni"
                           placeholder="Pilih tahun angkatan"
                           isAddValueActive={false}
                           allowClear={false}
@@ -444,7 +384,7 @@ export default function AdminEditAlumniPage() {
               </div>
 
               <div className="flex justify-end gap-4 mt-10 max-sm:flex-col">
-                <Link href="/admin/siswa/data-alumni">
+                <Link href="/admin/siswa/data-lulusan">
                   <TextButton
                     variant="outline"
                     text="Kembali"
@@ -454,7 +394,7 @@ export default function AdminEditAlumniPage() {
                 </Link>
                 <TextButton
                   variant="primary"
-                  text="Simpan Perubahan"
+                  text="Simpan"
                   className="px-8 py-2 w-fit"
                   isSubmit
                   isLoading={isLoading}
@@ -464,6 +404,7 @@ export default function AdminEditAlumniPage() {
             </form>
           </Form>
         </SectionCard>
+        {/* <div className="w-full bg-white"></div> */}
       </div>
     </div>
   );

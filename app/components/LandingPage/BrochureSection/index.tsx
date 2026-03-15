@@ -29,7 +29,7 @@ export const BrochureSection: React.FC<{
       >
         <SectionTitle
           title="Info Brosur"
-          subtitle="Semua informasi penting PPDB kami rangkum dalam satu brosur yang mudah dipahami."
+          subtitle="Semua informasi penting SPMB kami rangkum dalam satu brosur yang mudah dipahami."
           align="center"
         />
 

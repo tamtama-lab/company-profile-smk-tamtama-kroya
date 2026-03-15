@@ -529,8 +529,7 @@ export default function DataExtraPage() {
 
           <TextButton
             variant="primary"
-            text="Tambah Ekskul"
-            icon={<LuPlus className="text-base" />}
+            text="Tambah Data"
             className="w-full sm:w-auto"
             onClick={() => router.push("/admin/siswa/ekstrakurikuler/tambah")}
           />

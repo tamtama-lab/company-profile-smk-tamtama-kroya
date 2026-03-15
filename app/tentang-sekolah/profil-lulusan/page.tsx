@@ -1,6 +1,6 @@
 "use client";
 
-import { AlumniApiResponse, AlumniItem } from "@/admin/siswa/data-alumni/type";
+import { AlumniApiResponse, AlumniItem } from "@/admin/siswa/data-lulusan/type";
 import { TextButton } from "@/components/Buttons/TextButton";
 import GenerationYearDropdown from "@/components/Filter/GenerationYearDropdown";
 import Search from "@/components/Filter/Search";
@@ -260,10 +260,10 @@ export default function AlumnusPage() {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 mt-20 sm:pb-4 max-sm:mt-20 max-sm:px-8 justify-center items-center">
         <div className="w-full flex flex-wrap items-center justify-center max-w-2xl gap-4">
           <h1 className="text-4xl max-sm:text-2xl font-bold text-primary text-center">
-            ALUMNI SMK TAMTAMA KROYA
+            LULUSAN SMK TAMTAMA KROYA
           </h1>
           <p className="text-center text-lg max-sm:text-sm text-gray-600">
-            Halaman Alumni SMK Tamtama Kroya menghadirkan profil lulusan dari
+            Halaman Lulusan SMK Tamtama Kroya menghadirkan profil lulusan dari
             berbagai angkatan sebagai representasi perjalanan dan kontribusi
             mereka setelah menyelesaikan pendidikan.
           </p>
@@ -291,7 +291,7 @@ export default function AlumnusPage() {
             />
           )}
           <Search
-            placeholder="Cari nama alumni/tempat kerja"
+            placeholder="Cari nama lulusan/tempat kerja"
             className="w-full md:max-w-72 sm:max-w-68 mb-2"
             searchTerm={searchTerm}
             handleSearchChange={handleSearchChange}
@@ -304,7 +304,7 @@ export default function AlumnusPage() {
           renderItem={renderItem}
           viewMode="grid"
           loading={loading}
-          emptyText="Data alumni belum tersedia"
+          emptyText="Data lulusan belum tersedia"
           pagination={paginationConfig}
         />
       </div>

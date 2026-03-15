@@ -219,7 +219,7 @@ export default function AdminStatisticPage() {
         "returnUrl",
         window.location.pathname + window.location.search,
       );
-      router.push(`/admin/ppdb/data-calon-murid/${registrationId}/edit`);
+      router.push(`/admin/spmb/data-calon-murid/${registrationId}/edit`);
     } finally {
       // component may unmount on navigation; this is safe
       setIsRouting(false);

@@ -33,7 +33,7 @@ const DEFAULT_MAJORS: MajorListItem[] = [
     slug: "teknik-kendaraan-ringan",
     summary: "Mempelajari tentang perawatan dan perbaikan kendaraan ringan.",
     abbreviation: "TKR",
-    photoUrl: "/ppdb/TKR.jpg",
+    photoUrl: "/spmb/TKR.jpg",
   },
   {
     name: "Teknik Instalasi Tenaga Listrik",
@@ -41,21 +41,21 @@ const DEFAULT_MAJORS: MajorListItem[] = [
     summary:
       "Mempelajari tentang instalasi dan pemeliharaan sistem tenaga listrik.",
     abbreviation: "TITL",
-    photoUrl: "/ppdb/TITL.jpg",
+    photoUrl: "/spmb/TITL.jpg",
   },
   {
     name: "Teknik Pemesinan",
     slug: "teknik-pemesinan",
     summary: "Mempelajari tentang proses pembuatan benda kerja menggunakan mesin.",
     abbreviation: "TP",
-    photoUrl: "/ppdb/TP.jpg",
+    photoUrl: "/spmb/TP.jpg",
   },
   {
     name: "Desain Komunikasi Visual",
     slug: "desain-komunikasi-visual",
     summary: "Mempelajari tentang desain grafis dan komunikasi visual.",
     abbreviation: "DKV",
-    photoUrl: "/ppdb/DKV.jpg",
+    photoUrl: "/spmb/DKV.jpg",
   },
 ];
 

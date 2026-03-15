@@ -39,8 +39,8 @@ export const NavItems = [
         icon: <LuTrophy />,
       },
       {
-        label: "Profil Alumni",
-        href: "/tentang-sekolah/alumni",
+        label: "Profil Lulusan",
+        href: "/tentang-sekolah/profil-lulusan",
         icon: <FaGraduationCap />,
       },
     ],
@@ -50,7 +50,7 @@ export const NavItems = [
     href: "/tentang-sekolah/program-keahlian",
   },
   {
-    label: "PPDB",
+    label: "SPMB",
     children: [
       {
         label: "Statistik Pendaftaran",
@@ -98,13 +98,13 @@ export const Header: React.FC = () => {
 
   const schoolInformation = pathname.startsWith("/tentang-sekolah");
 
-  const ppdbRoutes = ["/ppdb", "/"];
+  const spmbRoutes = ["/spmb", "/"];
 
   const routeToRegistration = () => {
     window.location.href = "/pendaftaran";
   };
 
-  const isPPDBRoute = ppdbRoutes.some((route) => pathname.startsWith(route));
+  const isSPMBRoute = spmbRoutes.some((route) => pathname.startsWith(route));
 
   return (
     <>
@@ -121,12 +121,12 @@ export const Header: React.FC = () => {
                 height={40}
               />
             </Link>
-            {isPPDBRoute && (
+            {isSPMBRoute && (
               <div className="hidden sm:flex flex-col ml-3">
                 <h1 className="text-sm sm:text-base font-bold">
                   SMK Tamtama Kroya
                 </h1>
-                <p className="text-xs sm:text-sm">PPDB {getAcademicYear()}</p>
+                <p className="text-xs sm:text-sm">SPMB {getAcademicYear()}</p>
               </div>
             )}
           </div>

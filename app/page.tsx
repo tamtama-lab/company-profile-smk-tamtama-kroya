@@ -394,11 +394,11 @@ export default function LandingPage() {
       <WhyChooseUs id="mengapa-pilih-tamtama" />
 
       {/* Jumlah Pendaftar per Jurusan */}
-      <VacationTotal
+      {/* <VacationTotal
         id="jumlah-peminat"
         data={majorsData ?? []}
         loading={isLoading}
-      />
+      /> */}
 
       {/* Jalur Pendaftaran */}
       <RegistrationPathSection

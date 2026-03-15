@@ -184,7 +184,7 @@ export default function AdminRegisteredByTeacherPage() {
         "returnUrl",
         window.location.pathname + window.location.search,
       );
-      router.push(`/admin/ppdb/data-calon-murid/${registrationId}/edit`);
+      router.push(`/admin/spmb/data-calon-murid/${registrationId}/edit`);
     } finally {
       // component may unmount on navigation; this is safe
       setIsRouting(false);
@@ -570,7 +570,7 @@ export default function AdminRegisteredByTeacherPage() {
                 />
                 <TextButton
                   variant="outline"
-                  text="Reset Filter"
+                  text="Reset"
                   disabled={loadingStates}
                   className="w-full font-normal px-2! py-1.5! rouned-md! sm:col-span-1 lg:w-auto shrink-0"
                   isLoading={loadingStates}

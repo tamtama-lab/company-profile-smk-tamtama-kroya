@@ -110,7 +110,7 @@ export const ContactAndSocial: React.FC<{
     >
       <SectionTitle
         title="Kontak & Sosial Media"
-        subtitle="Butuh informasi lebih lanjut seputar PPDB SMK Tamtama Kroya? <br />
+        subtitle="Butuh informasi lebih lanjut seputar SPMB SMK Tamtama Kroya? <br />
         Hubungi kami melalui kontak di bawah ini atau ikuti media sosial resmi kami."
         align="center"
       />
@@ -145,7 +145,7 @@ export const ContactAndSocial: React.FC<{
               Sosial Media Resmi
             </h3>
             <h3 className="text-base max-sm:text-sm">
-              Ikuti dan pantau informasi terbaru PPDB kami melalui media sosial
+              Ikuti dan pantau informasi terbaru SPMB kami melalui media sosial
               resmi:
             </h3>
           </div>

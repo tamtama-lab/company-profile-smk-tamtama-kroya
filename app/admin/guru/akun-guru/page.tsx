@@ -349,7 +349,7 @@ export default function AdminTeacherAccountPage() {
       <div className="h-full">
         <TitleSection
           title="Akun Guru"
-          subtitle="Halaman ini digunakan untuk membuat akun guru yang akan masuk ke dalam sistem PPDB dan melakukan pendaftaran untuk calon murid baru."
+          subtitle="Halaman ini digunakan untuk membuat akun guru yang akan masuk ke dalam sistem SPMB dan melakukan pendaftaran untuk calon murid baru."
         />
         <div className="w-full h-fit bg-white rounded-md drop-shadow-sm">
           <div className="p-6 max-sm:p-2 border-b border-gray-200">

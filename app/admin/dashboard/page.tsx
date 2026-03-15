@@ -342,9 +342,6 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // const handleRouteDetail = (registrationId: number) => {
-  //   window.location.href = `/admin/ppdb/data-calon-murid/${registrationId}/edit`;
-  // };
 
   useEffect(() => {
     fetchStudents(currentPage, "", limit);
@@ -470,7 +467,7 @@ export default function AdminDashboardPage() {
             </h3>
             <Link
               className="text-primary text-sm hover:underline"
-              href="/admin/ppdb/data-calon-murid"
+              href="/admin/spmb/data-calon-murid"
             >
               Lihat Selengkapnya
             </Link>

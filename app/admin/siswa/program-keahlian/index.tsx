@@ -27,12 +27,6 @@ const sortByOptions = [
   { value: "name_desc", label: "Urutkan: Nama Z-A" },
 ];
 
-const statusOptions = [
-  { value: "", label: "Status: Semua" },
-  { value: "active", label: "Aktif" },
-  { value: "inactive", label: "Tidak Aktif" },
-];
-
 export default function ProgramKeahlianPage() {
   const router = useRouter();
   const { showAlert } = useAlert();
@@ -321,7 +315,7 @@ export default function ProgramKeahlianPage() {
             </div>
             <TextButton
               variant="outline"
-              text="Reset Filter"
+              text="Reset"
               className="w-full lg:w-auto lg:mb-2"
               onClick={handleResetFilters}
               icon={<IoMdRefresh className="text-lg shrink-0" />}
@@ -346,7 +340,7 @@ export default function ProgramKeahlianPage() {
                     <LuList className="text-lg" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="top">Tampilan List</TooltipContent>
+                <TooltipContent side="bottom">Tampilan List</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -361,12 +355,12 @@ export default function ProgramKeahlianPage() {
                     <LuLayoutGrid className="text-lg" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="top">Tampilan Grid</TooltipContent>
+                <TooltipContent side="bottom">Tampilan Grid</TooltipContent>
               </Tooltip>
             </div>
             <TextButton
               variant="primary"
-              text="Tambah Jurusan"
+              text="Tambah Data"
               onClick={() =>
                 router.push("/admin/siswa/program-keahlian/tambah")
               }

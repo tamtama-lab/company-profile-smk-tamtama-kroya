@@ -53,7 +53,7 @@ const DEFAULT_JURUSAN_DATA_LIST: JurusanItem[] = [
   {
     label: "Teknik Kendaraan Ringan (TKR)",
     value: "TKR",
-    image: "/ppdb/TKR.jpg",
+    image: "/spmb/TKR.jpg",
     prospects: [
       "Mekanik / Teknisi",
       "Supervisor",
@@ -66,7 +66,7 @@ const DEFAULT_JURUSAN_DATA_LIST: JurusanItem[] = [
   {
     label: "Teknik Instalasi Tenaga Listrik (TITL)",
     value: "TITL",
-    image: "/ppdb/TITL.jpg",
+    image: "/spmb/TITL.jpg",
     prospects: [
       "Wirausaha",
       "Teknisi Kontrol Industri",
@@ -78,7 +78,7 @@ const DEFAULT_JURUSAN_DATA_LIST: JurusanItem[] = [
   {
     label: "Teknik Pemesinan (TP)",
     value: "TP",
-    image: "/ppdb/TP.jpg",
+    image: "/spmb/TP.jpg",
     prospects: [
       "Programmer CNC, Bubur dan Milling",
       "Wirausaha (Bengkel Las, Bubur, dan CNC)",
@@ -88,7 +88,7 @@ const DEFAULT_JURUSAN_DATA_LIST: JurusanItem[] = [
   {
     label: "Desain Komunikasi Visual (DKV)",
     value: "DKV",
-    image: "/ppdb/DKV.jpg",
+    image: "/spmb/DKV.jpg",
     prospects: [
       "Editor",
       "Programmer",

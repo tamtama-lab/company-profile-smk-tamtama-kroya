@@ -73,7 +73,7 @@ export const VacationTotal: React.FC<{
     >
       <SectionTitle
         title="Statistik Pendaftar per Jurusan"
-        subtitle="Daftar pendaftar diperbarui secara berkala selama masa PPDB  berlangsung"
+        subtitle="Daftar pendaftar diperbarui secara berkala selama masa SPMB  berlangsung"
         align="center"
       />
       <div className="w-full grid grid-cols-1 max-sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-10 xl:gap-x-12">

@@ -41,7 +41,7 @@ export default function EditDataCalonMuridPage() {
   const [isHydrated, setIsHydrated] = useState(false);
 
   const getReturnUrl = () =>
-    sessionStorage.getItem("returnUrl") || "/admin/ppdb/data-calon-murid";
+    sessionStorage.getItem("returnUrl") || "/admin/spmb/data-calon-murid";
 
   const handleReturn = () => {
     const returnUrl = getReturnUrl();

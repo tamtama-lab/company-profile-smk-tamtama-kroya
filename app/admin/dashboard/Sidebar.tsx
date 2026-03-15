@@ -68,8 +68,8 @@ const sidebarItems = [
     items: [
       {
         icon: FaGraduationCap,
-        label: "Data Alumni",
-        href: "/admin/siswa/data-alumni",
+        label: "Data Lulusan",
+        href: "/admin/siswa/data-lulusan",
       },
       {
         icon: LuTrophy,
@@ -94,22 +94,22 @@ const sidebarItems = [
     ],
   },
   {
-    group: "manajemen ppdb",
+    group: "manajemen spmb",
     items: [
       {
         icon: FiUsers,
         label: "Data Calon Murid",
-        href: "/admin/ppdb/data-calon-murid",
+        href: "/admin/spmb/data-calon-murid",
       },
       {
         icon: TbMessageUser,
-        label: "Panitia PPDB",
-        href: "/admin/ppdb/panitia-ppdb",
+        label: "Panitia SPMB",
+        href: "/admin/spmb/panitia-spmb",
       },
       {
         icon: LuFilePenLine,
         label: "Bukti Pendaftaran",
-        href: "/admin/ppdb/bukti-pendaftaran",
+        href: "/admin/spmb/bukti-pendaftaran",
       },
     ],
   },

@@ -25,7 +25,7 @@ export const WhyChooseUs: React.FC<{ id?: string }> = ({ id }) => {
       <div className="w-full h-auto lg:h-[70vh] border border-gray-100 flex flex-col lg:flex-row lg:px-8 xl:px-16 gap-6 lg:gap-0">
         <ScrollAnimationWrapper className="w-full aspect-h-3 aspect-w-4 bg-gray-300 rounded-2xl max-sm:rounded-lg overflow-hidden">
           <Image
-            src="/ppdb/smk-tamtama.jpeg"
+            src="/spmb/smk-tamtama.jpeg"
             alt="why-choose-us-smk-tamtama-kroya"
             width={400}
             height={200}

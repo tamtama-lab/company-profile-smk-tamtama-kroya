@@ -315,22 +315,22 @@ export default function DataAlumniPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Gagal menghapus data alumni");
+        throw new Error("Gagal menghapus data lulusan");
       }
 
       showAlert({
         title: "Berhasil",
-        description: "Data alumni berhasil dihapus",
+        description: "Data lulusan berhasil dihapus",
         variant: "success",
       });
       setDeleteModalOpen(false);
       setDeletingId(null);
       fetchAlumni();
     } catch (error) {
-      console.error("Failed delete alumni", error);
+      console.error("Failed delete lulusan", error);
       showAlert({
         title: "Gagal",
-        description: "Gagal menghapus data alumni",
+        description: "Gagal menghapus data lulusan",
         variant: "error",
       });
     } finally {
@@ -389,7 +389,7 @@ export default function DataAlumniPage() {
               </div>
             </TooltipTrigger>
             <TooltipContent side="top">
-              Tampilkan Alumni
+              Tampilkan Lulusan
               <br /> di Landing Page
             </TooltipContent>
           </Tooltip>
@@ -402,11 +402,11 @@ export default function DataAlumniPage() {
                 className="w-fit py-1 px-2! text-xs border-2 border-blue-500"
                 // disabled={loadingStates}
                 onClick={() =>
-                  router.push(`/admin/siswa/data-alumni/edit/${item.id}`)
+                  router.push(`/admin/siswa/data-lulusan/edit/${item.id}`)
                 }
               />
             </TooltipTrigger>
-            <TooltipContent side="top">Edit Data Murid</TooltipContent>
+            <TooltipContent side="top">Edit Data Lulusan</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -417,7 +417,7 @@ export default function DataAlumniPage() {
                 onClick={() => confirmDelete(item.id)}
               />
             </TooltipTrigger>
-            <TooltipContent side="top">Hapus Data Murid</TooltipContent>
+            <TooltipContent side="top">Hapus Data Lulusan</TooltipContent>
           </Tooltip>
         </div>
       </div>
@@ -428,12 +428,12 @@ export default function DataAlumniPage() {
     <div className="w-full h-auto min-h-screen bg-gray-100 p-4">
       <div className="w-full h-fit bg-white rounded-md drop-shadow-sm px-4 py-2">
         <TitleSection
-          title="Data Alumni SMK Tamtama Kroya"
-          subtitle="Halaman ini akan menampilkan daftar alumni SMK Tamtama Kroya yang dapat diubah"
+          title="Data Lulusan SMK Tamtama Kroya"
+          subtitle="Halaman ini akan menampilkan daftar lulusan SMK Tamtama Kroya yang dapat diubah"
         />
         <div className="w-full mb-3">
           <div className="w-full flex flex-col gap-3 lg:flex lg:flex-row lg:flex-wrap lg:items-center lg:justify-end">
-            <div className="w-full lg:w-74">
+            <div className="w-full lg:w-68">
               <SelectInput
                 label=""
                 value={selectedMajor}
@@ -464,21 +464,21 @@ export default function DataAlumniPage() {
             </div>
             <TextButton
               variant="outline"
-              text="Reset Filter"
+              text="Reset"
               className="w-full lg:w-auto lg:mb-2"
               onClick={handleResetFilters}
               icon={<IoMdRefresh className="text-lg shrink-0" />}
             />
             <Search
-              placeholder="Cari nama alumni"
-              className="w-full lg:max-w-58 lg:mb-2"
+              placeholder="Cari nama lulusan"
+              className="w-full lg:max-w-50 lg:mb-2"
               searchTerm={searchTerm}
               handleSearchChange={handleSearchChange}
             />
             <TextButton
               variant="primary"
-              text="Tambah Alumni"
-              onClick={() => router.push("/admin/siswa/data-alumni/tambah")}
+              text="Tambah Data"
+              onClick={() => router.push("/admin/siswa/data-lulusan/tambah")}
               className="w-full lg:w-auto lg:mb-2"
             />
           </div>
@@ -489,7 +489,7 @@ export default function DataAlumniPage() {
             renderItem={renderItem}
             viewMode="list"
             loading={loading}
-            emptyText="Data alumni belum tersedia"
+            emptyText="Data lulusan belum tersedia"
             pagination={paginationConfig}
           />
         </div>
@@ -524,7 +524,7 @@ export default function DataAlumniPage() {
             </div>
           }
         >
-          <p>Anda yakin ingin menghapus data alumni ini?</p>
+          <p>Anda yakin ingin menghapus data lulusan ini?</p>
         </BaseModal>
       </div>
     </div>

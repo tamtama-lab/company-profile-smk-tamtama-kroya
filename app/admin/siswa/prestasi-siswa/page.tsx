@@ -520,7 +520,7 @@ export default function DataPrestasiSiswaPage() {
             <SelectInput
               value={selectedCategory}
               options={categoryOptions}
-              className="-mb-1.5 w-full lg:w-56"
+              className="-mb-1.5 w-full lg:w-42"
               onChange={(event) => {
                 setSelectedCategory(String(event.target.value));
                 setPagination((prev) => ({ ...prev, currentPage: 1 }));
@@ -530,7 +530,7 @@ export default function DataPrestasiSiswaPage() {
             <SelectInput
               value={selectedCompetitionLevel}
               options={COMPETITION_LEVEL_FILTER_OPTIONS}
-              className="-mb-1.5 w-full lg:w-52"
+              className="-mb-1.5 w-full lg:w-42"
               onChange={(event) => {
                 const nextValue = String(event.target.value || "").trim();
                 setSelectedCompetitionLevel(nextValue);
@@ -561,8 +561,7 @@ export default function DataPrestasiSiswaPage() {
 
             <TextButton
               variant="primary"
-              text="Tambah Prestasi"
-              icon={<LuPlus className="text-base" />}
+              text="Tambah Data"
               className="w-full sm:w-auto"
               onClick={() => router.push("/admin/siswa/prestasi-siswa/tambah")}
             />

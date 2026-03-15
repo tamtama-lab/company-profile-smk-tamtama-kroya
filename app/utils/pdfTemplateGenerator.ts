@@ -103,7 +103,7 @@ export function createPendaftaranUlangDocDefinition({
     committee
       ? buildSignatureInfo(committee)
       : {
-          name: "Panitia PPDB",
+          name: "Panitia SPMB",
           position: "Ketua",
         },
   );
