@@ -16,18 +16,24 @@ const MOCK: any = {
     { name: "Anas", label: "Admin 2", number: "088215261410", isActive: true },
   ],
   socialMedia: {
-    tiktok: {
-      url: "https://tiktok.com/@smktamtamakroya.clp",
-      isActive: true,
-    },
-    youtube: {
-      url: "https://youtube.com/smktamtamakroya4678",
-      isActive: true,
-    },
-    facebook: {
-      url: "https://www.facebook.com/people/SMK-Tamtama-KROYA/100067793231479",
-      isActive: true,
-    },
+    tiktok: [
+      {
+        url: "https://tiktok.com/@smktamtamakroya.clp",
+        isActive: true,
+      },
+    ],
+    youtube: [
+      {
+        url: "https://youtube.com/smktamtamakroya4678",
+        isActive: true,
+      },
+    ],
+    facebook: [
+      {
+        url: "https://www.facebook.com/people/SMK-Tamtama-KROYA/100067793231479",
+        isActive: true,
+      },
+    ],
     instagram: [
       { url: "https://instagram.com/smk_tamtama_kroya", isActive: true },
       { url: "https://instagram.com/autotama_garage", isActive: true },

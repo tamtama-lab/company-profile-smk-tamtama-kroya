@@ -12,12 +12,8 @@ import {
 } from "@/components/InputForm/TextInput";
 import { useAlert } from "@/components/ui/alert";
 import { getAuthHeader } from "@/utils/auth";
+import { SocialMediaListField } from "@/components/Admin/SocialMediaFields";
 import {
-  SocialMediaListField,
-  SocialMediaSingleField,
-} from "@/components/Admin/SocialMediaFields";
-import {
-  isNonEmpty,
   isValidEmail,
   isValidPhoneNumber,
   isValidWhatsappNumber,
@@ -39,6 +35,19 @@ const parseJsonResponse = async (res: Response) => {
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
 
+type SocialPlatformKey = "tiktok" | "youtube" | "facebook";
+
+type SocialItem = {
+  url: string;
+  isActive: boolean;
+};
+
+const EMPTY_SOCIAL_ERRORS: Record<SocialPlatformKey, Record<number, string>> = {
+  tiktok: {},
+  youtube: {},
+  facebook: {},
+};
+
 export default function KontakMediaPage() {
   const { showAlert } = useAlert();
   const [loading, setLoading] = useState(true);
@@ -52,11 +61,10 @@ export default function KontakMediaPage() {
     website?: string;
     address?: string;
   }>({});
-  const [socialErrors, setSocialErrors] = useState<{
-    tiktok?: string;
-    youtube?: string;
-    facebook?: string;
-  }>({});
+  const [socialErrors, setSocialErrors] =
+    useState<Record<SocialPlatformKey, Record<number, string>>>(
+      EMPTY_SOCIAL_ERRORS,
+    );
   const [instagramErrors, setInstagramErrors] = useState<
     Record<number, string>
   >({});
@@ -72,6 +80,7 @@ export default function KontakMediaPage() {
 
   const MAX_WHATSAPP = 5;
   const MAX_INSTAGRAM = 5;
+  const MAX_SOCIAL_PLATFORM = 5;
   const MAX_BROCHURE_MB = 10;
   const MAX_BROCHURE_BYTES = MAX_BROCHURE_MB * 1024 * 1024;
 
@@ -124,55 +133,70 @@ export default function KontakMediaPage() {
     [],
   );
 
+  const socialItemSchema = useMemo(
+    () =>
+      z.object({
+        url: z
+          .string()
+          .min(1, "URL wajib diisi")
+          .refine(isValidUrl, "Format URL tidak valid"),
+        isActive: z.boolean().optional(),
+      }),
+    [],
+  );
+
+  const normalizeSocialItems = useCallback((value: any, maxItems: number) => {
+    const source = Array.isArray(value)
+      ? value
+      : value && typeof value === "object"
+        ? [value]
+        : [];
+
+    return source.slice(0, maxItems).map((item: any) => ({
+      url: typeof item?.url === "string" ? item.url : "",
+      isActive: typeof item?.isActive === "boolean" ? item.isActive : true,
+    }));
+  }, []);
+
+  const normalizeSocialMedia = useCallback(
+    (socialMedia: any) => ({
+      tiktok: normalizeSocialItems(socialMedia?.tiktok, MAX_SOCIAL_PLATFORM),
+      youtube: normalizeSocialItems(socialMedia?.youtube, MAX_SOCIAL_PLATFORM),
+      facebook: normalizeSocialItems(
+        socialMedia?.facebook,
+        MAX_SOCIAL_PLATFORM,
+      ),
+      instagram: normalizeSocialItems(socialMedia?.instagram, MAX_INSTAGRAM),
+    }),
+    [MAX_INSTAGRAM, MAX_SOCIAL_PLATFORM, normalizeSocialItems],
+  );
+
   const socialSchema = useMemo(
     () =>
-      z
-        .object({
-          tiktok: z.object({
-            url: z.string().optional(),
-            isActive: z.boolean().optional(),
-          }),
-          youtube: z.object({
-            url: z.string().optional(),
-            isActive: z.boolean().optional(),
-          }),
-          facebook: z.object({
-            url: z.string().optional(),
-            isActive: z.boolean().optional(),
-          }),
-          instagram: z.array(instagramItemSchema),
-        })
-        .superRefine((value, ctx) => {
-          const validateSingle = (
-            key: "tiktok" | "youtube" | "facebook",
-            label: string,
-          ) => {
-            const url = value[key].url || "";
-            const active = !!value[key].isActive;
-            if (active || isNonEmpty(url)) {
-              if (!isNonEmpty(url)) {
-                ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  path: [key, "url"],
-                  message: `URL ${label} wajib diisi`,
-                });
-                return;
-              }
-              if (!isValidUrl(url)) {
-                ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  path: [key, "url"],
-                  message: `Format URL ${label} tidak valid`,
-                });
-              }
-            }
-          };
-
-          validateSingle("tiktok", "TikTok");
-          validateSingle("youtube", "Youtube");
-          validateSingle("facebook", "Facebook");
-        }),
-    [instagramItemSchema],
+      z.object({
+        tiktok: z
+          .array(socialItemSchema)
+          .max(
+            MAX_SOCIAL_PLATFORM,
+            `Maksimal ${MAX_SOCIAL_PLATFORM} akun TikTok`,
+          ),
+        youtube: z
+          .array(socialItemSchema)
+          .max(
+            MAX_SOCIAL_PLATFORM,
+            `Maksimal ${MAX_SOCIAL_PLATFORM} akun Youtube`,
+          ),
+        facebook: z
+          .array(socialItemSchema)
+          .max(
+            MAX_SOCIAL_PLATFORM,
+            `Maksimal ${MAX_SOCIAL_PLATFORM} akun Facebook`,
+          ),
+        instagram: z
+          .array(instagramItemSchema)
+          .max(MAX_INSTAGRAM, `Maksimal ${MAX_INSTAGRAM} akun Instagram`),
+      }),
+    [MAX_INSTAGRAM, MAX_SOCIAL_PLATFORM, instagramItemSchema, socialItemSchema],
   );
 
   const fetchData = useCallback(async () => {
@@ -194,23 +218,7 @@ export default function KontakMediaPage() {
           ...w,
           isActive: typeof w.isActive === "boolean" ? w.isActive : true,
         })),
-        socialMedia: {
-          tiktok: {
-            ...(data.socialMedia?.tiktok || { url: "", isActive: false }),
-          },
-          youtube: {
-            ...(data.socialMedia?.youtube || { url: "", isActive: false }),
-          },
-          facebook: {
-            ...(data.socialMedia?.facebook || { url: "", isActive: false }),
-          },
-          instagram: Array.isArray(data.socialMedia?.instagram)
-            ? data.socialMedia.instagram.map((i: any) => ({
-                ...(i || {}),
-                isActive: typeof i.isActive === "boolean" ? i.isActive : true,
-              }))
-            : [],
-        },
+        socialMedia: normalizeSocialMedia(data.socialMedia),
         brochureFrontUrl: data.brochureFrontUrl || null,
         brochureBackUrl: data.brochureBackUrl || null,
       });
@@ -224,7 +232,7 @@ export default function KontakMediaPage() {
     } finally {
       setLoading(false);
     }
-  }, [showAlert]);
+  }, [normalizeSocialMedia, showAlert]);
 
   // Load data
   useEffect(() => {
@@ -233,7 +241,7 @@ export default function KontakMediaPage() {
 
   const clearContactErrors = () => setContactErrors({});
   const clearSocialErrors = () => {
-    setSocialErrors({});
+    setSocialErrors(EMPTY_SOCIAL_ERRORS);
     setInstagramErrors({});
     setWhatsappErrors({});
   };
@@ -257,23 +265,7 @@ export default function KontakMediaPage() {
         ...w,
         isActive: typeof w.isActive === "boolean" ? w.isActive : true,
       })),
-      socialMedia: {
-        tiktok: {
-          ...(original.socialMedia?.tiktok || { url: "", isActive: false }),
-        },
-        youtube: {
-          ...(original.socialMedia?.youtube || { url: "", isActive: false }),
-        },
-        facebook: {
-          ...(original.socialMedia?.facebook || { url: "", isActive: false }),
-        },
-        instagram: Array.isArray(original.socialMedia?.instagram)
-          ? original.socialMedia.instagram.map((i: any) => ({
-              ...(i || {}),
-              isActive: typeof i.isActive === "boolean" ? i.isActive : true,
-            }))
-          : [],
-      },
+      socialMedia: normalizeSocialMedia(original.socialMedia),
     }));
   };
 
@@ -320,6 +312,14 @@ export default function KontakMediaPage() {
   // Instagram helpers
   const addInstagram = () => {
     if (!form) return;
+    if ((form.socialMedia.instagram || []).length >= MAX_INSTAGRAM) {
+      showAlert({
+        title: "Batas",
+        description: `Maksimal ${MAX_INSTAGRAM} akun Instagram`,
+        variant: "error",
+      });
+      return;
+    }
     setForm((prev: any) => ({
       ...prev,
       socialMedia: {
@@ -330,6 +330,50 @@ export default function KontakMediaPage() {
         ],
       },
     }));
+  };
+
+  const addSocialPlatform = (platform: SocialPlatformKey, label: string) => {
+    if (!form) return;
+    if ((form.socialMedia?.[platform] || []).length >= MAX_SOCIAL_PLATFORM) {
+      showAlert({
+        title: "Batas",
+        description: `Maksimal ${MAX_SOCIAL_PLATFORM} akun ${label}`,
+        variant: "error",
+      });
+      return;
+    }
+
+    setForm((prev: any) => ({
+      ...prev,
+      socialMedia: {
+        ...prev.socialMedia,
+        [platform]: [
+          ...(prev.socialMedia?.[platform] || []),
+          { url: "", isActive: false },
+        ],
+      },
+    }));
+  };
+
+  const removeSocialPlatform = (platform: SocialPlatformKey, idx: number) => {
+    setForm((prev: any) => ({
+      ...prev,
+      socialMedia: {
+        ...prev.socialMedia,
+        [platform]: (prev.socialMedia?.[platform] || []).filter(
+          (_: any, i: number) => i !== idx,
+        ),
+      },
+    }));
+
+    setSocialErrors((prev) => {
+      const nextPlatform = { ...(prev[platform] || {}) };
+      delete nextPlatform[idx];
+      return {
+        ...prev,
+        [platform]: nextPlatform,
+      };
+    });
   };
   const removeInstagram = (idx: number) => {
     setForm((prev: any) => ({
@@ -378,9 +422,9 @@ export default function KontakMediaPage() {
       .max(MAX_WHATSAPP, `Maksimal ${MAX_WHATSAPP} nomor Whatsapp`)
       .safeParse(form.whatsappNumbers || []);
     const socialCheck = socialSchema.safeParse({
-      tiktok: form.socialMedia.tiktok,
-      youtube: form.socialMedia.youtube,
-      facebook: form.socialMedia.facebook,
+      tiktok: form.socialMedia.tiktok || [],
+      youtube: form.socialMedia.youtube || [],
+      facebook: form.socialMedia.facebook || [],
       instagram: form.socialMedia.instagram || [],
     });
 
@@ -390,11 +434,14 @@ export default function KontakMediaPage() {
         { label?: string; number?: string }
       > = {};
       const nextInstagramErrors: Record<number, string> = {};
-      const nextSocialErrors: {
-        tiktok?: string;
-        youtube?: string;
-        facebook?: string;
-      } = {};
+      const nextSocialErrors: Record<
+        SocialPlatformKey,
+        Record<number, string>
+      > = {
+        tiktok: {},
+        youtube: {},
+        facebook: {},
+      };
 
       if (!whatsappCheck.success) {
         for (const issue of whatsappCheck.error.issues) {
@@ -414,11 +461,10 @@ export default function KontakMediaPage() {
           if (root === "instagram" && typeof idx === "number") {
             nextInstagramErrors[idx] = issue.message;
           } else if (
-            root === "tiktok" ||
-            root === "youtube" ||
-            root === "facebook"
+            (root === "tiktok" || root === "youtube" || root === "facebook") &&
+            typeof idx === "number"
           ) {
-            nextSocialErrors[root] = issue.message;
+            nextSocialErrors[root][idx] = issue.message;
           }
         }
       }
@@ -448,22 +494,22 @@ export default function KontakMediaPage() {
       };
 
       const socialPayload = {
-        facebook: {
-          url: form.socialMedia.facebook.url || "",
-          isActive: !!form.socialMedia.facebook.isActive,
-        },
+        facebook: (form.socialMedia.facebook || []).map((f: SocialItem) => ({
+          url: f.url || "",
+          isActive: !!f.isActive,
+        })),
         instagram: (form.socialMedia.instagram || []).map((i: any) => ({
           url: i.url || "",
           isActive: !!i.isActive,
         })),
-        tiktok: {
-          url: form.socialMedia.tiktok.url || "",
-          isActive: !!form.socialMedia.tiktok.isActive,
-        },
-        youtube: {
-          url: form.socialMedia.youtube.url || "",
-          isActive: !!form.socialMedia.youtube.isActive,
-        },
+        tiktok: (form.socialMedia.tiktok || []).map((t: SocialItem) => ({
+          url: t.url || "",
+          isActive: !!t.isActive,
+        })),
+        youtube: (form.socialMedia.youtube || []).map((y: SocialItem) => ({
+          url: y.url || "",
+          isActive: !!y.isActive,
+        })),
       };
 
       const [whatsappRes, socialRes] = await Promise.all([
@@ -492,12 +538,16 @@ export default function KontakMediaPage() {
       setForm((p: any) => ({
         ...p,
         whatsappNumbers: whatsappData.whatsappNumbers ?? p.whatsappNumbers,
-        socialMedia: socialData.socialMedia ?? p.socialMedia,
+        socialMedia: socialData.socialMedia
+          ? normalizeSocialMedia(socialData.socialMedia)
+          : p.socialMedia,
       }));
       setOriginal((o: any) => ({
         ...o,
         whatsappNumbers: whatsappData.whatsappNumbers ?? o.whatsappNumbers,
-        socialMedia: socialData.socialMedia ?? o.socialMedia,
+        socialMedia: socialData.socialMedia
+          ? normalizeSocialMedia(socialData.socialMedia)
+          : o.socialMedia,
       }));
 
       showAlert({
@@ -1019,135 +1069,183 @@ export default function KontakMediaPage() {
 
                 <div>
                   <div className="space-y-6 mt-8">
-                    <div>
-                      <SocialMediaSingleField
-                        label="TikTok"
-                        iconSrc="/sosmed/tiktok.svg"
-                        iconAlt="tiktok"
-                        iconSize={24}
-                        value={form.socialMedia.tiktok.url || ""}
-                        isActive={!!form.socialMedia.tiktok.isActive}
-                        onChange={(value) => {
-                          setForm((p: any) => ({
-                            ...p,
-                            socialMedia: {
-                              ...p.socialMedia,
-                              tiktok: {
-                                ...p.socialMedia.tiktok,
-                                url: value,
-                              },
-                            },
-                          }));
-                          setSocialErrors((prev) => ({
-                            ...prev,
-                            tiktok: undefined,
-                          }));
-                        }}
-                        onToggle={(val) =>
-                          setForm((p: any) => ({
-                            ...p,
-                            socialMedia: {
-                              ...p.socialMedia,
-                              tiktok: {
-                                ...p.socialMedia.tiktok,
-                                isActive: val,
-                              },
-                            },
-                          }))
-                        }
-                      />
-                      {socialErrors.tiktok && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {socialErrors.tiktok}
-                        </p>
+                    <SocialMediaListField
+                      label="TikTok"
+                      iconSrc="/sosmed/tiktok.svg"
+                      iconAlt="tiktok"
+                      iconSize={24}
+                      maxItems={MAX_SOCIAL_PLATFORM}
+                      items={form.socialMedia.tiktok || []}
+                      addLabel="+ Tambah Akun"
+                      onAdd={() => addSocialPlatform("tiktok", "TikTok")}
+                      onRemove={(idx) => removeSocialPlatform("tiktok", idx)}
+                      onToggle={(idx, val) =>
+                        setForm((p: any) => ({
+                          ...p,
+                          socialMedia: {
+                            ...p.socialMedia,
+                            tiktok: (p.socialMedia.tiktok || []).map(
+                              (it: any, i: number) =>
+                                i === idx ? { ...it, isActive: val } : it,
+                            ),
+                          },
+                        }))
+                      }
+                      renderInputs={(item: any, idx: number, disabled) => (
+                        <div className="flex-1">
+                          <input
+                            className="w-full border border-gray-400 rounded p-2"
+                            value={item.url || ""}
+                            onChange={(e) => {
+                              setForm((p: any) => ({
+                                ...p,
+                                socialMedia: {
+                                  ...p.socialMedia,
+                                  tiktok: (p.socialMedia.tiktok || []).map(
+                                    (it: any, i: number) =>
+                                      i === idx
+                                        ? { ...it, url: e.target.value }
+                                        : it,
+                                  ),
+                                },
+                              }));
+                              setSocialErrors((prev) => {
+                                const nextPlatform = { ...prev.tiktok };
+                                delete nextPlatform[idx];
+                                return {
+                                  ...prev,
+                                  tiktok: nextPlatform,
+                                };
+                              });
+                            }}
+                            disabled={disabled}
+                          />
+                          {socialErrors.tiktok[idx] && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {socialErrors.tiktok[idx]}
+                            </p>
+                          )}
+                        </div>
                       )}
-                    </div>
+                    />
 
-                    <div>
-                      <SocialMediaSingleField
-                        label="Youtube"
-                        iconSrc="/sosmed/youtube.svg"
-                        iconAlt="youtube"
-                        value={form.socialMedia.youtube.url || ""}
-                        isActive={!!form.socialMedia.youtube.isActive}
-                        onChange={(value) => {
-                          setForm((p: any) => ({
-                            ...p,
-                            socialMedia: {
-                              ...p.socialMedia,
-                              youtube: {
-                                ...p.socialMedia.youtube,
-                                url: value,
-                              },
-                            },
-                          }));
-                          setSocialErrors((prev) => ({
-                            ...prev,
-                            youtube: undefined,
-                          }));
-                        }}
-                        onToggle={(val) =>
-                          setForm((p: any) => ({
-                            ...p,
-                            socialMedia: {
-                              ...p.socialMedia,
-                              youtube: {
-                                ...p.socialMedia.youtube,
-                                isActive: val,
-                              },
-                            },
-                          }))
-                        }
-                      />
-                      {socialErrors.youtube && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {socialErrors.youtube}
-                        </p>
+                    <SocialMediaListField
+                      label="Youtube"
+                      iconSrc="/sosmed/youtube.svg"
+                      iconAlt="youtube"
+                      maxItems={MAX_SOCIAL_PLATFORM}
+                      items={form.socialMedia.youtube || []}
+                      addLabel="+ Tambah Akun"
+                      onAdd={() => addSocialPlatform("youtube", "Youtube")}
+                      onRemove={(idx) => removeSocialPlatform("youtube", idx)}
+                      onToggle={(idx, val) =>
+                        setForm((p: any) => ({
+                          ...p,
+                          socialMedia: {
+                            ...p.socialMedia,
+                            youtube: (p.socialMedia.youtube || []).map(
+                              (it: any, i: number) =>
+                                i === idx ? { ...it, isActive: val } : it,
+                            ),
+                          },
+                        }))
+                      }
+                      renderInputs={(item: any, idx: number, disabled) => (
+                        <div className="flex-1">
+                          <input
+                            className="w-full border border-gray-400 rounded p-2"
+                            value={item.url || ""}
+                            onChange={(e) => {
+                              setForm((p: any) => ({
+                                ...p,
+                                socialMedia: {
+                                  ...p.socialMedia,
+                                  youtube: (p.socialMedia.youtube || []).map(
+                                    (it: any, i: number) =>
+                                      i === idx
+                                        ? { ...it, url: e.target.value }
+                                        : it,
+                                  ),
+                                },
+                              }));
+                              setSocialErrors((prev) => {
+                                const nextPlatform = { ...prev.youtube };
+                                delete nextPlatform[idx];
+                                return {
+                                  ...prev,
+                                  youtube: nextPlatform,
+                                };
+                              });
+                            }}
+                            disabled={disabled}
+                          />
+                          {socialErrors.youtube[idx] && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {socialErrors.youtube[idx]}
+                            </p>
+                          )}
+                        </div>
                       )}
-                    </div>
+                    />
 
-                    <div>
-                      <SocialMediaSingleField
-                        label="Facebook"
-                        iconSrc="/sosmed/facebook.svg"
-                        iconAlt="Facebook"
-                        value={form.socialMedia.facebook.url || ""}
-                        isActive={!!form.socialMedia.facebook.isActive}
-                        onChange={(value) => {
-                          setForm((p: any) => ({
-                            ...p,
-                            socialMedia: {
-                              ...p.socialMedia,
-                              facebook: {
-                                ...p.socialMedia.facebook,
-                                url: value,
-                              },
-                            },
-                          }));
-                          setSocialErrors((prev) => ({
-                            ...prev,
-                            facebook: undefined,
-                          }));
-                        }}
-                        onToggle={(val) =>
-                          setForm((p: any) => ({
-                            ...p,
-                            socialMedia: {
-                              ...p.socialMedia,
-                              facebook: {
-                                ...p.socialMedia.facebook,
-                                isActive: val,
-                              },
-                            },
-                          }))
-                        }
-                      />
-                      {socialErrors.facebook && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {socialErrors.facebook}
-                        </p>
+                    <SocialMediaListField
+                      label="Facebook"
+                      iconSrc="/sosmed/facebook.svg"
+                      iconAlt="Facebook"
+                      maxItems={MAX_SOCIAL_PLATFORM}
+                      items={form.socialMedia.facebook || []}
+                      addLabel="+ Tambah Akun"
+                      onAdd={() => addSocialPlatform("facebook", "Facebook")}
+                      onRemove={(idx) => removeSocialPlatform("facebook", idx)}
+                      onToggle={(idx, val) =>
+                        setForm((p: any) => ({
+                          ...p,
+                          socialMedia: {
+                            ...p.socialMedia,
+                            facebook: (p.socialMedia.facebook || []).map(
+                              (it: any, i: number) =>
+                                i === idx ? { ...it, isActive: val } : it,
+                            ),
+                          },
+                        }))
+                      }
+                      renderInputs={(item: any, idx: number, disabled) => (
+                        <div className="flex-1">
+                          <input
+                            className="w-full border border-gray-400 rounded p-2"
+                            value={item.url || ""}
+                            onChange={(e) => {
+                              setForm((p: any) => ({
+                                ...p,
+                                socialMedia: {
+                                  ...p.socialMedia,
+                                  facebook: (p.socialMedia.facebook || []).map(
+                                    (it: any, i: number) =>
+                                      i === idx
+                                        ? { ...it, url: e.target.value }
+                                        : it,
+                                  ),
+                                },
+                              }));
+                              setSocialErrors((prev) => {
+                                const nextPlatform = { ...prev.facebook };
+                                delete nextPlatform[idx];
+                                return {
+                                  ...prev,
+                                  facebook: nextPlatform,
+                                };
+                              });
+                            }}
+                            disabled={disabled}
+                          />
+                          {socialErrors.facebook[idx] && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {socialErrors.facebook[idx]}
+                            </p>
+                          )}
+                        </div>
                       )}
-                    </div>
+                    />
 
                     <div className="mt-6">
                       <SocialMediaListField

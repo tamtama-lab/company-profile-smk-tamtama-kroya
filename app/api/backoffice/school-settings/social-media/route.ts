@@ -79,51 +79,79 @@ export async function PUT(request: NextRequest) {
 
     const nextSocial = { ...(MOCK_DATA.socialMedia || {}) };
 
+    const sanitizeSocialItems = (value: any, fieldName: string) => {
+      const source = Array.isArray(value)
+        ? value
+        : value && typeof value === "object"
+          ? [value]
+          : null;
+
+      if (!source) {
+        return {
+          error: `Field ${fieldName} harus berupa array atau object`,
+          items: null as null,
+        };
+      }
+
+      if (source.length > 5) {
+        return {
+          error: `Field ${fieldName} maksimal 5 item`,
+          items: null as null,
+        };
+      }
+
+      const items = source.map((item: any) => {
+        const url = typeof item?.url === "string" ? item.url : "";
+        const isActive =
+          typeof item?.isActive === "boolean" ? item.isActive : true;
+        return { url, isActive };
+      });
+
+      return { error: null as string | null, items };
+    };
+
     if ("facebook" in body) {
-      const fb = body.facebook || {};
-      if (typeof fb.url !== "string" || typeof fb.isActive !== "boolean") {
+      const sanitized = sanitizeSocialItems(body.facebook, "facebook");
+      if (sanitized.error) {
         return NextResponse.json(
-          { error: "Field facebook tidak valid" },
+          { error: sanitized.error },
           { status: 400 }
         );
       }
-      nextSocial.facebook = { url: fb.url, isActive: fb.isActive };
+      nextSocial.facebook = sanitized.items;
     }
 
     if ("tiktok" in body) {
-      const tk = body.tiktok || {};
-      if (typeof tk.url !== "string" || typeof tk.isActive !== "boolean") {
+      const sanitized = sanitizeSocialItems(body.tiktok, "tiktok");
+      if (sanitized.error) {
         return NextResponse.json(
-          { error: "Field tiktok tidak valid" },
+          { error: sanitized.error },
           { status: 400 }
         );
       }
-      nextSocial.tiktok = { url: tk.url, isActive: tk.isActive };
+      nextSocial.tiktok = sanitized.items;
     }
 
     if ("youtube" in body) {
-      const yt = body.youtube || {};
-      if (typeof yt.url !== "string" || typeof yt.isActive !== "boolean") {
+      const sanitized = sanitizeSocialItems(body.youtube, "youtube");
+      if (sanitized.error) {
         return NextResponse.json(
-          { error: "Field youtube tidak valid" },
+          { error: sanitized.error },
           { status: 400 }
         );
       }
-      nextSocial.youtube = { url: yt.url, isActive: yt.isActive };
+      nextSocial.youtube = sanitized.items;
     }
 
     if ("instagram" in body) {
-      if (!Array.isArray(body.instagram)) {
+      const sanitized = sanitizeSocialItems(body.instagram, "instagram");
+      if (sanitized.error) {
         return NextResponse.json(
-          { error: "Field instagram harus berupa array" },
+          { error: sanitized.error },
           { status: 400 }
         );
       }
-      nextSocial.instagram = body.instagram.map((item: any) => {
-        const url = typeof item.url === "string" ? item.url : "";
-        const isActive = typeof item.isActive === "boolean" ? item.isActive : true;
-        return { url, isActive };
-      });
+      nextSocial.instagram = sanitized.items;
     }
 
     MOCK_DATA.socialMedia = nextSocial;

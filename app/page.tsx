@@ -301,69 +301,71 @@ export default function LandingPage() {
     hyperlink?: string | string[];
     extraContacts?: { label: string; href: string }[];
   }[] = [];
-  if (
-    schoolSettings?.socialMedia?.instagram &&
-    Array.isArray(schoolSettings.socialMedia.instagram) &&
-    schoolSettings.socialMedia.instagram.length > 0
-  ) {
-    const activeInstagram = schoolSettings.socialMedia.instagram.filter(
-      (i) => i.isActive,
-    );
-    const maxInstagram = 3;
-    const limitedInstagram = activeInstagram.slice(0, maxInstagram);
-    const extraInstagram = activeInstagram.slice(maxInstagram).map((item) => ({
+
+  const normalizeSocialEntries = (
+    value:
+      | { url?: string; isActive?: boolean }
+      | { url?: string; isActive?: boolean }[]
+      | undefined,
+  ) => {
+    const source = Array.isArray(value)
+      ? value
+      : value && typeof value === "object"
+        ? [value]
+        : [];
+
+    return source.filter((item) => !!item?.isActive && !!item?.url);
+  };
+
+  const appendSocialGroup = (
+    name: string,
+    icon: string,
+    value:
+      | { url?: string; isActive?: boolean }
+      | { url?: string; isActive?: boolean }[]
+      | undefined,
+  ) => {
+    const activeItems = normalizeSocialEntries(value);
+    if (!activeItems.length) return;
+
+    const maxVisible = 3;
+    const visibleItems = activeItems.slice(0, maxVisible);
+    const extraItems = activeItems.slice(maxVisible).map((item) => ({
       label: getHandleFromUrl(item.url as string),
       href: item.url as string,
     }));
-    const hyperlinks = limitedInstagram.map((i) => i.url as string);
-    const contacts = hyperlinks.map((h) => getHandleFromUrl(h));
+    const hyperlinks = visibleItems.map((item) => item.url as string);
+    const contacts = hyperlinks.map((url) => getHandleFromUrl(url));
+
     socialList.push({
-      name: "Instagram",
+      name,
       contact: contacts,
-      icon: "/sosmed/instagram.svg",
+      icon,
       hyperlink: hyperlinks,
-      extraContacts: extraInstagram.length > 0 ? extraInstagram : undefined,
+      extraContacts: extraItems.length > 0 ? extraItems : undefined,
     });
-  }
-  if (
-    schoolSettings?.socialMedia?.tiktok?.isActive &&
-    schoolSettings.socialMedia.tiktok.url
-  ) {
-    socialList.push({
-      name: "Tiktok",
-      contact: getHandleFromUrl(
-        schoolSettings.socialMedia.tiktok.url as string,
-      ),
-      icon: "/sosmed/tiktok.svg",
-      hyperlink: schoolSettings.socialMedia.tiktok.url,
-    });
-  }
-  if (
-    schoolSettings?.socialMedia?.youtube?.isActive &&
-    schoolSettings.socialMedia.youtube.url
-  ) {
-    socialList.push({
-      name: "Youtube",
-      contact: getHandleFromUrl(
-        schoolSettings.socialMedia.youtube.url as string,
-      ),
-      icon: "/sosmed/youtube.svg",
-      hyperlink: schoolSettings.socialMedia.youtube.url,
-    });
-  }
-  if (
-    schoolSettings?.socialMedia?.facebook?.isActive &&
-    schoolSettings.socialMedia.facebook.url
-  ) {
-    socialList.push({
-      name: "Facebook",
-      contact: getHandleFromUrl(
-        schoolSettings.socialMedia.facebook.url as string,
-      ),
-      icon: "/sosmed/facebook.svg",
-      hyperlink: schoolSettings.socialMedia.facebook.url,
-    });
-  }
+  };
+
+  appendSocialGroup(
+    "Instagram",
+    "/sosmed/instagram.svg",
+    schoolSettings?.socialMedia?.instagram,
+  );
+  appendSocialGroup(
+    "TikTok",
+    "/sosmed/tiktok.svg",
+    schoolSettings?.socialMedia?.tiktok,
+  );
+  appendSocialGroup(
+    "Youtube",
+    "/sosmed/youtube.svg",
+    schoolSettings?.socialMedia?.youtube,
+  );
+  appendSocialGroup(
+    "Facebook",
+    "/sosmed/facebook.svg",
+    schoolSettings?.socialMedia?.facebook,
+  );
 
   const adminList =
     schoolSettings?.whatsappNumbers && schoolSettings.whatsappNumbers.length > 0

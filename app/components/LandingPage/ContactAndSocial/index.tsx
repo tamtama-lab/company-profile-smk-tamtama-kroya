@@ -6,7 +6,8 @@ import { IoGlobeSharp, IoLocationOutline } from "react-icons/io5";
 import React from "react";
 import Dropdown from "@/components/Dropdown";
 import { BsWhatsapp } from "react-icons/bs";
-import { LuPlus } from "react-icons/lu";
+
+type SocialMediaItem = { url?: string; isActive?: boolean };
 
 export type SchoolSettings = {
   email?: string;
@@ -15,10 +16,10 @@ export type SchoolSettings = {
   address?: string;
   whatsappNumbers?: { name: string; label: string; number: string }[];
   socialMedia?: {
-    tiktok?: { url?: string; isActive?: boolean };
-    youtube?: { url?: string; isActive?: boolean };
-    facebook?: { url?: string; isActive?: boolean };
-    instagram?: { url?: string; isActive?: boolean }[];
+    tiktok?: SocialMediaItem | SocialMediaItem[];
+    youtube?: SocialMediaItem | SocialMediaItem[];
+    facebook?: SocialMediaItem | SocialMediaItem[];
+    instagram?: SocialMediaItem | SocialMediaItem[];
   };
   brochureFrontUrl?: string | null;
   brochureBackUrl?: string | null;
@@ -65,8 +66,7 @@ export const ContactAndSocial: React.FC<{
   adminList: adminList[];
 }> = ({ id, contactList, socialList, adminList }) => {
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [isInstagramExtraOpen, setIsInstagramExtraOpen] = React.useState(false);
-  const extraInstagramRef = React.useRef<HTMLDivElement | null>(null);
+  const [openExtraKey, setOpenExtraKey] = React.useState<string | null>(null);
 
   const closeModal = () => setModalOpen(false);
 
@@ -74,7 +74,7 @@ export const ContactAndSocial: React.FC<{
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeModal();
-        setIsInstagramExtraOpen(false);
+        setOpenExtraKey(null);
       }
     };
 
@@ -84,19 +84,15 @@ export const ContactAndSocial: React.FC<{
 
   React.useEffect(() => {
     const onClickOutside = (event: MouseEvent) => {
-      if (!isInstagramExtraOpen) return;
-      const target = event.target as Node;
-      if (
-        extraInstagramRef.current &&
-        !extraInstagramRef.current.contains(target)
-      ) {
-        setIsInstagramExtraOpen(false);
-      }
+      if (!openExtraKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest(`[data-social-extra-key="${openExtraKey}"]`)) return;
+      setOpenExtraKey(null);
     };
 
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
-  }, [isInstagramExtraOpen]);
+  }, [openExtraKey]);
 
   const message =
     "Halo! Mohon informasikan pendaftaran murid baru di SMK Tamtama Kroya.";
@@ -172,10 +168,9 @@ export const ContactAndSocial: React.FC<{
                     </div>
                   </div>
                   <div className="w-full">
-                    {/* Instagram khusus: tampilkan vertikal jika array */}
+                    {/* Multi akun: tampilkan vertikal dan beri popover untuk akun tambahan */}
                     {Array.isArray(contact.contact) &&
-                    Array.isArray(contact.hyperlink) &&
-                    contact.name === "Instagram" ? (
+                    Array.isArray(contact.hyperlink) ? (
                       <div className="flex flex-col gap-1">
                         {contact.contact.map((item, idx) => {
                           const link =
@@ -184,7 +179,8 @@ export const ContactAndSocial: React.FC<{
                           const hasExtra =
                             (contact.extraContacts?.length || 0) > 0;
 
-                          const extraButton = isLast && hasExtra;
+                          const showExtraButton = isLast && hasExtra;
+                          const extraKey = `${contact.name}-${index}-${idx}`;
 
                           if (!link) {
                             return (
@@ -195,21 +191,23 @@ export const ContactAndSocial: React.FC<{
                                 <span className="text-base max-md:text-sm text-gray-600">
                                   {item}
                                 </span>
-                                {extraButton ? (
+                                {showExtraButton ? (
                                   <div
-                                    ref={extraInstagramRef}
+                                    data-social-extra-key={extraKey}
                                     className="relative shrink-0"
                                   >
                                     <button
                                       type="button"
                                       onClick={() =>
-                                        setIsInstagramExtraOpen((prev) => !prev)
+                                        setOpenExtraKey((prev) =>
+                                          prev === extraKey ? null : extraKey,
+                                        )
                                       }
-                                      className="text-xs px-2 py-1 rounded-full border border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+                                      className="text-xs px-2 py-1 rounded-sm border border-primary text-primary hover:bg-primary hover:text-white transition-colors"
                                     >
                                       +{contact.extraContacts?.length}
                                     </button>
-                                    {isInstagramExtraOpen ? (
+                                    {openExtraKey === extraKey ? (
                                       <div className="absolute right-0 top-full mt-2 w-44 rounded-md border border-gray-200 bg-white shadow-lg p-2 z-10">
                                         <div className="flex flex-col gap-1">
                                           {contact.extraContacts?.map(
@@ -247,22 +245,24 @@ export const ContactAndSocial: React.FC<{
                               >
                                 {item}
                               </a>
-                              {extraButton ? (
+                              {showExtraButton ? (
                                 <div
-                                  ref={extraInstagramRef}
+                                  data-social-extra-key={extraKey}
                                   className="relative shrink-0"
                                 >
-                                  <TextButton
-                                    variant="outline"
+                                  <button
                                     type="button"
-                                    text={` +${contact.extraContacts?.length}`}
                                     onClick={() =>
-                                      setIsInstagramExtraOpen((prev) => !prev)
+                                      setOpenExtraKey((prev) =>
+                                        prev === extraKey ? null : extraKey,
+                                      )
                                     }
-                                    className="text-sm! px-2! py-1!"
-                                  ></TextButton>
-                                  {isInstagramExtraOpen ? (
-                                    <div className="absolute right-0 top-full mt-2 w-44 rounded-md border border-gray-200 bg-white shadow-lg p-4 z-10">
+                                    className="text-xs px-2 py-1 rounded-sm border border-primary text-primary transition-colors"
+                                  >
+                                    +{contact.extraContacts?.length}
+                                  </button>
+                                  {openExtraKey === extraKey ? (
+                                    <div className="absolute right-0 top-full mt-2 w-44 rounded-md border border-gray-200 bg-white shadow-lg p-2 z-10">
                                       <div className="flex flex-col gap-1">
                                         {contact.extraContacts?.map(
                                           (extra, extraIdx) => (
@@ -271,7 +271,7 @@ export const ContactAndSocial: React.FC<{
                                               href={extra.href}
                                               target="_blank"
                                               rel="noopener noreferrer"
-                                              className="text-base text-gray-700 hover:underline hover:underline-offset-2"
+                                              className="text-sm text-gray-700 hover:underline hover:underline-offset-2"
                                             >
                                               {extra.label}
                                             </a>
@@ -310,7 +310,7 @@ export const ContactAndSocial: React.FC<{
         </div>
         {/* sisi kanan bawah */}
         <div className="w-full grid row-span-1 cols-span-1 p-3 max-sm:p-1">
-          <div className="w-full grid grid-cols-7 gap-4">
+          <div className="w-full max-h-12 grid grid-cols-7 gap-4">
             <div className="col-span-4">
               <Dropdown
                 isOpen={modalOpen}
@@ -320,7 +320,7 @@ export const ContactAndSocial: React.FC<{
                 leftIcon={<BsWhatsapp size={20} />}
                 color="bg-primary"
                 width="w-full"
-                className="px-4 max-sm:px-2"
+                className="px-4 max-sm:px-2 h-fit"
                 textColor="text-white"
                 rounded="rounded-md"
               >
