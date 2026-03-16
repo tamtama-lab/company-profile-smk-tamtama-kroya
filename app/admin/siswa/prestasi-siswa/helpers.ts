@@ -7,6 +7,8 @@ export const COMPETITION_LEVEL_OPTIONS = [
   { value: "kabupaten", label: "Kabupaten" },
   { value: "daerah", label: "Daerah" },
   { value: "provinsi", label: "Provinsi" },
+  { value: "nasional", label: "Nasional" },
+  { value: "internasional", label: "Internasional" },
 ] as const;
 
 export const PROVINCE_OPTIONS = [
