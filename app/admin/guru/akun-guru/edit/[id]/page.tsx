@@ -270,7 +270,7 @@ export default function AdminEditTeacherAccountPage() {
 
       showAlert({
         title: "Berhasil",
-        description: "Akun guru berhasil diperbarui",
+        description: "Akun guru berhasil diupdate",
         variant: "success",
       });
       router.push("/admin/guru/akun-guru");

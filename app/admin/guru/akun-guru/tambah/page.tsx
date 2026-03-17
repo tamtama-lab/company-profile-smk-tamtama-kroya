@@ -44,7 +44,7 @@ export default function AdminAddTeacherAccountPage() {
   const TeacherSchema = z.object({
     fullName: z.string().min(1, "Nama Lengkap harus diisi"),
     username: z.string().min(1, "Username harus diisi"),
-    password: z.string().min(6, "Password minimal 6 karakter"),
+    password: z.string().min(8, "Password minimal 8 karakter"),
   });
 
   const form = useForm<z.infer<typeof TeacherSchema>>({
@@ -262,6 +262,7 @@ export default function AdminAddTeacherAccountPage() {
                           {...field}
                           label="Password"
                           type="password"
+                          min={8}
                           placeholder="Masukkan Password"
                           isMandatory
                           error={form.formState.errors.password?.message}
@@ -346,8 +347,4 @@ export default function AdminAddTeacherAccountPage() {
       </div>
     </div>
   );
-
-  if (isLoadingTeacher) {
-    return <LoadingState message="Memuat data guru..." />;
-  }
 }
