@@ -98,6 +98,8 @@ export const ContactAndSocial: React.FC<{
     "Halo! Mohon informasikan pendaftaran murid baru di SMK Tamtama Kroya.";
 
   const encodedMessage = encodeURIComponent(message);
+  const extraContactsPopoverClassName =
+    "absolute right-0 top-full mt-2 z-10 w-fit min-w-max rounded-md border border-gray-200 bg-white p-2 shadow-lg";
 
   return (
     <section
@@ -208,8 +210,12 @@ export const ContactAndSocial: React.FC<{
                                       +{contact.extraContacts?.length}
                                     </button>
                                     {openExtraKey === extraKey ? (
-                                      <div className="absolute right-0 top-full mt-2 w-44 rounded-md border border-gray-200 bg-white shadow-lg p-2 z-10">
-                                        <div className="flex flex-col gap-1">
+                                      <div
+                                        className={
+                                          extraContactsPopoverClassName
+                                        }
+                                      >
+                                        <div className="flex w-fit flex-col gap-1">
                                           {contact.extraContacts?.map(
                                             (extra, extraIdx) => (
                                               <a
@@ -217,7 +223,7 @@ export const ContactAndSocial: React.FC<{
                                                 href={extra.href}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-xs text-gray-700 hover:underline hover:underline-offset-2"
+                                                className="w-fit whitespace-nowrap text-xs text-gray-700 hover:underline hover:underline-offset-2"
                                               >
                                                 {extra.label}
                                               </a>
@@ -262,8 +268,10 @@ export const ContactAndSocial: React.FC<{
                                     +{contact.extraContacts?.length}
                                   </button>
                                   {openExtraKey === extraKey ? (
-                                    <div className="absolute right-0 top-full mt-2 w-44 rounded-md border border-gray-200 bg-white shadow-lg p-2 z-10">
-                                      <div className="flex flex-col gap-1">
+                                    <div
+                                      className={extraContactsPopoverClassName}
+                                    >
+                                      <div className="flex w-fit flex-col gap-1">
                                         {contact.extraContacts?.map(
                                           (extra, extraIdx) => (
                                             <a
@@ -271,7 +279,7 @@ export const ContactAndSocial: React.FC<{
                                               href={extra.href}
                                               target="_blank"
                                               rel="noopener noreferrer"
-                                              className="text-sm text-gray-700 hover:underline hover:underline-offset-2"
+                                              className="w-fit whitespace-nowrap text-sm text-gray-700 hover:underline hover:underline-offset-2"
                                             >
                                               {extra.label}
                                             </a>
