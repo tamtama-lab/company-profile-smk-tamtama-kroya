@@ -39,6 +39,41 @@ const sidebarItems = [
     ],
   },
   {
+    group: "manajemen spmb",
+    items: [
+      {
+        icon: FiUsers,
+        label: "Data Calon Murid",
+        href: "/admin/spmb/data-calon-murid",
+      },
+      {
+        icon: TbMessageUser,
+        label: "Panitia SPMB",
+        href: "/admin/spmb/panitia-spmb",
+      },
+      {
+        icon: LuFilePenLine,
+        label: "Bukti Pendaftaran",
+        href: "/admin/spmb/bukti-pendaftaran",
+      },
+    ],
+  },
+  {
+    group: "manajemen guru",
+    items: [
+      {
+        icon: FaChalkboardTeacher,
+        label: "Akun Guru",
+        href: "/admin/guru/akun-guru",
+      },
+      {
+        icon: LuListChecks,
+        label: "Pendaftaran Oleh Guru",
+        href: "/admin/guru/pendaftaran-oleh-guru",
+      },
+    ],
+  },
+  {
     group: "konten & informasi landing page",
     items: [
       {
@@ -90,41 +125,6 @@ const sidebarItems = [
         icon: FaRegBuilding,
         label: "Program Keahlian",
         href: "/admin/siswa/program-keahlian",
-      },
-    ],
-  },
-  {
-    group: "manajemen spmb",
-    items: [
-      {
-        icon: FiUsers,
-        label: "Data Calon Murid",
-        href: "/admin/spmb/data-calon-murid",
-      },
-      {
-        icon: TbMessageUser,
-        label: "Panitia SPMB",
-        href: "/admin/spmb/panitia-spmb",
-      },
-      {
-        icon: LuFilePenLine,
-        label: "Bukti Pendaftaran",
-        href: "/admin/spmb/bukti-pendaftaran",
-      },
-    ],
-  },
-  {
-    group: "manajemen guru",
-    items: [
-      {
-        icon: FaChalkboardTeacher,
-        label: "Akun Guru",
-        href: "/admin/guru/akun-guru",
-      },
-      {
-        icon: LuListChecks,
-        label: "Pendaftaran Oleh Guru",
-        href: "/admin/guru/pendaftaran-oleh-guru",
       },
     ],
   },

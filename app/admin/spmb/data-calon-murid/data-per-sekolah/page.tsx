@@ -299,6 +299,9 @@ export default function AdminProspectiveStudentPage() {
   // Fetch students dengan filter school_origin
   const fetchStudents = useCallback(
     async (page: number, search: string = "", pageLimit: number = 10) => {
+      if (!selectedSchoolOrigin || selectedSchoolOrigin.trim() === "") {
+        setStudents([]);
+      }
       setIsLoading(true);
       setError(null);
       try {
@@ -778,10 +781,10 @@ export default function AdminProspectiveStudentPage() {
                 </button>
                 <button
                   onClick={() => handleDeleteTab(tab)}
-                  className="absolute right-1 p-1 opacity-0 group-hover:opacity-100 hover:bg-red-100 rounded-full transition-opacity"
+                  className="mr-2 rounded-full transition-opacity"
                   title="Hapus tab"
                 >
-                  <LuX className="text-red-500 text-sm" />
+                  <LuX className="text-gray-600 text-base" />
                 </button>
               </div>
             ))}
