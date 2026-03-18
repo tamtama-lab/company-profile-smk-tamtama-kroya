@@ -9,6 +9,7 @@ interface StudentDetail {
   dateOfBirth: string;
   gender: number;
   religion: string;
+  religionOther: string;
   schoolOriginNpsn: string;
   address: string;
   phoneNumber: string;
@@ -105,6 +106,7 @@ export async function PUT(
         dateOfBirth: body.studentDetail?.dateOfBirth || "",
         gender: body.studentDetail?.gender ?? 1,
         religion: body.studentDetail?.religion || "",
+        religionOther: body.studentDetail?.religionOther || "",
         schoolOriginNpsn: body.studentDetail?.schoolOriginNpsn || "",
         address: body.studentDetail?.address || "",
         phoneNumber: body.studentDetail?.phoneNumber || "",
