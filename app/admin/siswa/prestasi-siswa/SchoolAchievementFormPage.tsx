@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { LuGripVertical, LuRefreshCcw, LuPlus, LuTrash2 } from "react-icons/lu";
+import { LuGripVertical, LuPlus, LuTrash2 } from "react-icons/lu";
 import { TextButton } from "@/components/Buttons/TextButton";
 import { DateInput } from "@/components/InputForm/DateInput";
 import SelectInput from "@/components/InputForm/SelectInput";
@@ -1028,7 +1028,7 @@ export default function SchoolAchievementFormPage({
               )}
             </div>
 
-            <SelectInput
+            <SearchableSelect
               label="Kategori Lomba"
               value={formValues.category}
               options={categoryOptions}
@@ -1041,7 +1041,6 @@ export default function SchoolAchievementFormPage({
                 setFormErrors((prev) => ({ ...prev, category: undefined }));
               }}
               isMandatory
-              disabled={isSubmitting}
               error={formErrors.category}
             />
 

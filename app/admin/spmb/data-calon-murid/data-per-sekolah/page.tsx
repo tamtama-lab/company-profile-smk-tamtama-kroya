@@ -60,22 +60,6 @@ export default function AdminProspectiveStudentPage() {
   const [tabToDelete, setTabToDelete] = useState<SchoolTab | null>(null);
   // State untuk konfirmasi hapus semua tab
   const [deleteAllTabsModalOpen, setDeleteAllTabsModalOpen] = useState(false);
-  // Fungsi untuk hapus semua tab
-  const handleDeleteAllTabs = () => {
-    setDeleteAllTabsModalOpen(true);
-  };
-
-  const confirmDeleteAllTabs = () => {
-    setSchoolTabs([]);
-    setActiveTab("");
-    setSelectedSchoolOrigin("");
-    setDeleteAllTabsModalOpen(false);
-    showAlert({
-      title: "Berhasil",
-      description: "Semua tab sekolah berhasil dihapus",
-      variant: "success",
-    });
-  };
 
   // State untuk data siswa
   const [students, setStudents] = useState<Student[]>([]);
@@ -124,6 +108,11 @@ export default function AdminProspectiveStudentPage() {
 
   const router = useRouter();
   const [isRouting, setIsRouting] = useState(false);
+
+  // Fungsi untuk hapus semua tab
+  const handleDeleteAllTabs = () => {
+    setDeleteAllTabsModalOpen(true);
+  };
 
   // Load tabs dari localStorage saat komponen dimount
   useEffect(() => {
@@ -182,6 +171,7 @@ export default function AdminProspectiveStudentPage() {
       setIsSearchingSchool(false);
     }
   };
+
   // Debounce school search query
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -227,13 +217,17 @@ export default function AdminProspectiveStudentPage() {
       schoolOrigin: selectedSchool,
     };
 
-    setSchoolTabs([...schoolTabs, newTab]);
+    const updatedTabs = [...schoolTabs, newTab];
+    setSchoolTabs(updatedTabs);
     setActiveTab(newTab.id);
     setSelectedSchoolOrigin(selectedSchool);
     setIsAddSchoolModalOpen(false);
     setSchoolSearchQuery("");
     setSchoolSearchResults([]);
     setSelectedSchool("");
+
+    // Reset ke halaman 1 saat menambah tab baru
+    setCurrentPage(1);
 
     showAlert({
       title: "Berhasil",
@@ -260,7 +254,10 @@ export default function AdminProspectiveStudentPage() {
         setSelectedSchoolOrigin(newTabs[0].schoolOrigin);
       } else {
         setActiveTab("");
-        setSelectedSchoolOrigin("");
+        setSelectedSchoolOrigin(""); // Reset ke empty string
+        // Reset students dan meta
+        setStudents([]);
+        setMeta(null);
       }
     }
 
@@ -274,13 +271,28 @@ export default function AdminProspectiveStudentPage() {
     });
   };
 
+  const confirmDeleteAllTabs = () => {
+    setSchoolTabs([]);
+    setActiveTab("");
+    setSelectedSchoolOrigin(""); // Reset ke empty string
+    // Reset students dan meta
+    setStudents([]);
+    setMeta(null);
+    setDeleteAllTabsModalOpen(false);
+    showAlert({
+      title: "Berhasil",
+      description: "Semua tab sekolah berhasil dihapus",
+      variant: "success",
+    });
+  };
+
   // Fungsi untuk ganti tab
   const handleTabChange = (tabId: string) => {
     const tab = schoolTabs.find((t) => t.id === tabId);
     if (tab) {
       setActiveTab(tabId);
       setSelectedSchoolOrigin(tab.schoolOrigin);
-      setCurrentPage(1);
+      setCurrentPage(1); // Reset ke halaman 1 saat ganti tab
     }
   };
 
@@ -302,8 +314,11 @@ export default function AdminProspectiveStudentPage() {
         if (selectAuthored !== "") params.append("authored", selectAuthored);
         if (selectedMajor !== "")
           params.append("major_code", String(selectedMajor));
-        if (selectedSchoolOrigin)
+
+        // HANYA tambahkan school_origin jika ada nilai dan tidak empty
+        if (selectedSchoolOrigin && selectedSchoolOrigin.trim() !== "") {
           params.append("school_origin", selectedSchoolOrigin);
+        }
 
         const response = await fetch(
           `/api/dashboard/students?${params.toString()}`,
@@ -345,13 +360,16 @@ export default function AdminProspectiveStudentPage() {
   );
 
   useEffect(() => {
-    if (selectedSchoolOrigin) {
-      fetchStudents(currentPage, debouncedSearchTerm, limit);
-    } else {
+    // Reset data jika tidak ada selectedSchoolOrigin
+    if (!selectedSchoolOrigin || selectedSchoolOrigin.trim() === "") {
       setStudents([]);
       setMeta(null);
       setIsLoading(false);
+      return;
     }
+
+    // Fetch hanya jika ada selectedSchoolOrigin
+    fetchStudents(currentPage, debouncedSearchTerm, limit);
   }, [
     currentPage,
     debouncedSearchTerm,
@@ -555,9 +573,19 @@ export default function AdminProspectiveStudentPage() {
     async (type: "pdf" | "xlsx") => {
       setIsExporting(true);
       try {
+        // Generate filename with selectedSchoolOrigin if present
+        let filename = "Data Calon Murid";
+        if (selectedSchoolOrigin && selectedSchoolOrigin.trim() !== "") {
+          // Remove special chars and limit length for filename safety
+          const safeSchool = selectedSchoolOrigin
+            .replace(/[^a-zA-Z0-9\-_ ]/g, "")
+            .replace(/\s+/g, "_")
+            .slice(0, 40);
+          filename = `Data Calon Murid_${safeSchool}`;
+        }
         await downloadRegistrationExport({
           type,
-          filename: "Data Calon Murid",
+          filename,
           filters: {
             search: debouncedSearchTerm,
             batchId: selectedBatchId,
@@ -813,88 +841,101 @@ export default function AdminProspectiveStudentPage() {
         {/* Konten Utama */}
         <div className="w-full h-fit bg-white rounded-b-md drop-shadow-sm">
           <div className="p-2 max-sm:p-2">
-            <div className="flex w-auto flex-wrap flex-col gap-4 lg:flex-row lg:items-center lg:justify-end mb-3">
-              <DownloadDropdown
-                disabled={!selectedSchoolOrigin}
-                loading={isExporting}
-                onDownloadExcel={() => handleDownload("xlsx")}
-                onDownloadPdf={() => handleDownload("pdf")}
-              />
-              <SelectInput
-                value={selectedYearId}
-                onChange={(e) => {
-                  setSelectedYearId(e.target.value);
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: "", label: "Seluruh Tahun Ajaran" },
-                  ...yearsOptions,
-                ]}
-                placeholder={"Pilih Tahun Ajaran "}
-                isMandatory
-                className="w-full lg:w-44"
-              />
-              <SelectInput
-                className="w-full lg:w-52"
-                value={selectAuthored}
-                onChange={(e) => {
-                  setSelectedAuthor(e.target.value as "" | "true" | "false");
-                  setCurrentPage(1);
-                }}
-                options={
-                  registrationTypeOptions.length > 0
-                    ? registrationTypeOptions
-                    : [
-                        { value: "", label: "Semua Jenis Pendaftaran" },
-                        { value: "true", label: "Oleh Guru" },
-                        { value: "false", label: "Mandiri" },
-                      ]
-                }
-                placeholder={"Pilih Jenis Pendaftaran "}
-                isMandatory
-              />
-              <SelectInput
-                value={selectedBatchId}
-                onChange={(e) => {
-                  setSelectedBatchId(e.target.value);
-                  setCurrentPage(1);
-                }}
-                options={[{ value: "", label: "Semua Gelombang" }, ...batches]}
-                placeholder="Pilih Gelombang"
-                className="w-full lg:w-40"
-              />
-              <SelectInput
-                value={selectedMajor}
-                onChange={(e) => {
-                  setSelectedMajor(e.target.value);
-                  setCurrentPage(1);
-                }}
-                options={[{ value: "", label: "Semua Jurusan" }, ...majors]}
-                placeholder="Pilih Jurusan"
-                className="w-full lg:w-35"
-              />
-              <TextButton
-                variant="outline"
-                text="Reset"
-                disabled={loadingStates || !selectedSchoolOrigin}
-                className="w-full font-normal text-sm! px-2! py-1.5! rouned-md! sm:col-span-2 lg:w-auto mb-2 shrink-0"
-                isLoading={loadingStates}
-                icon={<IoMdRefresh className="text-lg shrink-0" />}
-                onClick={handleResetFilters}
-              />
-              <Search
-                className="w-full mb-2 lg:max-w-58 lg:w-full"
-                searchTerm={searchTerm}
-                handleSearchChange={handleSearchChange}
-                placeholder="nama / no daftar / sekolah"
-              />
-            </div>
+            {/* Filter dan Aksi - hanya tampilkan jika ada selectedSchoolOrigin */}
+            {selectedSchoolOrigin && selectedSchoolOrigin.trim() !== "" && (
+              <div className="flex w-auto flex-wrap flex-col gap-4 lg:flex-row lg:items-center lg:justify-end mb-3">
+                <DownloadDropdown
+                  disabled={isLoading}
+                  loading={isExporting}
+                  onDownloadExcel={() => handleDownload("xlsx")}
+                  onDownloadPdf={() => handleDownload("pdf")}
+                />
+                <SelectInput
+                  value={selectedYearId}
+                  onChange={(e) => {
+                    setSelectedYearId(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  options={[
+                    { value: "", label: "Seluruh Tahun Ajaran" },
+                    ...yearsOptions,
+                  ]}
+                  placeholder={"Pilih Tahun Ajaran "}
+                  isMandatory
+                  className="w-full lg:w-44"
+                  disabled={isLoading}
+                />
+                <SelectInput
+                  className="w-full lg:w-52"
+                  value={selectAuthored}
+                  onChange={(e) => {
+                    setSelectedAuthor(e.target.value as "" | "true" | "false");
+                    setCurrentPage(1);
+                  }}
+                  options={
+                    registrationTypeOptions.length > 0
+                      ? registrationTypeOptions
+                      : [
+                          { value: "", label: "Semua Jenis Pendaftaran" },
+                          { value: "true", label: "Oleh Guru" },
+                          { value: "false", label: "Mandiri" },
+                        ]
+                  }
+                  placeholder={"Pilih Jenis Pendaftaran "}
+                  isMandatory
+                  disabled={isLoading}
+                />
+                <SelectInput
+                  value={selectedBatchId}
+                  onChange={(e) => {
+                    setSelectedBatchId(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  options={[
+                    { value: "", label: "Semua Gelombang" },
+                    ...batches,
+                  ]}
+                  placeholder="Pilih Gelombang"
+                  className="w-full lg:w-40"
+                  disabled={isLoading}
+                />
+                <SelectInput
+                  value={selectedMajor}
+                  onChange={(e) => {
+                    setSelectedMajor(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  options={[{ value: "", label: "Semua Jurusan" }, ...majors]}
+                  placeholder="Pilih Jurusan"
+                  className="w-full lg:w-35"
+                  disabled={isLoading}
+                />
+                <TextButton
+                  variant="outline"
+                  text="Reset"
+                  disabled={loadingStates}
+                  className="w-full font-normal text-sm! px-2! py-1.5! rouned-md! sm:col-span-2 lg:w-auto mb-2 shrink-0"
+                  isLoading={loadingStates}
+                  icon={<IoMdRefresh className="text-lg shrink-0" />}
+                  onClick={handleResetFilters}
+                />
+                <Search
+                  className="w-full mb-2 lg:max-w-58 lg:w-full"
+                  searchTerm={searchTerm}
+                  handleSearchChange={handleSearchChange}
+                  placeholder="nama / no daftar / sekolah"
+                />
+              </div>
+            )}
 
-            {!selectedSchoolOrigin ? (
-              <div className="text-center py-12 text-gray-500">
+            {/* Tabel Data */}
+            {!selectedSchoolOrigin || selectedSchoolOrigin.trim() === "" ? (
+              <div className="flex flex-col justify-center items-center text-center py-12 min-h-72 text-gray-500">
                 <p className="text-lg">Belum ada sekolah yang dipilih</p>
                 <p className="text-sm mt-2">
-                  Klik tombol "Tambah Sekolah" untuk memulai
+                  Klik tombol{" "}
+                  <span className="font-semibold">"+ (Tambah Sekolah)"</span>{" "}
+                  untuk memulai
                 </p>
               </div>
             ) : (
@@ -903,25 +944,29 @@ export default function AdminProspectiveStudentPage() {
                 dataSource={students}
                 loading={isLoading}
                 error={error || undefined}
-                emptyText="Data Tidak Ada"
+                emptyText={isLoading ? "Memuat data..." : "Data Tidak Ada"}
                 rowKey="id"
                 serverSidePagination={true}
                 tableLayout="fixed"
-                pagination={{
-                  current: currentPage,
-                  pageSize: limit,
-                  total: meta?.total || 0,
-                  showSizeChanger: true,
-                  pageSizeOptions: [5, 10, 25, 50, 100],
-                  onChange: (page, pageSize) => {
-                    setCurrentPage(page);
-                    setLimit(pageSize);
-                  },
-                  onShowSizeChange: (current, size) => {
-                    setCurrentPage(1);
-                    setLimit(size);
-                  },
-                }}
+                pagination={
+                  meta
+                    ? {
+                        current: currentPage,
+                        pageSize: limit,
+                        total: meta?.total || 0,
+                        showSizeChanger: true,
+                        pageSizeOptions: [5, 10, 25, 50, 100],
+                        onChange: (page, pageSize) => {
+                          setCurrentPage(page);
+                          setLimit(pageSize);
+                        },
+                        onShowSizeChange: (current, size) => {
+                          setCurrentPage(1);
+                          setLimit(size);
+                        },
+                      }
+                    : false
+                }
                 scroll={{ y: 600 }}
               />
             )}

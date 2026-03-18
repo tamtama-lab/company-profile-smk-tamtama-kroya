@@ -5,7 +5,7 @@ import { LuX } from "react-icons/lu";
 
 interface SearchableSelectProps {
   label: string;
-  name: string;
+  name?: string;
   value: string | number;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
