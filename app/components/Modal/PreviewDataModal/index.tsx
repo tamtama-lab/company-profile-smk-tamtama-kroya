@@ -3,6 +3,7 @@
 import { TextButton } from "@/components/Buttons/TextButton";
 import { BaseModal } from "@/components/Modal/BaseModal";
 import { RegistrationData } from "@/utils/registrationTypes";
+import { calculateStudentAge } from "@/utils/calculateStudentAge";
 
 interface ModalPreviewDataProps {
   isOpen: boolean;
@@ -18,7 +19,7 @@ const labelMap: Record<string, string> = {
   namaLengkap: "Nama Lengkap",
   tempatLahir: "Tempat Lahir",
   email: "Email Aktif",
-  tanggalLahir: "Tanggal Lahir",
+  tanggalLahir: "Tanggal Lahir (Usia)",
   nik: "NIK",
   jenisKelamin: "Jenis Kelamin",
   nisn: "NISN",
@@ -89,11 +90,14 @@ const formatValue = (
   }
   if (dateKeys.includes(key) && typeof value === "string") {
     const date = new Date(value);
-    return date.toLocaleDateString("id-ID", {
+    const formattedDate = date.toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "long",
       year: "numeric",
     });
+    // Tambahkan usia lengkap
+    const age = calculateStudentAge(value as string, "yearMonthDay");
+    return `${formattedDate} (${age})`;
   }
   return String(value);
 };

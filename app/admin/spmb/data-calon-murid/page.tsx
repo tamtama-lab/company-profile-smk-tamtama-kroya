@@ -24,12 +24,11 @@ import {
   transformFromApiFormat,
   transformRecentRegistrations,
 } from "@/utils/transformRegistrationData";
-import DownloadDropdown from "@/components/Dropdown/DownloadDropdown";
+import { calculateStudentAge } from "@/utils/calculateStudentAge";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { IoMdRefresh } from "react-icons/io";
 import { LuEye, LuPen, LuTrash2 } from "react-icons/lu";
-import { Button } from "@/components/ui/button";
 
 export default function AdminProspectiveStudentPage() {
   const { showAlert } = useAlert();
@@ -55,7 +54,7 @@ export default function AdminProspectiveStudentPage() {
     "",
   );
   const [batches, setBatches] = useState<
-    Array<{ value: string | number; label: string; disabled?: boolean }>
+    Array<{ value: string | number; label: string }>
   >([]);
 
   const [majors, setMajors] = useState<
@@ -287,7 +286,7 @@ export default function AdminProspectiveStudentPage() {
           }) => ({
             value: b.id,
             label: b.name || b.title || `Gelombang ${b.id}`,
-            disabled: Number(b.isActive) === 0,
+            // disabled: Number(b.isActive) === 0,
           }),
         );
 
@@ -508,6 +507,17 @@ export default function AdminProspectiveStudentPage() {
       key: "fullName",
       sorter: true,
       width: 200,
+    },
+    {
+      title: "Usia (Tahun)",
+      dataIndex: "dateOfBirth",
+      key: "age",
+      align: "center",
+      width: 100,
+      render: (value, record) => {
+        // value = dateOfBirth
+        return calculateStudentAge(record.dateOfBirth);
+      },
     },
     {
       title: "No. Pendaftaran",

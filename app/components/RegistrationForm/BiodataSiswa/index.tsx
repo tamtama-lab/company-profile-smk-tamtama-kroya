@@ -24,6 +24,7 @@ import {
   FormTextarea,
 } from "@/components/ui/form-input";
 import { useAlert } from "@/components/ui/alert";
+import { calculateStudentAge } from "@/utils/calculateStudentAge";
 
 const biodataSiswaSchema = z
   .object({
@@ -425,33 +426,47 @@ export const BiodataSiswa: React.FC<BiodataSiswaProps> = ({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="tanggalLahir"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <DateInput
-                    label="Tanggal Lahir"
-                    name="tanggalLahir"
-                    placeholder={
-                      "Masukkan Tanggal Lahir " +
-                      (isTeacherMode ? "Calon Murid" : "Anda")
-                    }
-                    max={new Date().toISOString().split("T")[0]}
-                    isMandatory
-                    value={field.value}
-                    onChange={(date) => {
-                      field.onChange(
-                        date ? date.toISOString().split("T")[0] : "",
-                      );
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const usia = field.value
+                ? calculateStudentAge(field.value, "yearMonthDay")
+                : "-";
+              return (
+                <FormItem className="gap-2">
+                  <FormControl>
+                    <DateInput
+                      label="Tanggal Lahir"
+                      name="tanggalLahir"
+                      placeholder={
+                        "Masukkan Tanggal Lahir " +
+                        (isTeacherMode ? "Calon Murid" : "Anda")
+                      }
+                      max={new Date().toISOString().split("T")[0]}
+                      isMandatory
+                      value={field.value}
+                      onChange={(date) => {
+                        field.onChange(
+                          date ? date.toISOString().split("T")[0] : "",
+                        );
+                      }}
+                    />
+                  </FormControl>
+                  <div className="h-2 max-sm:h-1" />
+                  <FormControl>
+                    <FormInput
+                      label="Usia"
+                      value={usia}
+                      disabled
+                      readOnly
+                      className="mt-0"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           <FormField
